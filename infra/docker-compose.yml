@@ -1,72 +1,60 @@
 services:
   gateway:
     build:
-      context: ../gateway
+      context: ./gateway
     container_name: icarus-gateway
     ports:
-      - "8080:8080"
+      - "8081:8080"
     depends_on:
       - auth-service
       - matches-service
+      - rooms-service
+      - analytics-service
     networks:
-      - icarus-net
+      - supabase_net
 
   auth-service:
     build:
-      context: ../services/auth-service
+      context: ./services/auth-service
     container_name: icarus-auth
     environment:
       PORT: 4001
-      AUTH_DB_URL: ${AUTH_DB_URL}
-    depends_on:
-      - auth-db
+      AUTH_DB_URL: postgresql://auth_svc:AuthSvc_2026_dev@supabase-db:5432/auth_db
+      JWT_SECRET: dev_secret
     networks:
-      - icarus-net
+      - supabase_net
 
   matches-service:
     build:
-      context: ../services/matches-service
+      context: ./services/matches-service
     container_name: icarus-matches
     environment:
       PORT: 4002
-      MATCHES_DB_URL: ${MATCHES_DB_URL}
-    depends_on:
-      - matches-db
+      MATCHES_DB_URL: postgresql://matches_svc:MatchesSvc_2026_dev@supabase-db:5432/matches_db
     networks:
-      - icarus-net
+      - supabase_net
 
-  auth-db:
-    image: postgres:16-alpine
-    container_name: icarus-auth-db
+  rooms-service:
+    build:
+      context: ./services/rooms-service
+    container_name: icarus-rooms
     environment:
-      POSTGRES_USER: ${AUTH_DB_USER}
-      POSTGRES_PASSWORD: ${AUTH_DB_PASSWORD}
-      POSTGRES_DB: ${AUTH_DB_NAME}
-    ports:
-      - "5433:5432"
-    volumes:
-      - auth_db_data:/var/lib/postgresql/data
+      PORT: 4003
+      ROOMS_DB_URL: postgresql://rooms_svc:RoomsSvc_2026_dev@supabase-db:5432/rooms_db
     networks:
-      - icarus-net
+      - supabase_net
 
-  matches-db:
-    image: postgres:16-alpine
-    container_name: icarus-matches-db
+  analytics-service:
+    build:
+      context: ./services/analytics-service
+    container_name: icarus-analytics
     environment:
-      POSTGRES_USER: ${MATCHES_DB_USER}
-      POSTGRES_PASSWORD: ${MATCHES_DB_PASSWORD}
-      POSTGRES_DB: ${MATCHES_DB_NAME}
-    ports:
-      - "5434:5432"
-    volumes:
-      - matches_db_data:/var/lib/postgresql/data
+      PORT: 4004
+      ANALYTICS_DB_URL: postgresql://analytics_svc:AnalyticsSvc_2026_dev@supabase-db:5432/analytics_db
     networks:
-      - icarus-net
-
-volumes:
-  auth_db_data:
-  matches_db_data:
+      - supabase_net
 
 networks:
-  icarus-net:
-    driver: bridge
+  supabase_net:
+    external: true
+    name: do4ksgcc0wksg4wwg4osgk0o

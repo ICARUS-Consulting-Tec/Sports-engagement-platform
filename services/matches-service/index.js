@@ -29,9 +29,20 @@ app.get("/health", async (req, res) => {
   }
 });
 
-app.get("/", (req, res) => {
+app.get("/", async (req, res) => {
+  try {
+    const result = await pool.query("SELECT * FROM matches LIMIT 10");
+    res.json(result.rows);
+  } catch (error) {
+    res.status(500).json({
+      error: error.message
+    });
+  }
+});
+
+app.get("/:id", (req, res) => {
   res.json({
-    message: "Matches service is running"
+    message: `match ${req.params.id} endpoint working`
   });
 });
 
