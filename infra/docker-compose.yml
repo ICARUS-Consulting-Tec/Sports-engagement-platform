@@ -1,0 +1,72 @@
+services:
+  gateway:
+    build:
+      context: ../gateway
+    container_name: icarus-gateway
+    ports:
+      - "8080:8080"
+    depends_on:
+      - auth-service
+      - matches-service
+    networks:
+      - icarus-net
+
+  auth-service:
+    build:
+      context: ../services/auth-service
+    container_name: icarus-auth
+    environment:
+      PORT: 4001
+      AUTH_DB_URL: ${AUTH_DB_URL}
+    depends_on:
+      - auth-db
+    networks:
+      - icarus-net
+
+  matches-service:
+    build:
+      context: ../services/matches-service
+    container_name: icarus-matches
+    environment:
+      PORT: 4002
+      MATCHES_DB_URL: ${MATCHES_DB_URL}
+    depends_on:
+      - matches-db
+    networks:
+      - icarus-net
+
+  auth-db:
+    image: postgres:16-alpine
+    container_name: icarus-auth-db
+    environment:
+      POSTGRES_USER: ${AUTH_DB_USER}
+      POSTGRES_PASSWORD: ${AUTH_DB_PASSWORD}
+      POSTGRES_DB: ${AUTH_DB_NAME}
+    ports:
+      - "5433:5432"
+    volumes:
+      - auth_db_data:/var/lib/postgresql/data
+    networks:
+      - icarus-net
+
+  matches-db:
+    image: postgres:16-alpine
+    container_name: icarus-matches-db
+    environment:
+      POSTGRES_USER: ${MATCHES_DB_USER}
+      POSTGRES_PASSWORD: ${MATCHES_DB_PASSWORD}
+      POSTGRES_DB: ${MATCHES_DB_NAME}
+    ports:
+      - "5434:5432"
+    volumes:
+      - matches_db_data:/var/lib/postgresql/data
+    networks:
+      - icarus-net
+
+volumes:
+  auth_db_data:
+  matches_db_data:
+
+networks:
+  icarus-net:
+    driver: bridge
