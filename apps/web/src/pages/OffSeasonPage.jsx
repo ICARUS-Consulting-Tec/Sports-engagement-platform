@@ -1,8 +1,12 @@
+import { useState } from "react";
 import Navbar from "../components/layout/Navbar";
 import UnityGameCard from "../components/unity/UnityGameCard";
+import WordleGame from "../components/wordle/WordleGame";
 import "../styles/unity.css";
 
 function OffSeasonPage() {
+  const [activeTab, setActiveTab] = useState("unity");
+
   return (
     <div style={styles.page}>
       <main style={styles.container}>
@@ -19,14 +23,54 @@ function OffSeasonPage() {
           </div>
         </section>
 
-        <UnityGameCard
-          unityConfig={{
-            loaderUrl: "/Build/BuildPrototipo.loader.js",
-            dataUrl: "/Build/BuildPrototipo.data.br",
-            frameworkUrl: "/Build/BuildPrototipo.framework.js.br",
-            codeUrl: "/Build/BuildPrototipo.wasm.br",
-          }}
-        />
+        <section className="offseason-tabs-shell">
+          <div className="offseason-tabs-header">
+            <div>
+              <p style={styles.sectionEyebrow}>GAME MODES</p>
+              <h2 style={styles.sectionTitle}>Choose Your Challenge</h2>
+            </div>
+
+            <div className="offseason-tabs-nav" role="tablist" aria-label="Off-Season games">
+              <button
+                type="button"
+                role="tab"
+                aria-selected={activeTab === "unity"}
+                className={`offseason-tab-button ${
+                  activeTab === "unity" ? "offseason-tab-button-active" : ""
+                }`}
+                onClick={() => setActiveTab("unity")}
+              >
+                Unity
+              </button>
+              <button
+                type="button"
+                role="tab"
+                aria-selected={activeTab === "wordle"}
+                className={`offseason-tab-button ${
+                  activeTab === "wordle" ? "offseason-tab-button-active" : ""
+                }`}
+                onClick={() => setActiveTab("wordle")}
+              >
+                Wordle
+              </button>
+            </div>
+          </div>
+
+          <div className="offseason-tab-panel" role="tabpanel">
+            {activeTab === "unity" ? (
+              <UnityGameCard
+                unityConfig={{
+                  loaderUrl: "/Build/BuildPrototipo.loader.js",
+                  dataUrl: "/Build/BuildPrototipo.data.br",
+                  frameworkUrl: "/Build/BuildPrototipo.framework.js.br",
+                  codeUrl: "/Build/BuildPrototipo.wasm.br",
+                }}
+              />
+            ) : null}
+
+            {activeTab === "wordle" ? <WordleGame /> : null}
+          </div>
+        </section>
       </main>
     </div>
   );
@@ -69,6 +113,18 @@ const styles = {
     fontSize: "18px",
     lineHeight: 1.6,
     color: "rgba(255, 255, 255, 0.82)",
+  },
+  sectionEyebrow: {
+    margin: "0 0 6px",
+    letterSpacing: "0.16em",
+    fontSize: "11px",
+    fontWeight: 700,
+    color: "#d62839",
+  },
+  sectionTitle: {
+    margin: 0,
+    fontSize: "28px",
+    color: "#0B2A55",
   },
 };
 
