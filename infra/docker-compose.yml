@@ -10,6 +10,7 @@ services:
       - matches-service
       - rooms-service
       - analytics-service
+      - store-service
     networks:
       - supabase_net
 
@@ -51,6 +52,15 @@ services:
     environment:
       PORT: 4004
       ANALYTICS_DB_URL: postgresql://analytics_svc:AnalyticsSvc_2026_dev@supabase-db:5432/analytics_db
+    networks:
+      - supabase_net
+
+  store-service:
+    build:
+      context: ../services/store-service
+    container_name: icarus-store
+    environment:
+      PORT: 4005
     networks:
       - supabase_net
 
