@@ -29,3 +29,12 @@ export interface StoreProduct {
   default_price: string;
   images?: string[];
 }
+
+export interface Profile {
+  first_name: string;
+  last_name: string;
+  username: string;
+  country: string;
+  user_id: number | string;
+  account_id: number | string;
+}
