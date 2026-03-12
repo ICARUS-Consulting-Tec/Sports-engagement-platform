@@ -8,14 +8,15 @@ function Navbar() {
         <h2 style={styles.brand}>TITANS CREW</h2>
 
         <div style={styles.links}>
-          <NavLink to="/" style={styles.link} activeStyle={styles.activeLink}>Home</NavLink>
-          <NavLink to="/matches" style={styles.link} activeStyle={styles.activeLink}>Matches</NavLink>
-          <NavLink to="/team" style={styles.link} activeStyle={styles.activeLink}>Team</NavLink>
-          <NavLink to="/community" style={styles.link} activeStyle={styles.activeLink}>Community</NavLink>
-          <NavLink to="/history" style={styles.link} activeStyle={styles.activeLink}>History</NavLink>
-          <NavLink to="/store" style={styles.link} activeStyle={styles.activeLink}>Store</NavLink>
-          <NavLink to="/news" style={styles.link} activeStyle={styles.activeLink}>News</NavLink>
-          <NavLink to="/offseason" style={styles.link} activeStyle={styles.activeLink}>Off-Season</NavLink>
+          <NavLink to="/" style={styles.link}>Home</NavLink>
+          <NavLink to="/matches" style={styles.link}>Matches</NavLink>
+          <NavLink to="/team" style={styles.link}>Team</NavLink>
+          <NavLink to="/community" style={styles.link}>Community</NavLink>
+          <NavLink to="/history" style={styles.link}>History</NavLink>
+          <NavLink to="/store" style={styles.link}>Store</NavLink>
+          <NavLink to="/news" style={styles.link}>News</NavLink>
+          <NavLink to="/offseason" style={styles.link}>Off-Season</NavLink>
+          <NavLink to="/voice-agent" style={styles.link}>VoiceAgent</NavLink>
         </div>
       </div>
 
@@ -34,6 +35,10 @@ const styles = {
     justifyContent: "space-between",
     alignItems: "center",
     marginBottom: "24px",
+  },
+  link: {
+    textDecoration: "none",
+    color: "#374151",
   },
   leftSection: {
     display: "flex",
