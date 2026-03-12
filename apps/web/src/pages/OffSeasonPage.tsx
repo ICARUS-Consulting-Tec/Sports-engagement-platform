@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import Navbar from "../components/layout/Navbar"
 import { UnityGameCard } from '../components/unity/UnityGameCard'
+import { WordleGame } from '../components/wordle/WordleGame'
 import type { CSSProperties } from 'react'
 
 type OffSeasonTab = 'unity' | 'word'
@@ -48,7 +49,13 @@ function OffSeasonPage() {
           </div>
 
           <div style={styles.contentWrap}>
-            {activeTab === 'unity' ? <UnityGameCard unityConfig={unityBuildConfig} /> : <div style={styles.pendingBox}>Wordle se implementara despues.</div>}
+            {activeTab === 'unity' ? (
+              <UnityGameCard unityConfig={unityBuildConfig} />
+            ) : (
+              <div style={styles.wordleWrap}>
+                <WordleGame />
+              </div>
+            )}
           </div>
         </section>
       </main>
@@ -132,14 +139,10 @@ const styles: Record<string, CSSProperties> = {
   contentWrap: {
     marginTop: "16px",
   },
-  pendingBox: {
-    border: "1px dashed #c8d1db",
-    borderRadius: "12px",
-    padding: "28px",
-    textAlign: "center",
-    color: "#4f6173",
-    backgroundColor: "#f8fafc",
-    fontWeight: 600,
+  wordleWrap: {
+    display: "flex",
+    justifyContent: "center",
+    width: "100%",
   },
 }
 
