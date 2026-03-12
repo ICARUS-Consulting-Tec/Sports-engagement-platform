@@ -2,6 +2,15 @@ import { useEffect, useState } from 'react';
 import { getProducts, createCheckout } from '../services/storeService';
 import { useNavigate } from 'react-router-dom';
 
+export default async function HandleOnClick(default_price, quantity){
+  try {
+    const data = await createCheckout(default_price, Number(quantity));
+    window.location.href = data.url;
+  } catch (err) {
+    console.error("Checkout error:", err);
+  }
+} 
+
 export default function StorePage() {
   const [products, setProducts] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -32,9 +41,9 @@ export default function StorePage() {
             <p>${item.default_price}</p>
             <label for="cantidad">Cantidad: </label>
             <input type='number' id='cantidad' name='cantidad' min={1} step={1} onChange={(e) => setQuantity(e.target.value)}/>
-            <button onClick={() => createCheckout(item.default_price, quantity)}>
-              Comprar
-            </button>
+            <button onClick={() => {HandleOnClick(item.default_price, quantity)}}>
+                Comprar
+              </button>
           </div>
         ))}
       </div>
