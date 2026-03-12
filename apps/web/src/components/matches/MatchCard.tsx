@@ -1,6 +1,11 @@
 import { useNavigate } from "react-router-dom";
+import type { Match } from "../../types";
 
-function MatchCard({ match }) {
+interface MatchCardProps {
+  match: Match;
+}
+
+function MatchCard({ match }: MatchCardProps) {
   const navigate = useNavigate();
   const isLive = match.status === "LIVE";
   const isFinished = match.status === "FINISHED";
@@ -65,7 +70,7 @@ const styles = {
     padding: "24px",
     minHeight: "280px",
     display: "flex",
-    flexDirection: "column",
+    flexDirection: "column" as const,
     justifyContent: "space-between",
     boxShadow: "0 2px 8px rgba(0,0,0,0.04)",
   },
@@ -77,7 +82,7 @@ const styles = {
   },
   badge: {
     color: "white",
-    fontWeight: "bold",
+    fontWeight: "bold" as const,
     fontSize: "14px",
     padding: "8px 14px",
     borderRadius: "6px",
@@ -113,11 +118,11 @@ const styles = {
     display: "flex",
     alignItems: "center",
     justifyContent: "center",
-    fontWeight: "bold",
+    fontWeight: "bold" as const,
   },
   result: {
     fontSize: "20px",
-    fontWeight: "bold",
+    fontWeight: "bold" as const,
   },
   footer: {
     borderTop: "1px solid #e5e7eb",

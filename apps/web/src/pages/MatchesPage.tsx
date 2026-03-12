@@ -2,9 +2,10 @@ import { useEffect, useState } from "react";
 import Navbar from "../components/layout/Navbar";
 import MatchCard from "../components/matches/MatchCard";
 import { getMatches } from "../services/matchesService";
+import type { Match, ApiMatch } from "../types";
 
 function MatchesPage() {
-  const [matches, setMatches] = useState([]);
+  const [matches, setMatches] = useState<Match[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
 
@@ -87,7 +88,7 @@ function MatchesPage() {
   );
 }
 
-function mapMatchToCardModel(match) {
+function mapMatchToCardModel(match: ApiMatch): Match {
   const opponent = getOpponentName(match);
 
   return {
@@ -101,7 +102,7 @@ function mapMatchToCardModel(match) {
   };
 }
 
-function getOpponentName(match) {
+function getOpponentName(match: ApiMatch): string {
   const isTitansHome = match.home_team === "Tennessee Titans";
   const isTitansAway = match.away_team === "Tennessee Titans";
 
@@ -116,7 +117,7 @@ function getOpponentName(match) {
   return simplifyTeamName(match.away_team || match.home_team || "TBD");
 }
 
-function simplifyTeamName(teamName) {
+function simplifyTeamName(teamName?: string): string {
   if (!teamName) {
     return "TBD";
   }
@@ -131,7 +132,7 @@ function simplifyTeamName(teamName) {
     .replace("Miami Dolphins", "Dolphins");
 }
 
-function buildVenueText(match) {
+function buildVenueText(match: ApiMatch): string {
   if (match.venue_name && match.venue_city) {
     return `${match.venue_name}, ${match.venue_city}`;
   }
@@ -143,7 +144,7 @@ function buildVenueText(match) {
   return "Venue TBD";
 }
 
-function getMatchStatus(match) {
+function getMatchStatus(match: ApiMatch): "LIVE" | "FINISHED" | "UPCOMING" {
   const status = String(match.status || "").toLowerCase();
 
   if (status.includes("live") || status.includes("in_progress") || status.includes("in progress")) {
@@ -172,7 +173,7 @@ function getMatchStatus(match) {
   return "FINISHED";
 }
 
-function getResultLabel(match) {
+function getResultLabel(match: ApiMatch): string {
   const status = getMatchStatus(match);
 
   if (status === "LIVE") {
@@ -186,7 +187,7 @@ function getResultLabel(match) {
   return "COUNTDOWN";
 }
 
-function getResultValue(match) {
+function getResultValue(match: ApiMatch): string {
   const status = getMatchStatus(match);
 
   if (status === "LIVE" || status === "FINISHED") {
@@ -202,10 +203,10 @@ function getResultValue(match) {
   return getCountdownText(match.start_time);
 }
 
-function getCountdownText(startTime) {
+function getCountdownText(startTime: string): string {
   const now = new Date();
   const start = new Date(startTime);
-  const diffMs = start - now;
+  const diffMs = start.getTime() - now.getTime();
 
   if (diffMs <= 0) {
     return "Starting soon";
@@ -220,7 +221,7 @@ function getCountdownText(startTime) {
   return `Starts in ${days} days`;
 }
 
-function formatMatchDate(dateString) {
+function formatMatchDate(dateString?: string): string {
   if (!dateString) {
     return "Date TBD";
   }
@@ -234,7 +235,7 @@ function formatMatchDate(dateString) {
   });
 }
 
-const styles = {
+const styles: Record<string, React.CSSProperties> = {
   page: {
     minHeight: "100vh",
     backgroundColor: "#F4F5F7",

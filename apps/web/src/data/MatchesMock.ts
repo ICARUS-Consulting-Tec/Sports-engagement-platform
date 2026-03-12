@@ -1,4 +1,6 @@
-const matchesMock = [
+import type { Match } from "../types";
+
+const matchesMock: Match[] = [
   {
     id: 1,
     status: "FINISHED",

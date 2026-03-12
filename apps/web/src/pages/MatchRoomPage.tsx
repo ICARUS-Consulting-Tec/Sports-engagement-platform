@@ -1,11 +1,8 @@
 import Scoreboard from "../components/matchroom/Scoreboard";
 import FanChat from "../components/matchroom/FanChat";
 import "../styles/matchroom.css";
-import { useParams } from "react-router-dom";
 
 function MatchRoomPage() {
-  const { id } = useParams();
-
   return (
     <div className="match-room">
 

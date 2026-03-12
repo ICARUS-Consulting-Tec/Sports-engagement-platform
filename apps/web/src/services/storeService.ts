@@ -1,13 +1,14 @@
 import { apiFetch } from './api';
+import type { StoreProduct } from '../types';
 
 export async function getProducts() {
-    return await apiFetch("/get_products");
+    return await apiFetch<{ products: StoreProduct[] }>("/get_products");
 }
 
-export async function createCheckout(priceId, quantity) {
+export async function createCheckout(priceId: string, quantity: number) {
     console.log("createCheckout args:", { priceId, quantity });
 
-    return await apiFetch("/create_checkout", {
+    return await apiFetch<{ url: string }>("/create_checkout", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({

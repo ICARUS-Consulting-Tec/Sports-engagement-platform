@@ -8,14 +8,14 @@ function Navbar() {
         <h2 style={styles.brand}>TITANS CREW</h2>
 
         <div style={styles.links}>
-          <NavLink to="/" style={styles.link} activeStyle={styles.activeLink}>Home</NavLink>
-          <NavLink to="/matches" style={styles.link} activeStyle={styles.activeLink}>Matches</NavLink>
-          <NavLink to="/team" style={styles.link} activeStyle={styles.activeLink}>Team</NavLink>
-          <NavLink to="/community" style={styles.link} activeStyle={styles.activeLink}>Community</NavLink>
-          <NavLink to="/history" style={styles.link} activeStyle={styles.activeLink}>History</NavLink>
-          <NavLink to="/store" style={styles.link} activeStyle={styles.activeLink}>Store</NavLink>
-          <NavLink to="/news" style={styles.link} activeStyle={styles.activeLink}>News</NavLink>
-          <NavLink to="/offseason" style={styles.link} activeStyle={styles.activeLink}>Off-Season</NavLink>
+          <NavLink to="/" style={({ isActive }) => ({ ...styles.link, ...(isActive ? styles.activeLink : {}) })}>Home</NavLink>
+          <NavLink to="/matches" style={({ isActive }) => ({ ...styles.link, ...(isActive ? styles.activeLink : {}) })}>Matches</NavLink>
+          <NavLink to="/team" style={({ isActive }) => ({ ...styles.link, ...(isActive ? styles.activeLink : {}) })}>Team</NavLink>
+          <NavLink to="/community" style={({ isActive }) => ({ ...styles.link, ...(isActive ? styles.activeLink : {}) })}>Community</NavLink>
+          <NavLink to="/history" style={({ isActive }) => ({ ...styles.link, ...(isActive ? styles.activeLink : {}) })}>History</NavLink>
+          <NavLink to="/store" style={({ isActive }) => ({ ...styles.link, ...(isActive ? styles.activeLink : {}) })}>Store</NavLink>
+          <NavLink to="/news" style={({ isActive }) => ({ ...styles.link, ...(isActive ? styles.activeLink : {}) })}>News</NavLink>
+          <NavLink to="/offseason" style={({ isActive }) => ({ ...styles.link, ...(isActive ? styles.activeLink : {}) })}>Off-Season</NavLink>
         </div>
       </div>
 
@@ -24,7 +24,7 @@ function Navbar() {
   );
 }
 
-const styles = {
+const styles: Record<string, React.CSSProperties> = {
   navbar: {
     backgroundColor: "#ffffff",
     border: "1px solid #e5e7eb",
@@ -65,6 +65,7 @@ const styles = {
     fontSize: "16px",
     flexWrap: "wrap",
   },
+  link: {},
   activeLink: {
     fontWeight: "bold",
   },

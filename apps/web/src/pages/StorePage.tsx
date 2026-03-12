@@ -1,18 +1,19 @@
 import { useEffect, useState } from 'react';
 import { getProducts, createCheckout } from '../services/storeService';
 import { useNavigate } from 'react-router-dom';
+import type { StoreProduct } from '../types';
 
-async function HandleOnClick(default_price, quantity){
+async function HandleOnClick(default_price: string, quantity: string | number){
   try {
     const data = await createCheckout(default_price, Number(quantity));
     window.location.href = data.url;
   } catch (err) {
     console.error("Checkout error:", err);
   }
-} 
+}
 
 export default function StorePage() {
-  const [products, setProducts] = useState([]);
+  const [products, setProducts] = useState<StoreProduct[]>([]);
   const [loading, setLoading] = useState(true);
   const [quantity, setQuantity] = useState(1);
   const navigate = useNavigate();
@@ -39,8 +40,8 @@ export default function StorePage() {
             <h3>{item.name}</h3>
             <p>{item.description}</p>
             <p>${item.default_price}</p>
-            <label for="cantidad">Cantidad: </label>
-            <input type='number' id='cantidad' name='cantidad' min={1} step={1} onChange={(e) => setQuantity(e.target.value)}/>
+            <label htmlFor="cantidad">Cantidad: </label>
+            <input type='number' id='cantidad' name='cantidad' min={1} step={1} onChange={(e) => setQuantity(Number(e.target.value))}/>
             <button onClick={() => {HandleOnClick(item.default_price, quantity)}}>
                 Comprar
               </button>
