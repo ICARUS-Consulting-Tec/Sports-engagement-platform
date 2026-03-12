@@ -1,6 +1,13 @@
 import { NavLink } from "react-router-dom";
 
 function Navbar() {
+  function getLinkStyle({ isActive }) {
+    return {
+      ...styles.link,
+      ...(isActive ? styles.activeLink : {}),
+    };
+  }
+
   return (
     <nav style={styles.navbar}>
       <div style={styles.leftSection}>
@@ -8,14 +15,14 @@ function Navbar() {
         <h2 style={styles.brand}>TITANS CREW</h2>
 
         <div style={styles.links}>
-          <NavLink to="/" style={styles.link} activeStyle={styles.activeLink}>Home</NavLink>
-          <NavLink to="/matches" style={styles.link} activeStyle={styles.activeLink}>Matches</NavLink>
-          <NavLink to="/team" style={styles.link} activeStyle={styles.activeLink}>Team</NavLink>
-          <NavLink to="/community" style={styles.link} activeStyle={styles.activeLink}>Community</NavLink>
-          <NavLink to="/history" style={styles.link} activeStyle={styles.activeLink}>History</NavLink>
-          <NavLink to="/store" style={styles.link} activeStyle={styles.activeLink}>Store</NavLink>
-          <NavLink to="/news" style={styles.link} activeStyle={styles.activeLink}>News</NavLink>
-          <NavLink to="/offseason" style={styles.link} activeStyle={styles.activeLink}>Off-Season</NavLink>
+          <NavLink to="/" style={getLinkStyle}>Home</NavLink>
+          <NavLink to="/matches" style={getLinkStyle}>Matches</NavLink>
+          <NavLink to="/team" style={getLinkStyle}>Team</NavLink>
+          <NavLink to="/community" style={getLinkStyle}>Community</NavLink>
+          <NavLink to="/history" style={getLinkStyle}>History</NavLink>
+          <NavLink to="/store" style={getLinkStyle}>Store</NavLink>
+          <NavLink to="/news" style={getLinkStyle}>News</NavLink>
+          <NavLink to="/offseason" style={getLinkStyle}>Off-Season</NavLink>
         </div>
       </div>
 
