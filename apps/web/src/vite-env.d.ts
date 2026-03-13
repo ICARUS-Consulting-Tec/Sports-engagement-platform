@@ -10,6 +10,7 @@ interface ImportMeta {
 }
 
 interface UnityConfig {
+  arguments?: string[];
   dataUrl: string;
   frameworkUrl: string;
   codeUrl: string;
@@ -17,6 +18,7 @@ interface UnityConfig {
   companyName: string;
   productName: string;
   productVersion: string;
+  showBanner?: (message: string, type?: "warning" | "error" | "log") => void;
 }
 
 interface UnityInstance {
