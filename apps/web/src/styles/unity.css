@@ -46,6 +46,11 @@
   border: 1px solid #d8dee5;
 }
 
+.unity-toolbar > div:first-child {
+  display: grid;
+  gap: 2px;
+}
+
 .unity-toolbar-title {
   margin: 0 0 6px;
   color: #0b2a55;
