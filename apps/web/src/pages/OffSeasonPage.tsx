@@ -4,6 +4,8 @@ import UnityGameCard from "../components/unity/UnityGameCard";
 import WordleGame from "../components/wordle/WordleGame";
 import "../styles/unity.css";
 
+const UNITY_BUILD_REVISION = "2026-03-12-bridge-fix-2";
+
 function OffSeasonPage() {
   const [activeTab, setActiveTab] = useState<"unity" | "wordle">("unity");
 
@@ -46,10 +48,10 @@ function OffSeasonPage() {
             {activeTab === "unity" ? (
               <UnityGameCard
                 unityConfig={{
-                  loaderUrl: "/Build/BuildPrototipo.loader.js",
-                  dataUrl: "/Build/BuildPrototipo.data.br",
-                  frameworkUrl: "/Build/BuildPrototipo.framework.js.br",
-                  codeUrl: "/Build/BuildPrototipo.wasm.br",
+                  loaderUrl: `/Build/BuildPrototipo3.loader.js?v=${UNITY_BUILD_REVISION}`,
+                  dataUrl: `/Build/BuildPrototipo3.data?v=${UNITY_BUILD_REVISION}`,
+                  frameworkUrl: `/Build/BuildPrototipo3.framework.js?v=${UNITY_BUILD_REVISION}`,
+                  codeUrl: `/Build/BuildPrototipo3.wasm?v=${UNITY_BUILD_REVISION}`,
                 }}
               />
             ) : null}

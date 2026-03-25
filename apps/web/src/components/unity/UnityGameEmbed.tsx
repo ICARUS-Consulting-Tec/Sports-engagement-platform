@@ -7,6 +7,10 @@ const JOYCON_STANDARD_FULL_MODE = 0x30;
 const JOYCON_STANDARD_FULL_MODE_ALT = 0x31;
 const JOYCON_SUBCOMMAND_SET_INPUT_REPORT_MODE = 0x03;
 const JOYCON_SUBCOMMAND_ENABLE_IMU = 0x40;
+const JOYCON_RIGHT_BUTTON_BYTE_INDEX = 1;
+const JOYCON_SHARED_BUTTON_BYTE_INDEX = 2;
+const JOYCON_LEFT_BUTTON_BYTE_INDEX = 3;
+const JOYCON_ZR_BITMASK = 0b10000000;
 const JOYCON_RUMBLE_NEUTRAL = [0x00, 0x01, 0x40, 0x40, 0x00, 0x01, 0x40, 0x40];
 const JOYCON_MOTION_SAMPLE_SIZE = 12;
 const JOYCON_MOTION_BLOCK_OFFSET = 12;
@@ -30,6 +34,21 @@ interface MotionPayload {
 }
 
 type InputReportHandler = (event: HIDInputReportEvent) => void;
+type BridgeMethod = "OnJoyConStatus" | "OnZRDown" | "OnZRUp" | "OnMotion";
+
+function unityShowBanner(message: string, type: "warning" | "error" | "log" = "log"): void {
+  if (type === "error") {
+    console.error(`[Unity] ${message}`);
+    return;
+  }
+
+  if (type === "warning") {
+    console.warn(`[Unity] ${message}`);
+    return;
+  }
+
+  console.log(`[Unity] ${message}`);
+}
 
 function readInt16LE(bytes: Uint8Array, index: number): number {
   if (index + 1 >= bytes.length) {
@@ -85,12 +104,42 @@ function extractMotionPayload(bytes: Uint8Array): MotionPayload | null {
   };
 }
 
-function extractZRPressed(bytes: Uint8Array): boolean {
-  if (bytes.length < 4) {
+function readHidBytes(data: DataView): Uint8Array {
+  return new Uint8Array(data.buffer, data.byteOffset, data.byteLength);
+}
+
+function formatButtonBytes(bytes: Uint8Array): string {
+  const buttonBytes = [
+    bytes[JOYCON_RIGHT_BUTTON_BYTE_INDEX],
+    bytes[JOYCON_SHARED_BUTTON_BYTE_INDEX],
+    bytes[JOYCON_LEFT_BUTTON_BYTE_INDEX],
+  ]
+    .map((value) => `0x${(value ?? 0).toString(16).padStart(2, "0")}`)
+    .join(" ");
+
+  return `Buttons: ${buttonBytes}`;
+}
+
+function extractZRPressed(bytes: Uint8Array, productName = ""): boolean {
+  const normalizedName = productName.toLowerCase();
+  const buttonBytes = [
+    bytes[JOYCON_RIGHT_BUTTON_BYTE_INDEX] ?? 0,
+    bytes[JOYCON_SHARED_BUTTON_BYTE_INDEX] ?? 0,
+    bytes[JOYCON_LEFT_BUTTON_BYTE_INDEX] ?? 0,
+  ];
+
+  if (normalizedName.includes("left")) {
     return false;
   }
 
-  return (bytes[2] & 0b10000000) !== 0 || (bytes[3] & 0b10000000) !== 0;
+  if (normalizedName.includes("pro controller")) {
+    return buttonBytes.some((value) => (value & JOYCON_ZR_BITMASK) !== 0);
+  }
+
+  return (
+    (buttonBytes[0] & JOYCON_ZR_BITMASK) !== 0 ||
+    (buttonBytes[1] & JOYCON_ZR_BITMASK) !== 0
+  );
 }
 
 function isMotionReport(event: HIDInputReportEvent): boolean {
@@ -101,19 +150,24 @@ function isMotionReport(event: HIDInputReportEvent): boolean {
 }
 
 function UnityGameEmbed({
-  loaderUrl = "/Build/BuildPrototipo.loader.js",
-  dataUrl = "/Build/BuildPrototipo.data.br",
-  frameworkUrl = "/Build/BuildPrototipo.framework.js.br",
-  codeUrl = "/Build/BuildPrototipo.wasm.br",
+  loaderUrl = "/Build/BuildPrototipo3.loader.js",
+  dataUrl = "/Build/BuildPrototipo3.data",
+  frameworkUrl = "/Build/BuildPrototipo3.framework.js",
+  codeUrl = "/Build/BuildPrototipo3.wasm",
 }: UnityGameEmbedProps) {
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
   const unityInstanceRef = useRef<UnityInstance | null>(null);
   const deviceRef = useRef<HIDDevice | null>(null);
   const reportHandlerRef = useRef<InputReportHandler | null>(null);
+  const bridgeSyncIntervalRef = useRef<number | null>(null);
+  const zrSyncIntervalRef = useRef<number | null>(null);
   const packetNumberRef = useRef(0);
   const isZRPressedRef = useRef(false);
   const mountedRef = useRef(true);
   const isUnityLoadedRef = useRef(false);
+  const latestJoyConStatusRef = useRef<"connected" | "disconnected">("disconnected");
+  const latestMotionPayloadRef = useRef<MotionPayload | null>(null);
+  const pendingBridgeMessagesRef = useRef<Map<BridgeMethod, string>>(new Map());
 
   const [loadingProgress, setLoadingProgress] = useState(0);
   const [isUnityLoaded, setIsUnityLoaded] = useState(false);
@@ -121,10 +175,13 @@ function UnityGameEmbed({
   const [unityError, setUnityError] = useState("");
   const [joyConStatus, setJoyConStatus] = useState("Joy-Con no conectado");
   const [bridgeStatus, setBridgeStatus] = useState("Bridge idle");
+  const [bridgeMotionStatus, setBridgeMotionStatus] = useState("Sin eventos de movimiento");
+  const [bridgeButtonStatus, setBridgeButtonStatus] = useState("Sin eventos de botones");
   const [bridgeError, setBridgeError] = useState("");
   const [reportCount, setReportCount] = useState(0);
   const [zrStateLabel, setZrStateLabel] = useState("ZR: up");
   const [motionStatus, setMotionStatus] = useState("IMU idle");
+  const [buttonBytesLabel, setButtonBytesLabel] = useState("Buttons: -- -- --");
 
   const hasWebHid = typeof navigator !== "undefined" && Boolean(navigator.hid);
 
@@ -138,18 +195,19 @@ function UnityGameEmbed({
     const normalizedStatus = joyConStatus.toLowerCase();
 
     if (normalizedStatus.includes("conectado")) {
-      return "CONTROL IOT CONECTADO";
+      return "IOT CONTROL: CONECTADO";
     }
 
     if (normalizedStatus.includes("conect")) {
-      return "CONTROL IOT CONECTANDO";
+      return "IOT CONTROL: CONECTANDO";
     }
 
-    return "CONTROL IOT NO CONECTADO";
+    return "IOT CONTROL: NO CONECTADO";
   }
 
   function safeSendToUnity(method: string, payload = ""): boolean {
     const unityInstance = unityInstanceRef.current;
+    const statusMessage = `Enviado -> ${UNITY_BRIDGE_OBJECT}.${method}`;
 
     if (!unityInstance || !isUnityLoadedRef.current) {
       updateState(setBridgeStatus, `Unity no cargado (intentando ${method})`);
@@ -158,7 +216,12 @@ function UnityGameEmbed({
 
     try {
       unityInstance.SendMessage(UNITY_BRIDGE_OBJECT, method, payload);
-      updateState(setBridgeStatus, `Enviado -> ${UNITY_BRIDGE_OBJECT}.${method}`);
+      updateState(setBridgeStatus, statusMessage);
+      if (method === "OnMotion") {
+        updateState(setBridgeMotionStatus, statusMessage);
+      } else {
+        updateState(setBridgeButtonStatus, statusMessage);
+      }
       updateState(setBridgeError, "");
       return true;
     } catch (error) {
@@ -170,6 +233,78 @@ function UnityGameEmbed({
       );
       return false;
     }
+  }
+
+  function queueBridgeMessage(method: BridgeMethod, payload = ""): void {
+    pendingBridgeMessagesRef.current.set(method, payload);
+  }
+
+  function flushBridgeQueue(): void {
+    if (!isUnityLoadedRef.current || pendingBridgeMessagesRef.current.size === 0) {
+      return;
+    }
+
+    for (const [method, payload] of pendingBridgeMessagesRef.current.entries()) {
+      if (safeSendToUnity(method, payload)) {
+        pendingBridgeMessagesRef.current.delete(method);
+      }
+    }
+  }
+
+  function syncBridgeState(): void {
+    queueBridgeMessage("OnJoyConStatus", latestJoyConStatusRef.current);
+
+    if (isZRPressedRef.current) {
+      queueBridgeMessage("OnZRDown", "sync");
+      pendingBridgeMessagesRef.current.delete("OnZRUp");
+    } else {
+      queueBridgeMessage("OnZRUp", "sync");
+      pendingBridgeMessagesRef.current.delete("OnZRDown");
+    }
+
+    if (latestMotionPayloadRef.current) {
+      queueBridgeMessage("OnMotion", JSON.stringify(latestMotionPayloadRef.current));
+    }
+
+    flushBridgeQueue();
+  }
+
+  function clearZrSyncLoop(): void {
+    if (zrSyncIntervalRef.current !== null) {
+      window.clearInterval(zrSyncIntervalRef.current);
+      zrSyncIntervalRef.current = null;
+    }
+  }
+
+  function startZrSyncLoop(): void {
+    clearZrSyncLoop();
+    zrSyncIntervalRef.current = window.setInterval(() => {
+      if (!mountedRef.current || !isUnityLoadedRef.current) {
+        return;
+      }
+
+      if (isZRPressedRef.current) {
+        safeSendToUnity("OnZRDown", "hold");
+      }
+    }, 150);
+  }
+
+  function clearBridgeSyncLoop(): void {
+    if (bridgeSyncIntervalRef.current !== null) {
+      window.clearInterval(bridgeSyncIntervalRef.current);
+      bridgeSyncIntervalRef.current = null;
+    }
+  }
+
+  function startBridgeSyncLoop(): void {
+    clearBridgeSyncLoop();
+    bridgeSyncIntervalRef.current = window.setInterval(() => {
+      if (!mountedRef.current) {
+        return;
+      }
+
+      syncBridgeState();
+    }, 250);
   }
 
   async function sendJoyConSubcommand(
@@ -210,13 +345,19 @@ function UnityGameEmbed({
     deviceRef.current = null;
     reportHandlerRef.current = null;
     isZRPressedRef.current = false;
+    latestJoyConStatusRef.current = "disconnected";
+    latestMotionPayloadRef.current = null;
+    clearZrSyncLoop();
+    clearBridgeSyncLoop();
 
     updateState(setJoyConStatus, "Joy-Con desconectado");
     updateState(setReportCount, 0);
     updateState(setZrStateLabel, "ZR: up");
     updateState(setMotionStatus, "IMU idle");
-    safeSendToUnity("OnZRUp");
-    safeSendToUnity("OnJoyConStatus", "disconnected");
+    updateState(setButtonBytesLabel, "Buttons: -- -- --");
+    updateState(setBridgeMotionStatus, "Sin eventos de movimiento");
+    updateState(setBridgeButtonStatus, "Sin eventos de botones");
+    syncBridgeState();
   }
 
   async function connectJoyCon(): Promise<void> {
@@ -239,14 +380,17 @@ function UnityGameEmbed({
       const device = devices[0];
       await device.open();
       packetNumberRef.current = 0;
+      latestJoyConStatusRef.current = "connected";
       await initializeJoyConMotion(device);
+      startZrSyncLoop();
+      startBridgeSyncLoop();
 
       const onInputReport: InputReportHandler = (event) => {
         if (!isMotionReport(event)) {
           return;
         }
 
-        const bytes = new Uint8Array(event.data.buffer);
+        const bytes = readHidBytes(event.data);
         const reportId = event.reportId ?? JOYCON_STANDARD_FULL_MODE;
 
         updateState(setReportCount, (previous) => previous + 1);
@@ -254,8 +398,9 @@ function UnityGameEmbed({
           setMotionStatus,
           `Recibiendo reportes 0x${reportId.toString(16)}`,
         );
+        updateState(setButtonBytesLabel, formatButtonBytes(bytes));
 
-        const nowZRPressed = extractZRPressed(bytes);
+        const nowZRPressed = extractZRPressed(bytes, device.productName);
         const wasZRPressed = isZRPressedRef.current;
 
         if (!wasZRPressed && nowZRPressed) {
@@ -272,7 +417,8 @@ function UnityGameEmbed({
 
         const motion = extractMotionPayload(bytes);
         if (motion) {
-          safeSendToUnity("OnMotion", JSON.stringify(motion));
+          latestMotionPayloadRef.current = motion;
+          syncBridgeState();
         }
       };
 
@@ -285,10 +431,15 @@ function UnityGameEmbed({
         setJoyConStatus,
         `Joy-Con conectado: ${device.productName || "Nintendo HID"}`,
       );
-      safeSendToUnity("OnJoyConStatus", "connected");
+      updateState(setBridgeStatus, "Bridge listo para enviar datos");
+      updateState(setBridgeMotionStatus, "Sin eventos de movimiento");
+      updateState(setBridgeButtonStatus, "Sin eventos de botones");
+      updateState(setBridgeError, "");
+      syncBridgeState();
     } catch (error) {
       const message = error instanceof Error ? error.message : "Error desconocido";
       updateState(setJoyConStatus, `No se pudo conectar Joy-Con: ${message}`);
+      updateState(setBridgeError, `Fallo WebHID: ${message}`);
     }
   }
 
@@ -308,13 +459,15 @@ function UnityGameEmbed({
         const unityInstance = await window.createUnityInstance(
           canvasRef.current,
           {
+            arguments: [],
             dataUrl,
             frameworkUrl,
             codeUrl,
             streamingAssetsUrl: "StreamingAssets",
-            companyName: "Titans Crew",
+            companyName: "DefaultCompany",
             productName: "Prototipo",
-            productVersion: "0.1.0",
+            productVersion: "0.1.0-web-bridge-fix-1",
+            showBanner: unityShowBanner,
           },
           (progress) => {
             updateState(setLoadingProgress, progress);
@@ -330,6 +483,12 @@ function UnityGameEmbed({
         updateState(setIsUnityLoaded, true);
         updateState(setUnityStatus, "Unity listo");
         updateState(setUnityError, "");
+        startBridgeSyncLoop();
+
+        if (deviceRef.current?.opened) {
+          syncBridgeState();
+          startZrSyncLoop();
+        }
       } catch (error) {
         const message = error instanceof Error ? error.message : String(error);
         updateState(setUnityStatus, "No se pudo cargar Unity");
@@ -341,7 +500,7 @@ function UnityGameEmbed({
       updateState(setUnityStatus, "No se pudo cargar el loader de Unity");
       updateState(
         setUnityError,
-        "Verifica que los archivos BuildPrototipo.* existan en apps/web/public/Build.",
+        "Verifica que los archivos BuildPrototipo3.* existan en apps/web/public/Build.",
       );
     };
 
@@ -350,6 +509,8 @@ function UnityGameEmbed({
     return () => {
       mountedRef.current = false;
       isUnityLoadedRef.current = false;
+      clearBridgeSyncLoop();
+      clearZrSyncLoop();
 
       void disconnectJoyCon();
 
