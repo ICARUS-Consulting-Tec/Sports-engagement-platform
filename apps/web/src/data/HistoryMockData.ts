@@ -35,11 +35,13 @@ export interface LegendaryPlayer {
   name: string;
   position: string;
   era: string;
+  subtitle: string;
   shortDescription: string;
   bio: string;
   stats: LegendaryPlayerStat[];
   achievements: string[];
-  image?: string;
+  imageUrl?: string;
+  cardImagePositionClass?: string;
 }
 
 export interface ClassicMatch {
@@ -342,6 +344,7 @@ export const legendaryPlayers: LegendaryPlayer[] = [
     name: "Steve McNair",
     position: "QB",
     era: "1995–2005",
+    subtitle: "MVP, 3x Pro Bowl",
     shortDescription: "Quarterback leader of the Titans' Super Bowl era.",
     bio: "Steve McNair led the franchise into its first Super Bowl and later shared NFL MVP honors in 2003, becoming one of the defining figures of the Tennessee era.",
     stats: [
@@ -355,13 +358,16 @@ export const legendaryPlayers: LegendaryPlayer[] = [
       "Led Tennessee to Super Bowl XXXIV",
       "No. 9 retired by the Titans",
     ],
-    image: "https://msfame.liquidcreative.net/wp-content/uploads/2014/07/mcnair-and-mvp.jpg",
+    imageUrl:
+      "https://msfame.liquidcreative.net/wp-content/uploads/2014/07/mcnair-and-mvp.jpg",
+    cardImagePositionClass: "object-[center_18%]",
   },
   {
     id: "eddie-george",
     name: "Eddie George",
     position: "RB",
     era: "1996–2003",
+    subtitle: "OROY, 4x Pro Bowl",
     shortDescription: "Power back who defined the early Titans identity.",
     bio: "Eddie George gave Tennessee a durable and physical offensive centerpiece, topping 10,000 rushing yards with the organization and starring in the 1999 title run.",
     stats: [
@@ -375,13 +381,15 @@ export const legendaryPlayers: LegendaryPlayer[] = [
       "Four-time Pro Bowl selection",
       "No. 27 retired by the Titans",
     ],
-    image: "https://cdn3.sbnation.com/assets/4062823/eddie1.jpg",
+    imageUrl: "https://cdn3.sbnation.com/assets/4062823/eddie1.jpg",
+    cardImagePositionClass: "object-[center_22%]",
   },
   {
     id: "bruce-matthews",
     name: "Bruce Matthews",
     position: "OL",
     era: "1983–2001",
+    subtitle: "Hall of Fame, 14x Pro Bowl",
     shortDescription: "Hall of Fame lineman and long-time franchise pillar.",
     bio: "Bruce Matthews anchored the franchise line for 19 seasons and built one of the most decorated careers ever by an NFL offensive lineman.",
     stats: [
@@ -395,13 +403,15 @@ export const legendaryPlayers: LegendaryPlayer[] = [
       "14 Pro Bowl selections",
       "Nine First-team All-Pro honors",
     ],
-    image: "https://i.redd.it/a7lh9ommttf51.jpg",
+    imageUrl: "https://i.redd.it/a7lh9ommttf51.jpg",
+    cardImagePositionClass: "object-[center_20%]",
   },
   {
     id: "warren-moon",
     name: "Warren Moon",
     position: "QB",
     era: "1984–1993",
+    subtitle: "Hall of Fame, 6x Pro Bowl",
     shortDescription: "Hall of Fame quarterback of the Oilers' passing era.",
     bio: "Warren Moon transformed the Oilers into one of football's most dangerous passing teams and remains one of the franchise's most important quarterbacks.",
     stats: [
@@ -415,13 +425,15 @@ export const legendaryPlayers: LegendaryPlayer[] = [
       "Six Pro Bowls with the franchise",
       "33,000+ passing yards with Houston",
     ],
-    image: "https://thumbs.dreamstime.com/b/warren-moon-73875690.jpg",
+    imageUrl: "https://thumbs.dreamstime.com/b/warren-moon-73875690.jpg",
+    cardImagePositionClass: "object-[center_22%]",
   },
   {
     id: "earl-campbell",
     name: "Earl Campbell",
     position: "RB",
     era: "1978–1984",
+    subtitle: "MVP, Hall of Fame",
     shortDescription: "Hall of Fame runner and Oilers power icon.",
     bio: "Earl Campbell brought a punishing running style to Houston and quickly became one of the most dominant backs of his era.",
     stats: [
@@ -435,13 +447,16 @@ export const legendaryPlayers: LegendaryPlayer[] = [
       "1978 NFL MVP",
       "Five Pro Bowl selections",
     ],
-    image: "https://www.giantbomb.com/a/uploads/scale_super/46/462814/3190342-7560018115-5eb39.png",
+    imageUrl:
+      "https://www.giantbomb.com/a/uploads/scale_super/46/462814/3190342-7560018115-5eb39.png",
+    cardImagePositionClass: "object-[center_18%]",
   },
   {
     id: "jevon-kearse",
     name: "Jevon Kearse",
     position: "DE",
     era: "1999–2003, 2008–2009",
+    subtitle: "DROY, 3x Pro Bowl",
     shortDescription: "Explosive pass rusher and 1999 defensive star.",
     bio: "Jevon Kearse exploded onto the scene in 1999 and became one of the defining defenders of Tennessee's early peak years.",
     stats: [
@@ -455,7 +470,9 @@ export const legendaryPlayers: LegendaryPlayer[] = [
       "Three Pro Bowl selections",
       "Key defender on the 1999 AFC champions",
     ],
-    image: "https://thumbs.dreamstime.com/b/jevon-kearse-tennessee-titans-final-defensivo-173656812.jpg",
+    imageUrl:
+      "https://thumbs.dreamstime.com/b/jevon-kearse-tennessee-titans-final-defensivo-173656812.jpg",
+    cardImagePositionClass: "object-[center_20%]",
   },
 ];
 

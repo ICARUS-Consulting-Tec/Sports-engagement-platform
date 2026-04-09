@@ -36,8 +36,8 @@ function LegendaryPlayerModal({
   }, [isOpen, onClose]);
 
   useEffect(() => {
-    setShowFallback(!player?.image);
-  }, [player?.id, player?.image]);
+    setShowFallback(!player?.imageUrl);
+  }, [player?.id, player?.imageUrl]);
 
   if (!isOpen || !player) {
     return null;
@@ -68,12 +68,12 @@ function LegendaryPlayerModal({
 
         <div className="border-b border-[#edf2f7] bg-[linear-gradient(180deg,rgba(12,35,64,0.03)_0%,rgba(75,146,219,0.08)_100%)] p-6 md:border-b-0 md:border-r md:p-7">
           <div className="relative aspect-[4/5] w-full overflow-hidden rounded-[24px] bg-[linear-gradient(135deg,#153865_0%,#4B92DB_100%)]">
-            {!showFallback && player.image ? (
+            {!showFallback && player.imageUrl ? (
               <img
                 alt={player.name}
                 className="absolute inset-0 h-full w-full object-cover object-center"
                 onError={() => setShowFallback(true)}
-                src={player.image}
+                src={player.imageUrl}
               />
             ) : null}
             {!showFallback ? (
@@ -99,7 +99,7 @@ function LegendaryPlayerModal({
                   {player.name}
                 </h3>
                 <p className="m-0 max-w-[42ch] text-[14px] leading-relaxed text-slate-500">
-                  {player.shortDescription}
+                  {player.subtitle}
                 </p>
               </div>
             </div>

@@ -178,6 +178,9 @@ const styles: Record<string, React.CSSProperties> = {
     borderRight: "1px solid #edf2f7",
     background:
       "linear-gradient(180deg, rgba(12,35,64,0.03) 0%, rgba(75,146,219,0.08) 100%)",
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center",
   },
   heroImage: {
     width: "100%",
@@ -187,6 +190,9 @@ const styles: Record<string, React.CSSProperties> = {
     display: "flex",
     alignItems: "center",
     justifyContent: "center",
+    objectFit: "cover",
+    objectPosition: "center",
+    margin: "0 auto",
   },
   imageFallback: {
     background: "linear-gradient(135deg, #153865 0%, #4B92DB 100%)",
