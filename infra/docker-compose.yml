@@ -6,7 +6,6 @@ services:
     ports:
       - "8081:8080"
     depends_on:
-      - auth-service
       - matches-service
       - rooms-service
       - profile-service
