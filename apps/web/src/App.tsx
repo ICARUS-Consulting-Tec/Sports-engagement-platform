@@ -8,6 +8,7 @@ import TeamPage from "./pages/TeamPage";
 import VoiceAgent from "./components/VoiceAgent/VoiceAgent";
 import { Signup } from "./components/auth/Signup";
 import PrivateRoute from "./components/auth/privateRoute";
+import NewsPage from "./pages/NewsPage";
 
 function App() {
   return (
@@ -28,6 +29,7 @@ function App() {
       <Route path="/offseason" element={<OffSeasonPage />} />
       <Route path="/voice-agent" element={<VoiceAgent />} />
       <Route path="/signup" element={<Signup />} />
+      <Route path="/news" element={<NewsPage />} />
     </Routes>
   );
 }
