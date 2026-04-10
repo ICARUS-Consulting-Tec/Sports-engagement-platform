@@ -1,6 +1,24 @@
 import { useEffect, useState } from "react";
-import { Card } from "@heroui/react";
+import { Card, Link } from "@heroui/react";
 import { getNewsArticles } from "../../services/newsService";
+
+function formatPublishedDate(value) {
+  if (!value) {
+    return "";
+  }
+
+  const parsedDate = new Date(value);
+
+  if (Number.isNaN(parsedDate.getTime())) {
+    return value;
+  }
+
+  return new Intl.DateTimeFormat("en-US", {
+    month: "long",
+    day: "numeric",
+    year: "numeric",
+  }).format(parsedDate);
+}
 
 function NewsCard() {
   const [newsData, setNewsData] = useState([
@@ -9,6 +27,7 @@ function NewsCard() {
       title: "",
       urlToImage: "",
       description: "",
+      publishedAt: ""
     },
   ]);
   const [loading, setLoading] = useState(true);
@@ -69,22 +88,38 @@ function NewsCard() {
           rel="noreferrer"
           className="block"
         >
-          <Card className="h-full overflow-hidden transition-transform duration-200 hover:-translate-y-1">
-            <div className="relative h-48 w-full overflow-hidden bg-muted">
-              <img
-                alt={article.title}
-                className="h-full w-full object-cover"
-                loading="lazy"
-                src={article.urlToImage || "https://placehold.co/800x450?text=News"}
-              />
-            </div>
+          <Card className="h-full overflow-hidden p-0 transition-transform duration-200 hover:-translate-y-1">
+            <img
+              alt={article.title}
+              className="block h-56 w-full rounded-t-2xl object-cover"
+              loading="lazy"
+              src={article.urlToImage || "https://placehold.co/800x450?text=News"}
+            />
 
-            <Card.Header className="gap-2">
-              <Card.Title className="line-clamp-2">{article.title}</Card.Title>
-              <Card.Description className="line-clamp-3">
-                {article.description || "No description available."}
-              </Card.Description>
-            </Card.Header>
+            <div className="flex h-full flex-col gap-3 px-4 py-4">
+              <Card.Header className="gap-2 p-0">
+                <Card.Description className="line-clamp-3">
+                  {formatPublishedDate(article.publishedAt)}
+                </Card.Description>
+                <Card.Title className="line-clamp-2">{article.title}</Card.Title>
+                <Card.Description className="line-clamp-3">
+                  {article.description || "No description available."}
+                </Card.Description>
+              </Card.Header>
+
+              <Card.Footer className="p-0">
+                <Link
+                  aria-label="Go to original source (opens in new tab)"
+                  href={article.url}
+                  rel="noopener noreferrer"
+                  target="_blank"
+                  className="text-blue-500"
+                >
+                  Read More
+                  <Link.Icon aria-hidden="true" />
+                </Link>
+              </Card.Footer>
+            </div>
           </Card>
         </a>
       ))}

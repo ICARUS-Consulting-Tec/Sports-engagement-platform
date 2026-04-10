@@ -3,6 +3,7 @@ export type NewsArticle = {
   title: string;
   urlToImage: string;
   description: string;
+  publishedAt: string; 
 };
 
 type NewsApiResponse = {
@@ -12,6 +13,7 @@ type NewsApiResponse = {
 const NEWS_API_KEY = import.meta.env.VITE_NEWS_API_KEY;
 const NEWS_QUERY = "tennessee-titans"; // or import.meta.env.VITE_NEWS_QUERY ||
 const NEWS_PAGE_SIZE = 20;
+const NEWS_SORT = "publishedAt"
 
 export async function getNewsArticles(): Promise<NewsArticle[]> {
   if (!NEWS_API_KEY) {
@@ -22,6 +24,7 @@ export async function getNewsArticles(): Promise<NewsArticle[]> {
   url.searchParams.set("q", NEWS_QUERY);
   url.searchParams.set("apiKey", NEWS_API_KEY);
   url.searchParams.set("pageSize", String(NEWS_PAGE_SIZE));
+  url.searchParams.set("sortBy", String(NEWS_SORT));
 
   const response = await fetch(url.toString());
   const data = (await response.json()) as NewsApiResponse & { message?: string };

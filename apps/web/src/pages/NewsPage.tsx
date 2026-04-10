@@ -13,7 +13,7 @@ function NewsPage() {
           <h1 className="team-hero-title">Noticias</h1>
         </section>
 
-        <NewsCardHorizontal/>
+        {/* <NewsCardHorizontal/> */}
 
         <NewsCard/>
       </main>
