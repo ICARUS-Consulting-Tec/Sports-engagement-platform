@@ -35,26 +35,32 @@ function TimelineItem({ event, onOpenStory }: TimelineItemProps) {
   const currentImageSrc = imageSources[imageIndex];
 
   return (
-    <article style={styles.timelineCard}>
-      <div style={styles.timelineBadge}>{event.year}</div>
+    <article className="grid items-start gap-4 md:grid-cols-[52px_1fr]">
+      <div className="mt-[22px] flex h-10 w-10 items-center justify-center rounded-full bg-[#0C2340] text-[11px] font-bold tracking-[0.04em] text-white">
+        {event.year}
+      </div>
 
       <div
         aria-label={`Open full story for ${event.title}`}
+        className="grid cursor-pointer items-center gap-4 rounded-2xl border border-[#e5e7eb] bg-white p-[18px] shadow-[0_1px_2px_rgba(15,23,42,0.04)] outline-none transition duration-200 hover:-translate-y-0.5 hover:border-slate-300 hover:shadow-[0_8px_18px_rgba(15,23,42,0.05)] focus-visible:-translate-y-0.5 focus-visible:border-slate-300 focus-visible:shadow-[0_8px_18px_rgba(15,23,42,0.05)] md:grid-cols-[minmax(0,1fr)_132px_38px]"
         onClick={handleOpenStory}
         onKeyDown={handleKeyDown}
         role="button"
-        style={styles.timelineContent}
         tabIndex={0}
-        >
-          <div>
-            <h3 style={styles.timelineTitle}>{event.title}</h3>
-            <p style={styles.timelineText}>{event.description}</p>
+      >
+        <div>
+          <h3 className="mb-1.5 text-base font-bold text-[#0C2340]">
+            {event.title}
+          </h3>
+          <p className="mb-2.5 text-[13px] leading-[1.55] text-slate-500">
+            {event.description}
+          </p>
           <button
+            className="border-none bg-transparent p-0 text-[11px] font-bold text-[#4B92DB] underline underline-offset-[3px]"
             onClick={(mouseEvent) => {
               mouseEvent.stopPropagation();
               handleOpenStory();
             }}
-            style={styles.inlineLink}
             type="button"
           >
             {event.linkLabel}
@@ -64,23 +70,25 @@ function TimelineItem({ event, onOpenStory }: TimelineItemProps) {
         {currentImageSrc ? (
           <img
             alt={event.alt}
+            className="block h-20 w-full rounded-[10px] object-cover md:w-[132px]"
             onError={() => setImageIndex((current) => current + 1)}
             src={currentImageSrc}
-            style={styles.timelineImage}
           />
         ) : (
-          <div style={{ ...styles.timelineImage, ...styles.imageFallback }}>
-            <span style={styles.timelinePlaceholderYear}>{event.year}</span>
+          <div className="flex h-20 w-full items-center justify-center rounded-[10px] bg-[linear-gradient(135deg,#153865_0%,#4B92DB_100%)] p-2.5 text-center text-white md:w-[132px]">
+            <span className="text-[22px] font-extrabold tracking-[0.08em]">
+              {event.year}
+            </span>
           </div>
         )}
 
         <button
           aria-label={`Open timeline story for ${event.title}`}
+          className="flex h-[38px] w-[38px] items-center justify-center self-start rounded-full border-none bg-[#0C2340] text-[18px] font-bold text-white transition duration-200 hover:scale-105 hover:bg-[#0a1f3a] md:self-center"
           onClick={(mouseEvent) => {
             mouseEvent.stopPropagation();
             handleOpenStory();
           }}
-          style={styles.iconButton}
           type="button"
         >
           +
@@ -89,99 +97,5 @@ function TimelineItem({ event, onOpenStory }: TimelineItemProps) {
     </article>
   );
 }
-
-const styles: Record<string, React.CSSProperties> = {
-  timelineCard: {
-    display: "grid",
-    gridTemplateColumns: "52px 1fr",
-    gap: "16px",
-    alignItems: "start",
-  },
-  timelineBadge: {
-    width: "40px",
-    height: "40px",
-    borderRadius: "999px",
-    backgroundColor: "#0C2340",
-    color: "#ffffff",
-    display: "flex",
-    alignItems: "center",
-    justifyContent: "center",
-    fontSize: "11px",
-    fontWeight: 700,
-    letterSpacing: "0.04em",
-    marginTop: "22px",
-  },
-  timelineContent: {
-    border: "1px solid #e5e7eb",
-    borderRadius: "16px",
-    padding: "18px",
-    backgroundColor: "#ffffff",
-    display: "grid",
-    gridTemplateColumns: "minmax(0, 1fr) 132px 38px",
-    gap: "16px",
-    alignItems: "center",
-    cursor: "pointer",
-    transition: "box-shadow 180ms ease, transform 180ms ease, border-color 180ms ease",
-    outline: "none",
-    boxShadow: "0 1px 2px rgba(15, 23, 42, 0.04)",
-  },
-  timelineTitle: {
-    color: "#0C2340",
-    fontSize: "16px",
-    fontWeight: 700,
-    marginBottom: "6px",
-  },
-  timelineText: {
-    color: "#6b7280",
-    fontSize: "13px",
-    lineHeight: 1.55,
-    marginBottom: "10px",
-  },
-  inlineLink: {
-    border: "none",
-    background: "transparent",
-    color: "#4B92DB",
-    fontSize: "11px",
-    fontWeight: 700,
-    padding: 0,
-    cursor: "pointer",
-    textDecoration: "underline",
-    textUnderlineOffset: "3px",
-  },
-  timelineImage: {
-    width: "132px",
-    height: "80px",
-    borderRadius: "10px",
-    objectFit: "cover",
-    display: "block",
-  },
-  iconButton: {
-    width: "38px",
-    height: "38px",
-    borderRadius: "999px",
-    border: "none",
-    backgroundColor: "#0C2340",
-    color: "#ffffff",
-    fontSize: "18px",
-    fontWeight: 700,
-    cursor: "pointer",
-    transition: "transform 180ms ease, background-color 180ms ease",
-  },
-  imageFallback: {
-    background: "linear-gradient(135deg, #153865 0%, #4B92DB 100%)",
-    color: "#ffffff",
-    fontWeight: 700,
-    display: "flex",
-    alignItems: "center",
-    justifyContent: "center",
-    textAlign: "center",
-    padding: "10px",
-  },
-  timelinePlaceholderYear: {
-    fontSize: "22px",
-    fontWeight: 800,
-    letterSpacing: "0.08em",
-  },
-};
 
 export default TimelineItem;

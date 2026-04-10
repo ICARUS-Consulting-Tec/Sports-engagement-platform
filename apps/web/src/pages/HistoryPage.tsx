@@ -12,7 +12,6 @@ import {
   timelineEvents,
 } from "../data/HistoryMockData";
 import type { LegendaryPlayer, TimelineEvent } from "../data/HistoryMockData";
-import "../styles/history.css";
 
 function HistoryPage() {
   const [showAllMatches, setShowAllMatches] = useState(false);
@@ -49,33 +48,44 @@ function HistoryPage() {
   }
 
   return (
-    <div className="history-page">
-      <main className="history-container">
+    <div className="min-h-screen bg-[#f4f5f7]">
+      <main className="mx-auto w-full max-w-[1400px] p-6">
         <Navbar />
 
-        <section className="history-hero">
-          <div className="history-hero-text">
-            <h1 className="history-title">History of the Tennessee Titans</h1>
-            <p className="history-subtitle">
+        <section className="mb-6 rounded-3xl border border-[#e6e9ef] bg-white px-8 py-[30px] shadow-[0_8px_20px_rgba(15,23,42,0.08)]">
+          <div className="max-w-[760px]">
+            <h1 className="mb-2.5 text-[42px] font-bold leading-[1.08] text-[#0c2340]">
+              History of the Tennessee Titans
+            </h1>
+            <p className="text-base leading-[1.6] text-slate-500">
               From the Houston Oilers to Tennessee Titans -- A legacy of excellence
             </p>
           </div>
         </section>
 
-        <section className="history-section">
-          <div className="history-stats-grid">
+        <section className="mb-6">
+          <div className="grid grid-cols-[repeat(auto-fit,minmax(180px,1fr))] gap-[14px]">
             {historyStats.map((stat) => (
-              <article key={stat.id} className="history-stat-card">
-                <span className="history-stat-value">{stat.value}</span>
-                <span className="history-stat-label">{stat.label}</span>
+              <article
+                key={stat.id}
+                className="flex flex-col items-center gap-1.5 rounded-2xl border border-slate-200 bg-white px-[14px] py-5 text-center shadow-[0_1px_2px_rgba(15,23,42,0.04)]"
+              >
+                <span className="text-[34px] font-extrabold leading-none text-[#0c2340]">
+                  {stat.value}
+                </span>
+                <span className="max-w-[120px] text-[13px] leading-[1.45] text-slate-500">
+                  {stat.label}
+                </span>
               </article>
             ))}
           </div>
         </section>
 
-        <section className="history-section-block mt-2">
-          <h2 className="history-section-title">Historical Timeline</h2>
-          <div className="history-timeline-list">
+        <section className="mt-2 mb-6 rounded-3xl border border-[#e6e9ef] bg-white p-6 shadow-[0_8px_20px_rgba(15,23,42,0.08)]">
+          <h2 className="mb-[18px] text-2xl font-extrabold text-[#0c2340]">
+            Historical Timeline
+          </h2>
+          <div className="grid gap-[14px]">
             {timelineEvents.map((event) => (
               <TimelineItem
                 key={event.id}
@@ -86,8 +96,10 @@ function HistoryPage() {
           </div>
         </section>
 
-        <section className="history-section-block mt-6 px-6 py-8 md:px-8 md:py-9">
-          <h2 className="history-section-title">Legendary Players</h2>
+        <section className="mt-6 mb-6 rounded-3xl border border-[#e6e9ef] bg-white px-6 py-8 shadow-[0_8px_20px_rgba(15,23,42,0.08)] md:px-8 md:py-9">
+          <h2 className="mb-[18px] text-2xl font-extrabold text-[#0c2340]">
+            Legendary Players
+          </h2>
           <div className="mt-8 grid gap-6 lg:gap-7 md:grid-cols-2 lg:grid-cols-3">
             {visiblePlayers.map((player) => (
               <LegendaryPlayerCard
@@ -99,17 +111,19 @@ function HistoryPage() {
           </div>
         </section>
 
-        <section className="history-section-block mt-5 px-6 py-8 md:px-8 md:py-10">
-          <h2 className="history-section-title">Classic Matches Archive</h2>
-          <div className="mt-10 grid gap-7 lg:grid-cols-2 lg:gap-8">
+        <section className="mb-6 mt-4 rounded-[28px] border border-[#e6e9ef] bg-white px-6 py-7 shadow-[0_8px_20px_rgba(15,23,42,0.08)] md:px-8 md:py-8">
+          <h2 className="mb-5 text-[34px] font-extrabold leading-none tracking-[-0.03em] text-[#0c2340]">
+            Classic Matches Archive
+          </h2>
+          <div className="grid gap-5 lg:grid-cols-2 lg:gap-6">
             {visibleMatches.map((match) => (
               <ClassicMatchCard key={match.id} match={match} />
             ))}
           </div>
           {classicMatches.length > 4 ? (
-            <div className="mt-10 flex justify-center">
+            <div className="mt-7 flex justify-center">
               <button
-                className="inline-flex h-11 items-center justify-center rounded-xl border border-[#cfd6e1] bg-white px-6 text-[13px] font-bold text-[#0C2340] transition hover:border-[#0C2340] hover:bg-slate-50"
+                className="inline-flex h-12 items-center justify-center rounded-full border border-[#d8e1ed] bg-[#f8fbff] px-6 text-[14px] font-bold text-[#0C2340] shadow-[0_6px_16px_rgba(15,23,42,0.05)] transition duration-200 hover:-translate-y-0.5 hover:border-[#0C2340] hover:bg-white hover:shadow-[0_12px_24px_rgba(15,23,42,0.08)]"
                 type="button"
                 onClick={() => setShowAllMatches((current) => !current)}
               >
@@ -119,9 +133,9 @@ function HistoryPage() {
           ) : null}
         </section>
 
-        <section className="history-footer-cta">
-          <h2 className="history-footer-title">Building a Legacy</h2>
-          <p className="history-footer-text">
+        <section className="rounded-3xl bg-[linear-gradient(180deg,#12305b_0%,#0c2340_100%)] px-6 py-[42px] text-center text-white">
+          <h2 className="mb-2.5 text-4xl font-bold">Building a Legacy</h2>
+          <p className="mb-[18px] text-[14px] leading-[1.6] text-[#dbe5f2]">
             From the Oilers to the Titans, our history is filled with unforgettable
             moments and legends.
           </p>
