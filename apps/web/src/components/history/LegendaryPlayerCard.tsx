@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import type { LegendaryPlayer } from "../../data/HistoryMockData";
+import type { LegendaryPlayer } from "../../types/history";
 
 type LegendaryPlayerCardProps = {
   player: LegendaryPlayer;

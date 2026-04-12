@@ -1,19 +1,16 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import ClassicMatchCard from "../components/history/ClassicMatchCard";
 import LegendaryPlayerCard from "../components/history/LegendaryPlayerCard";
 import LegendaryPlayerModal from "../components/history/LegendaryPlayerModal";
 import TimelineItem from "../components/history/TimelineItem";
 import TimelineStoryModal from "../components/history/TimelineStoryModal";
 import Navbar from "../components/layout/Navbar";
-import {
-  classicMatches,
-  historyStats,
-  legendaryPlayers,
-  timelineEvents,
-} from "../data/HistoryMockData";
-import type { LegendaryPlayer, TimelineEvent } from "../data/HistoryMockData";
+import { getHistoryPageData } from "../services/historyService";
+import type { HistoryPageData, LegendaryPlayer, TimelineEvent } from "../types/history";
 
 function HistoryPage() {
+  const [historyData, setHistoryData] = useState<HistoryPageData | null>(null);
+  const [loading, setLoading] = useState(true);
   const [showAllMatches, setShowAllMatches] = useState(false);
   const [selectedTimelineEvent, setSelectedTimelineEvent] =
     useState<TimelineEvent | null>(null);
@@ -21,6 +18,25 @@ function HistoryPage() {
   const [selectedPlayer, setSelectedPlayer] =
     useState<LegendaryPlayer | null>(null);
   const [isPlayerModalOpen, setIsPlayerModalOpen] = useState(false);
+
+  useEffect(() => {
+    async function loadHistoryData() {
+      try {
+        setLoading(true);
+        const response = await getHistoryPageData();
+        setHistoryData(response);
+      } finally {
+        setLoading(false);
+      }
+    }
+
+    loadHistoryData();
+  }, []);
+
+  const historyStats = historyData?.historyStats ?? [];
+  const timelineEvents = historyData?.timelineEvents ?? [];
+  const legendaryPlayers = historyData?.legendaryPlayers ?? [];
+  const classicMatches = historyData?.classicMatches ?? [];
 
   const visiblePlayers = legendaryPlayers.slice(0, 6);
   const visibleMatches = showAllMatches
@@ -65,7 +81,11 @@ function HistoryPage() {
 
         <section className="mb-6">
           <div className="grid grid-cols-[repeat(auto-fit,minmax(180px,1fr))] gap-[14px]">
-            {historyStats.map((stat) => (
+            {loading && historyStats.length === 0 ? (
+              <article className="col-span-full rounded-2xl border border-slate-200 bg-white px-4 py-6 text-center text-sm text-slate-500 shadow-[0_1px_2px_rgba(15,23,42,0.04)]">
+                Loading team history...
+              </article>
+            ) : historyStats.map((stat) => (
               <article
                 key={stat.id}
                 className="flex flex-col items-center gap-1.5 rounded-2xl border border-slate-200 bg-white px-[14px] py-5 text-center shadow-[0_1px_2px_rgba(15,23,42,0.04)]"

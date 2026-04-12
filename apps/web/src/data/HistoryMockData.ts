@@ -1,60 +1,12 @@
 // Mock data based on real Tennessee Titans / Houston Oilers franchise history.
 
-export interface HistoryStat {
-  id: string;
-  value: string;
-  label: string;
-  sublabel?: string;
-}
-
-export interface TimelineEvent {
-  id: string;
-  year: string;
-  title: string;
-  description: string;
-  fullStory: string;
-  significance: string;
-  image: string;
-  imageReferenceUrl?: string;
-  alt: string;
-  linkLabel: string;
-  externalUrl: string;
-  sourceLabel?: string;
-  facts?: string[];
-  quote?: string;
-  sourceNote?: string;
-}
-
-export interface LegendaryPlayerStat {
-  label: string;
-  value: string;
-}
-
-export interface LegendaryPlayer {
-  id: string;
-  name: string;
-  position: string;
-  era: string;
-  subtitle: string;
-  shortDescription: string;
-  bio: string;
-  stats: LegendaryPlayerStat[];
-  achievements: string[];
-  imageUrl?: string;
-  cardImagePositionClass?: string;
-}
-
-export interface ClassicMatch {
-  id: string;
-  title: string;
-  season: string;
-  opponent: string;
-  score: string;
-  description: string;
-  youtubeUrl: string;
-  imageUrl?: string;
-  buttonLabel: string;
-}
+import type {
+  ClassicMatch,
+  HistoryPageData,
+  HistoryStat,
+  LegendaryPlayer,
+  TimelineEvent,
+} from "../types/history";
 
 export const historyStats: HistoryStat[] = [
   {
@@ -533,3 +485,10 @@ export const classicMatches: ClassicMatch[] = [
     buttonLabel: "Watch Highlights ",
   },
 ];
+
+export const historyPageMockData: HistoryPageData = {
+  historyStats,
+  timelineEvents,
+  legendaryPlayers,
+  classicMatches,
+};

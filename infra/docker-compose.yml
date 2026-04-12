@@ -11,6 +11,7 @@ services:
       - profile-service
       - analytics-service
       - store-service
+      - history-service
     networks:
       - supabase_net
 
@@ -70,7 +71,7 @@ services:
       context: ../services/history-service
     container_name: icarus-history
     environment:
-      PORT: 4006
+      PORT: 4007
       HISTORY_DB_URL: postgresql://history_svc:postgres@supabase-db-do4ksgcc0wksg4wwg4osgk0o:5432/history_db
     networks:
       - supabase_net

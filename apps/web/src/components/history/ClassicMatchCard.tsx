@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import type { ClassicMatch } from "../../data/HistoryMockData";
+import type { ClassicMatch } from "../../types/history";
 
 type ClassicMatchCardProps = {
   match: ClassicMatch;

@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
-import type { TimelineEvent } from "../../data/HistoryMockData";
+import type { TimelineEvent } from "../../types/history";
 
 type TimelineItemProps = {
   event: TimelineEvent;
