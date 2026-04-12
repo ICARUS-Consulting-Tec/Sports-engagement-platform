@@ -1,10 +1,5 @@
 @import "tailwindcss";
-
-*,
-*::before,
-*::after {
-  box-sizing: border-box;
-}
+@import "@heroui/styles"; 
 
 html,
 body,
@@ -15,3 +10,5 @@ body,
 body {
   margin: 0;
 }
+
+
