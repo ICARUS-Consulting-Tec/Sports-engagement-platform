@@ -18,6 +18,8 @@ services:
       NEWS_PAGE_SIZE: ${NEWS_PAGE_SIZE:-20}
       NEWS_SORT: ${NEWS_SORT:-publishedAt}
       NEWS_LANGUAGE: ${NEWS_LANGUAGE:-en}
+      NEWS_DB_URL: ${NEWS_DB_URL:-postgresql://news_svc:newsSvc_2026_dev@host.docker.internal:15432/news_cache}
+      NEWS_DB_MANAGE_SCHEMA: ${NEWS_DB_MANAGE_SCHEMA:-false}
 
   profile-service:
     environment:

@@ -1,9 +1,35 @@
-import  NewsCard from "../components/news/NewsCard";
+import { useEffect } from "react";
+import NewsCard from "../components/news/NewsCard";
 import Navbar from "../components/layout/Navbar";
 import "../styles/news.css";
 import NewsCardHorizontal from "../components/news/NewsCardHorizontal";
+import { syncNewsArticles } from "../services/newsService";
 
 function NewsPage() {
+  useEffect(() => {
+    let active = true;
+
+    void syncNewsArticles()
+      .then((result) => {
+        if (!active) {
+          return;
+        }
+
+        console.log("News sync completed:", result);
+      })
+      .catch((error) => {
+        if (!active) {
+          return;
+        }
+
+        console.error("News sync failed:", error);
+      });
+
+    return () => {
+      active = false;
+    };
+  }, []);
+
   return (
     <div className="team-page">
         <main className="team-container">
