@@ -3,14 +3,14 @@ import { apiFetch } from "./api";
 export type ChatMessageRow = {
   id: number;
   room_id: number;
-  user_id: number;
+  user_id: string;
   content: string;
   sent_at: string;
 };
 
 export async function bootstrapMatchRoom(
   matchId: number,
-  userId: number
+  userId: string
 ): Promise<{ room_id: number; match_id: number }> {
   return apiFetch(`/api/rooms/match/${matchId}/bootstrap`, {
     method: "POST",
@@ -28,7 +28,7 @@ export async function getMatchMessages(
 
 export async function postMatchMessage(
   matchId: number,
-  userId: number,
+  userId: string,
   content: string
 ): Promise<{ message: ChatMessageRow }> {
   return apiFetch(`/api/rooms/match/${matchId}/messages`, {

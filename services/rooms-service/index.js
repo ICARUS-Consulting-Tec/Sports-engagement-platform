@@ -6,6 +6,15 @@ app.use(express.json());
 
 const PORT = process.env.PORT || 4003;
 
+const UUID_RE =
+  /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+
+function parseUuidUserId(value) {
+  const raw = typeof value === "string" ? value.trim() : "";
+  if (!raw || !UUID_RE.test(raw)) return null;
+  return raw.toLowerCase();
+}
+
 const pool = new Pool({
   connectionString: process.env.ROOMS_DB_URL,
 });
@@ -60,9 +69,11 @@ app.get("/health", async (req, res) => {
 
 app.post("/match/:matchId/bootstrap", async (req, res) => {
   const matchId = parseInt(req.params.matchId, 10);
-  const userId = parseInt(req.body?.user_id, 10);
-  if (!Number.isFinite(matchId) || !Number.isFinite(userId)) {
-    return res.status(400).json({ error: "match_id y user_id numéricos requeridos" });
+  const userId = parseUuidUserId(req.body?.user_id);
+  if (!Number.isFinite(matchId) || userId == null) {
+    return res.status(400).json({
+      error: "match_id numérico y user_id UUID (Supabase) requeridos",
+    });
   }
   try {
     const roomId = await ensureRoom(matchId, userId);
@@ -105,11 +116,13 @@ app.get("/match/:matchId/messages", async (req, res) => {
 
 app.post("/match/:matchId/messages", async (req, res) => {
   const matchId = parseInt(req.params.matchId, 10);
-  const userId = parseInt(req.body?.user_id, 10);
+  const userId = parseUuidUserId(req.body?.user_id);
   const content = (req.body?.content || "").trim().slice(0, 500);
 
-  if (!Number.isFinite(matchId) || !Number.isFinite(userId)) {
-    return res.status(400).json({ error: "match_id y user_id requeridos" });
+  if (!Number.isFinite(matchId) || userId == null) {
+    return res.status(400).json({
+      error: "match_id numérico y user_id UUID (Supabase) requeridos",
+    });
   }
   if (!content) {
     return res.status(400).json({ error: "content requerido" });

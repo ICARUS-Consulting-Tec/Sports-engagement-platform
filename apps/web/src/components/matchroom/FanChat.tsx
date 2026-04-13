@@ -13,15 +13,21 @@ type FanChatProps = {
 
 const POLL_MS = 2500;
 
-function appUserIdFromSession(user: {
-  user_metadata?: Record<string, unknown>;
-}): number | null {
-  const m = user.user_metadata || {};
-  const raw =
-    m.user_id ?? m.internal_user_id ?? m.app_user_id ?? import.meta.env.VITE_CHAT_DEV_USER_ID;
-  if (raw == null || raw === "") return null;
-  const n = typeof raw === "number" ? raw : parseInt(String(raw), 10);
-  return Number.isFinite(n) ? n : null;
+const UUID_RE =
+  /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+
+function chatUserIdFromSession(user: { id: string }): string | null {
+  const id = typeof user.id === "string" ? user.id.trim() : "";
+  if (id && UUID_RE.test(id)) return id.toLowerCase();
+  const dev = String(import.meta.env.VITE_CHAT_DEV_USER_ID || "").trim();
+  if (dev && UUID_RE.test(dev)) return dev.toLowerCase();
+  return null;
+}
+
+function shortUserLabel(userId: string): string {
+  const s = String(userId);
+  if (s.length <= 8) return s;
+  return `${s.slice(0, 8)}…`;
 }
 
 function FanChat({ matchId }: FanChatProps) {
@@ -32,7 +38,7 @@ function FanChat({ matchId }: FanChatProps) {
   const [ready, setReady] = useState(false);
   const bootstrapped = useRef(false);
 
-  const userId = session?.user ? appUserIdFromSession(session.user) : null;
+  const userId = session?.user ? chatUserIdFromSession(session.user) : null;
 
   const refresh = useCallback(async () => {
     if (!Number.isFinite(matchId)) return;
@@ -70,6 +76,7 @@ function FanChat({ matchId }: FanChatProps) {
 
     return () => {
       if (interval) clearInterval(interval);
+      bootstrapped.current = false;
     };
   }, [session?.user, userId, matchId, refresh]);
 
@@ -99,9 +106,9 @@ function FanChat({ matchId }: FanChatProps) {
       <div className="fan-chat">
         <h3>Fan Chat</h3>
         <p>
-          Falta el <code>user_id</code> numérico en la cuenta (p. ej. en{" "}
-          <code>user_metadata.user_id</code>) o define <code>VITE_CHAT_DEV_USER_ID</code> solo en
-          desarrollo.
+          No hay un identificador de usuario válido (UUID de Supabase). Cierra sesión y vuelve a
+          entrar. En desarrollo puedes definir <code>VITE_CHAT_DEV_USER_ID</code> con un UUID
+          válido.
         </p>
       </div>
     );
@@ -114,7 +121,7 @@ function FanChat({ matchId }: FanChatProps) {
       <div className="messages">
         {messages.map((msg) => (
           <div key={msg.id}>
-            <strong>Usuario {msg.user_id}:</strong> {msg.content}
+            <strong>Usuario {shortUserLabel(msg.user_id)}:</strong> {msg.content}
           </div>
         ))}
       </div>
