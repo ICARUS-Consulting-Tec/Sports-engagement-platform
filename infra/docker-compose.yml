@@ -11,6 +11,9 @@ services:
       - profile-service
       - analytics-service
       - store-service
+      - history-service
+      - offseason-service
+      - tweets-service
     networks:
       - supabase_net
 
@@ -62,6 +65,44 @@ services:
     environment:
       PORT: 4006
       PROFILE_DB_URL: postgresql://profile_svc:ProfileSvc_2026_dev@supabase-db:5432/profile_db
+      SUPABASE_URL: ${SUPABASE_URL}
+      SUPABASE_ANON_KEY: ${SUPABASE_ANON_KEY}
+    ports:
+      - "4006:4006"
+    networks:
+      - supabase_net
+
+  history-service:
+    build:
+      context: ../services/history-service
+    container_name: icarus-history
+    environment:
+      PORT: 4008
+      HISTORY_DB_URL: postgresql://history_svc:postgres@supabase-db-do4ksgcc0wksg4wwg4osgk0o:5432/history_db
+    ports:
+    - "4008:4008"
+    networks:
+      - supabase_net
+
+  offseason-service:
+    build:
+      context: ../services/offseason-service
+    container_name: icarus-offseason
+    environment:
+      PORT: 4010
+      OFFSEASON_DB_URL: postgresql://offseason_svc:OffseasonSvc_2026_dev@supabase-db-do4ksgcc0wksg4wwg4osgk0o:5432/offseason_db
+    ports:
+      - "4010:4010"
+    networks:
+      - supabase_net
+
+  tweets-service:
+    build:
+      context: ../services/tweets-service
+    container_name: icarus-tweets
+    environment:
+      PORT: 4007
+      GETXAPI_KEY: ${GETXAPI_KEY}
     networks:
       - supabase_net
 

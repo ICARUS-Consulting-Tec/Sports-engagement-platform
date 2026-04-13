@@ -42,7 +42,7 @@
 /* CHAT */
 
 .fan-chat {
-  width: 350px;
+  flex: 1;
   background: white;
   border-radius: 12px;
   padding: 20px;
@@ -71,4 +71,34 @@
   background: white;
   border-radius: 12px;
   padding: 20px;
+}
+
+.close-button {
+  position: fixed;
+  top: 20px;
+  right: 20px;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background-color: rgba(0, 0, 0, 0.5);
+  color: white;
+  border: none;
+  font-size: 24px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  transition: background-color 0.2s;
+}
+
+.close-button:hover{
+  background-color: rgba(0,0,0,0.7);
+}
+
+.twitter-feed {
+  flex: 1;
+  padding: 20px;
+  background-color: white;
+  border-radius: 12px;
 }
