@@ -1,3 +1,4 @@
+import { useState } from "react";
 import RarityBadge from "./RarityBadge";
 import {
   RARITY_HEADSHOT_BACKDROP,
@@ -58,6 +59,7 @@ function StatBlock({
 }
 
 export default function PlayerCard({ card, onViewStats }: PlayerCardProps) {
+  const [imgError, setImgError] = useState(false);
   const ageLabel =
     card.age != null && !Number.isNaN(Number(card.age)) ? String(card.age) : "—";
   const heightLabel =
@@ -101,13 +103,14 @@ export default function PlayerCard({ card, onViewStats }: PlayerCardProps) {
               className={`absolute inset-0 z-0 ${RARITY_HEADSHOT_BACKDROP[card.rarity]}`}
               aria-hidden
             />
-            {headshotSrc ? (
+            {headshotSrc && !imgError ? (
               <img
                 src={headshotSrc}
                 alt={card.display_name}
                 referrerPolicy="no-referrer"
                 loading="eager"
                 decoding="async"
+                onError={() => setImgError(true)}
                 className={`absolute inset-0 z-[1] h-full w-full object-cover object-top ${RARITY_HEADSHOT_IMAGE_OPACITY[card.rarity]}`}
               />
             ) : (
