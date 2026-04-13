@@ -1,12 +1,6 @@
-const { createClient } = require("@supabase/supabase-js");
 const express = require("express");
 const { Pool } = require("pg");
 const jwt = require("jsonwebtoken");
-
-const supabase = createClient(
-  process.env.SUPABASE_URL,
-  process.env.SUPABASE_ANON_KEY
-);
 
 const app = express();
 app.use(express.json());
@@ -578,6 +572,63 @@ app.get("/:id", async (req, res) => {
       error: error.message
     });
   }
+});
+
+//
+app.post("/new/user", async (req, res) => {
+  try {
+    const {
+      user_id, 
+      country,
+      first_name, 
+      last_name, 
+      username,
+      avatar_url 
+    } = req.body;
+
+    if (!user_id || !first_name) {
+      return res.status(400).json({
+        status: "error",
+        message: "user_id, first_name are required"
+      });
+    }
+
+    const result = await pool.query(
+      `INSERT INTO accounts (
+        user_id,
+        country, 
+        first_name, 
+        last_name, 
+        username, 
+        avatar_url
+      )
+      VALUES ($1, $2, $3, $4, $5, $6)
+      RETURNING
+        account_id,
+        user_id,
+        country, 
+        first_name, 
+        last_name, 
+        username, 
+        avatar_url
+    `, [
+      user_id,
+      country, 
+      first_name, 
+      last_name, 
+      username, 
+      avatar_url
+    ]);
+
+    res.status(201).json({
+      status: "success",
+      new_user: result.rows[0]}); 
+    } catch(error) {
+      res.status(500).json({
+        status: "error",
+        error: error.message 
+      });
+    }
 });
 
 app.listen(PORT, () => {
