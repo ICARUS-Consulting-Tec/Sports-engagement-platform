@@ -9,11 +9,16 @@ function NewsPage() {
         <main className="team-container">
         <Navbar />
 
-        <section className="team-hero">
-          <h1 className="team-hero-title">Noticias</h1>
+        <section className="news-section">
+          <h1 className="news-title">Titans News & Updates</h1>
         </section>
 
-        {/* <NewsCardHorizontal/> */}
+        <NewsCardHorizontal/>
+
+        <section className="news-subsection">
+          <h1 className="news-subtitle">Latest News</h1>
+        </section>
+
 
         <NewsCard/>
       </main>

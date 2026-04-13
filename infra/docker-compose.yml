@@ -11,6 +11,7 @@ services:
       - profile-service
       - analytics-service
       - store-service
+      - news-service
     networks:
       - supabase_net
 
@@ -52,6 +53,20 @@ services:
       PORT: 4005
       STRIPE_SECRET_KEY: ${STRIPE_SECRET_KEY}
       FRONTEND_URL: ${FRONTEND_URL}
+    networks:
+      - supabase_net
+
+  news-service:
+    build:
+      context: ../services/news-service
+    container_name: icarus-news
+    environment:
+      PORT: 4009
+      NEWS_API_KEY: ${NEWS_API_KEY}
+      NEWS_QUERY: ${NEWS_QUERY:-tennessee-titans}
+      NEWS_PAGE_SIZE: ${NEWS_PAGE_SIZE:-20}
+      NEWS_SORT: ${NEWS_SORT:-publishedAt}
+      NEWS_LANGUAGE: ${NEWS_LANGUAGE:-en}
     networks:
       - supabase_net
 
