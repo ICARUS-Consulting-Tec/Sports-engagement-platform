@@ -542,10 +542,10 @@ app.post("/new/user", async (req, res) => {
       avatar_url 
     } = req.body;
 
-    if (!user_id || !country || !first_name || !last_name || !username || !avatar_url) {
+    if (!user_id || !first_name) {
       return res.status(400).json({
         status: "error",
-        message: "user_id, country, first_name, last_name, username, avatar_url are ALL required"
+        message: "user_id, first_name are required"
       });
     }
 
@@ -560,6 +560,7 @@ app.post("/new/user", async (req, res) => {
       )
       VALUES ($1, $2, $3, $4, $5, $6)
       RETURNING
+        account_id,
         user_id,
         country, 
         first_name, 
