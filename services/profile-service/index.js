@@ -1,6 +1,7 @@
 const { createClient } = require("@supabase/supabase-js");
 const express = require("express");
 const { Pool } = require("pg");
+const jwt = require("jsonwebtoken");
 
 const supabase = createClient(
   process.env.SUPABASE_URL,
@@ -15,6 +16,41 @@ const PORT = process.env.PORT || 4003;
 const pool = new Pool({
   connectionString: process.env.PROFILE_DB_URL
 });
+
+function requireAuth(req, res, next) {
+  try {
+    const authHeader = req.headers.authorization;
+
+    if (!authHeader || !authHeader.startsWith("Bearer ")) {
+      return res.status(401).json({
+        status: "error",
+        message: "Missing or invalid Authorization header"
+      });
+    }
+
+    const token = authHeader.split(" ")[1];
+    const decoded = jwt.decode(token);
+
+    if (!decoded || !decoded.sub) {
+      return res.status(401).json({
+        status: "error",
+        message: "Invalid token"
+      });
+    }
+
+    req.user = {
+      id: decoded.sub,
+      email: decoded.email || null
+    };
+
+    next();
+  } catch (error) {
+    return res.status(401).json({
+      status: "error",
+      message: "Authentication failed"
+    });
+  }
+}
 
 // Helper temporal para obtener el user_id.
 // Más adelante esto saldrá del token JWT.
@@ -72,17 +108,25 @@ app.get("/", async (req, res) => {
   }
 });
 
-// Endpoint principal del perfil actual
-app.get("/me", async (req, res) => {
-  try {
-    const userId = getUserIdFromRequest(req);
+app.get("/test-login", async (req, res) => {
+  const { data, error } = await supabase.auth.signInWithPassword({
+    email: "pablo.zzll@hotmail.com",
+    password: "Salmonmon27#"
+  });
 
-    if (!userId) {
-      return res.status(400).json({
-        status: "error",
-        message: "user_id is required for now (query param or x-user-id header)"
-      });
-    }
+  if (error) {
+    return res.status(400).json({ error: error.message });
+  }
+
+  res.json({
+    token: data.session.access_token
+  });
+});
+
+// Endpoint principal del perfil actual
+app.get("/me", requireAuth, async (req, res) => {
+  try {
+    const userId = req.user.id;
 
     const result = await pool.query(`
       SELECT
@@ -121,7 +165,7 @@ app.get("/me", async (req, res) => {
 // Actualizar perfil actual
 app.put("/me", async (req, res) => {
   try {
-    const userId = getUserIdFromRequest(req);
+    const userId = req.user.id;
 
     if (!userId) {
       return res.status(400).json({
