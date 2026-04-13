@@ -35,7 +35,7 @@ app.get("/health", async (req, res) => {
 // as a query param, includes whether each card is unlocked.
 app.get("/roster", async (req, res) => {
   try {
-    const userId = req.query.user_id ? parseInt(req.query.user_id) : null;
+    const userId = req.query.user_id ? req.query.user_id : null;
 
     let query;
     let params = [];
@@ -241,7 +241,7 @@ app.post("/pack/open", async (req, res) => {
 // Returns collection stats for a user.
 app.get("/collection/:userId", async (req, res) => {
   try {
-    const userId = parseInt(req.params.userId);
+    const userId = req.params.userId;
 
     const totalCards = await pool.query(
       `SELECT COUNT(*) AS total FROM cards c

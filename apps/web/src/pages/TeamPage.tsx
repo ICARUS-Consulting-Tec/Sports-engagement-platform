@@ -14,13 +14,13 @@ import {
 import type { CardFilter } from "../components/cards";
 import { getRoster, getAthleteDetail, getCollectionStats, openPack } from "../services/cardsService";
 import type { RosterCard, AthleteDetail, CollectionStats, PackOpenResult } from "../types";
+import { Auth } from "../context/AuthContext";
 
 const CARDS_PER_PAGE = 12;
 
-// TODO: Replace with actual user ID from auth context
-const CURRENT_USER_ID = 1;
-
 function TeamPage() {
+  const { session } = Auth();
+  const currentUserId = session?.user?.id ?? null;
   // Data state
   const [cards, setCards] = useState<RosterCard[]>([]);
   const [stats, setStats] = useState<CollectionStats | null>(null);
@@ -52,8 +52,8 @@ function TeamPage() {
       try {
         setFetchError(null);
         const [rosterData, statsData] = await Promise.all([
-          getRoster(CURRENT_USER_ID),
-          getCollectionStats(CURRENT_USER_ID),
+          getRoster(currentUserId ?? undefined),
+          currentUserId ? getCollectionStats(currentUserId) : Promise.resolve(null),
         ]);
         setCards(rosterData);
         setStats(statsData);
@@ -69,7 +69,7 @@ function TeamPage() {
       }
     }
     fetchData();
-  }, []);
+  }, [currentUserId]);
 
   // Filtered cards
   const filteredCards = useMemo(() => {
@@ -140,19 +140,20 @@ function TeamPage() {
 
   // Open pack handler (overlay con animación de sobre; el resultado llega cuando el API responde)
   async function handleOpenPack() {
+    if (!currentUserId) return;
     setPackRevealOpen(true);
     setPackResult(null);
     packRevealActiveRef.current = true;
     setIsOpeningPack(true);
     try {
-      const result = await openPack(CURRENT_USER_ID);
+      const result = await openPack(currentUserId);
       if (packRevealActiveRef.current) {
         setPackResult(result);
       }
 
       const [rosterData, statsData] = await Promise.all([
-        getRoster(CURRENT_USER_ID),
-        getCollectionStats(CURRENT_USER_ID),
+        getRoster(currentUserId),
+        getCollectionStats(currentUserId),
       ]);
       setCards(rosterData);
       setStats(statsData);
