@@ -18,6 +18,7 @@ export function useRosterHeadshotSrc(card: RosterCard) {
 
   const [index, setIndex] = useState(0);
   const [exhausted, setExhausted] = useState(false);
+  const [loaded, setLoaded] = useState(false);
 
   /** Strict Mode / desmontaje: abortar <img> dispara onError y no debe consumir fallbacks. */
   const ignoreImgErrorRef = useRef(false);
@@ -26,6 +27,7 @@ export function useRosterHeadshotSrc(card: RosterCard) {
     ignoreImgErrorRef.current = false;
     setIndex(0);
     setExhausted(false);
+    setLoaded(false);
     return () => {
       ignoreImgErrorRef.current = true;
     };
@@ -35,6 +37,11 @@ export function useRosterHeadshotSrc(card: RosterCard) {
 
   const urlsRef = useRef(urls);
   urlsRef.current = urls;
+
+  // Cuando cambia el candidato (src), reinicia el estado de carga.
+  useEffect(() => {
+    setLoaded(false);
+  }, [src]);
 
   /** Actualización funcional: varios onError seguidos antes de re-render no saltan índices. */
   const onImgError = useCallback(() => {
@@ -48,7 +55,21 @@ export function useRosterHeadshotSrc(card: RosterCard) {
     });
   }, []);
 
+  const onImgLoad = useCallback(() => {
+    if (ignoreImgErrorRef.current) return;
+    setLoaded(true);
+  }, []);
+
+  // Placeholder cuando no hay src o ya se agotaron los intentos.
+  // El "no cargado aún" se maneja como overlay en la UI (el <img> debe montarse para poder cargar).
   const showPlaceholder = urls.length === 0 || exhausted;
 
-  return { src, showPlaceholder, onImgError, attemptKey: `${index}|${src ?? ""}` };
+  return {
+    src,
+    showPlaceholder,
+    onImgError,
+    onImgLoad,
+    loaded,
+    attemptKey: `${index}|${src ?? ""}`,
+  };
 }

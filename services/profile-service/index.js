@@ -494,6 +494,43 @@ app.get("/me/badges", async (req, res) => {
 });
 
 // Temporal para pruebas directas por id
+app.get("/account/:accountId", async (req, res) => {
+  try {
+    const result = await pool.query(`
+      SELECT
+        account_id,
+        user_id,
+        first_name,
+        last_name,
+        username,
+        country,
+        avatar_url,
+        created_at,
+        updated_at
+      FROM accounts
+      WHERE account_id = $1
+    `, [req.params.accountId]);
+
+    if (result.rows.length === 0) {
+      return res.status(404).json({
+        status: "error",
+        message: "Profile not found"
+      });
+    }
+
+    res.json({
+      status: "success",
+      profile: result.rows[0]
+    });
+  } catch (error) {
+    res.status(500).json({
+      status: "error",
+      error: error.message
+    });
+  }
+});
+
+// Temporal para pruebas directas por id
 app.get("/:id", async (req, res) => {
   try {
     const result = await pool.query(`

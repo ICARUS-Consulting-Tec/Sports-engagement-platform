@@ -12,7 +12,10 @@ services:
       - analytics-service
       - store-service
       - cards-service
+      - history-service
+      - offseason-service
       - tweets-service
+      - news-service
     networks:
       - supabase_net
 
@@ -57,6 +60,21 @@ services:
     networks:
       - supabase_net
 
+  news-service:
+    build:
+      context: ../services/news-service
+    container_name: icarus-news
+    environment:
+      PORT: 4011
+      NEWS_API_KEY: ${NEWS_API_KEY}
+      NEWS_QUERY: ${NEWS_QUERY:-tennessee-titans}
+      NEWS_PAGE_SIZE: ${NEWS_PAGE_SIZE:-20}
+      NEWS_SORT: ${NEWS_SORT:-publishedAt}
+      NEWS_LANGUAGE: ${NEWS_LANGUAGE:-en}
+      NEWS_DB_URL: ${NEWS_DB_URL:-}
+    networks:
+      - supabase_net
+
   profile-service:
     build:
       context: ../services/profile-service
@@ -66,6 +84,32 @@ services:
       PROFILE_DB_URL: postgresql://profile_svc:ProfileSvc_2026_dev@supabase-db:5432/profile_db
       SUPABASE_URL: ${SUPABASE_URL}
       SUPABASE_ANON_KEY: ${SUPABASE_ANON_KEY}
+    ports:
+      - "4006:4006"
+    networks:
+      - supabase_net
+
+  history-service:
+    build:
+      context: ../services/history-service
+    container_name: icarus-history
+    environment:
+      PORT: 4008
+      HISTORY_DB_URL: postgresql://history_svc:postgres@supabase-db-do4ksgcc0wksg4wwg4osgk0o:5432/history_db
+    ports:
+    - "4008:4008"
+    networks:
+      - supabase_net
+
+  offseason-service:
+    build:
+      context: ../services/offseason-service
+    container_name: icarus-offseason
+    environment:
+      PORT: 4010
+      OFFSEASON_DB_URL: postgresql://offseason_svc:OffseasonSvc_2026_dev@supabase-db-do4ksgcc0wksg4wwg4osgk0o:5432/offseason_db
+    ports:
+      - "4010:4010"
     networks:
       - supabase_net
 

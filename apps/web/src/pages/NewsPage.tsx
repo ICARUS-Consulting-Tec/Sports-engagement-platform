@@ -1,19 +1,50 @@
-import  NewsCard from "../components/news/NewsCard";
+import { useEffect } from "react";
+import NewsCard from "../components/news/NewsCard";
 import Navbar from "../components/layout/Navbar";
 import "../styles/news.css";
 import NewsCardHorizontal from "../components/news/NewsCardHorizontal";
+import { syncNewsArticles } from "../services/newsService";
 
 function NewsPage() {
+  useEffect(() => {
+    let active = true;
+
+    void syncNewsArticles()
+      .then((result) => {
+        if (!active) {
+          return;
+        }
+
+        console.log("News sync completed:", result);
+      })
+      .catch((error) => {
+        if (!active) {
+          return;
+        }
+
+        console.error("News sync failed:", error);
+      });
+
+    return () => {
+      active = false;
+    };
+  }, []);
+
   return (
     <div className="team-page">
         <main className="team-container">
         <Navbar />
 
-        <section className="team-hero">
-          <h1 className="team-hero-title">Noticias</h1>
+        <section className="news-section">
+          <h1 className="news-title">Titans News & Updates</h1>
         </section>
 
-        {/* <NewsCardHorizontal/> */}
+        <NewsCardHorizontal/>
+
+        <section className="news-subsection">
+          <h1 className="news-subtitle">Latest News</h1>
+        </section>
+
 
         <NewsCard/>
       </main>
