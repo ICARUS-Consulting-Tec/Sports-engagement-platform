@@ -9,11 +9,12 @@ import HistoryPage from "./pages/HistoryPage";
 import VoiceAgent from "./components/VoiceAgent/VoiceAgent";
 import PrivateRoute from "./components/auth/privateRoute";
 import NewsPage from "./pages/NewsPage";
+import HomePage from "./pages/HomePage";
 
 function App() {
   return (
     <Routes>
-      <Route path="/" element={<MatchesPage />} />
+      <Route path="/" element={<HomePage />} />
       <Route path="/matches" element={<MatchesPage />} />
       <Route path="/matches/:id" element={<MatchRoomPage />} />
       <Route path="/team" element={<TeamPage />} />
