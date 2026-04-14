@@ -30,6 +30,34 @@ function shortUserLabel(userId: string): string {
   return `${s.slice(0, 8)}…`;
 }
 
+function displayNameFromSession(user: {
+  email?: string;
+  user_metadata?: Record<string, unknown>;
+}): string | null {
+  const m = user.user_metadata || {};
+  const pick = (k: string) => {
+    const v = m[k];
+    if (typeof v === "string" && v.trim()) return v.trim();
+    return null;
+  };
+  return (
+    pick("full_name") ||
+    pick("name") ||
+    pick("username") ||
+    pick("user_name") ||
+    pick("preferred_username") ||
+    (typeof user.email === "string" && user.email.includes("@")
+      ? user.email.split("@")[0]
+      : null)
+  );
+}
+
+function messageAuthorLabel(msg: ChatMessageRow): string {
+  const fromRow = msg.display_name?.trim();
+  if (fromRow) return fromRow;
+  return `Usuario ${shortUserLabel(msg.user_id)}`;
+}
+
 function FanChat({ matchId }: FanChatProps) {
   const { session } = Auth();
   const [messages, setMessages] = useState<ChatMessageRow[]>([]);
@@ -39,6 +67,8 @@ function FanChat({ matchId }: FanChatProps) {
   const bootstrapped = useRef(false);
 
   const userId = session?.user ? chatUserIdFromSession(session.user) : null;
+  const senderDisplayName =
+    session?.user != null ? displayNameFromSession(session.user) : null;
 
   const refresh = useCallback(async () => {
     if (!Number.isFinite(matchId)) return;
@@ -85,7 +115,7 @@ function FanChat({ matchId }: FanChatProps) {
     if (!text || userId == null || !ready) return;
     setInput("");
     try {
-      await postMatchMessage(matchId, userId, text);
+      await postMatchMessage(matchId, userId, text, senderDisplayName);
       await refresh();
     } catch (e) {
       setError(e instanceof Error ? e.message : "Error al enviar");
@@ -119,11 +149,21 @@ function FanChat({ matchId }: FanChatProps) {
       <h3>Fan Chat</h3>
       {error && <p style={{ color: "crimson", fontSize: 14 }}>{error}</p>}
       <div className="messages">
-        {messages.map((msg) => (
-          <div key={msg.id}>
-            <strong>Usuario {shortUserLabel(msg.user_id)}:</strong> {msg.content}
-          </div>
-        ))}
+        {messages.map((msg) => {
+          const mine = msg.user_id.toLowerCase() === userId.toLowerCase();
+          return (
+            <div
+              key={msg.id}
+              className={
+                mine ? "chat-msg-row chat-msg-row--mine" : "chat-msg-row chat-msg-row--other"
+              }
+            >
+              <div className="chat-msg-block">
+                <strong>{messageAuthorLabel(msg)}:</strong> {msg.content}
+              </div>
+            </div>
+          );
+        })}
       </div>
       <div className="chat-input">
         <input

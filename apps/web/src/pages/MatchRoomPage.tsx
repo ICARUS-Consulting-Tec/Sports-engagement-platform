@@ -20,7 +20,7 @@ function MatchRoomPage() {
         x
       </button>
 
-      <Scoreboard />
+      <Scoreboard matchId={matchId} />
 
       <div className="match-room-content">
         {Number.isFinite(matchId) ? (

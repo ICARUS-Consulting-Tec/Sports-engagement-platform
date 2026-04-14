@@ -12,14 +12,21 @@ export interface Match {
 
 export interface ApiMatch {
   match_id: number;
+  name?: string;
+  short_name?: string;
   status?: string;
   home_team?: string;
   away_team?: string;
   start_time?: string;
   venue_name?: string;
   venue_city?: string;
-  home_score?: number;
-  away_score?: number;
+  week?: string;
+  week_num?: number;
+  home_score?: number | null;
+  away_score?: number | null;
+  demo_eligible?: boolean;
+  demo_active?: boolean;
+  demo_clock_label?: string;
 }
 
 export interface StoreProduct {
