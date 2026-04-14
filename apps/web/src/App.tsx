@@ -8,6 +8,7 @@ import TeamPage from "./pages/TeamPage";
 import VoiceAgent from "./components/VoiceAgent/VoiceAgent";
 import PrivateRoute from "./components/auth/privateRoute";
 import NewsPage from "./pages/NewsPage";
+import ProfilePage from "./pages/ProfilePage";
 
 function App() {
   return (
@@ -20,6 +21,14 @@ function App() {
         element={
           <PrivateRoute>
             <TeamPage />{''}
+          </PrivateRoute>
+        } 
+      />
+      <Route 
+        path="/profile" 
+        element={
+          <PrivateRoute>
+            <ProfilePage />
           </PrivateRoute>
         } 
       />

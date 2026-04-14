@@ -10,6 +10,7 @@ function Navbar() {
   const [isOpen, setIsOpen] = useState<boolean>(false);
   const [authView, setAuthView] = useState<"signup" | "signin">("signup");
   const { session } = Auth();
+  const navigate = useNavigate();
 
   return (
     <nav style={styles.navbar}>
@@ -51,7 +52,14 @@ function Navbar() {
           />
         </div>
       )}
-      {session && <SignOutButton />}
+      {session && (
+        <button 
+          style={styles.loginButton}
+          onClick={() => navigate("/profile")}
+        >
+          My Profile
+        </button>
+      )}
     </nav>
   );
 }
