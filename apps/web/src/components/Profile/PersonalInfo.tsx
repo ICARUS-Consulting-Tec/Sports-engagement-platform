@@ -6,7 +6,6 @@ import { SignOutButton } from "../auth/Signout";
 type ProfileData = {
   first_name: string;
   last_name: string;
-  email: string;
   username: string;
 };
 
@@ -24,7 +23,6 @@ export default function PersonalInfo({
   const [formData, setFormData] = useState<ProfileData>({
     first_name: "",
     last_name: "",
-    email: "",
     username: "",
   });
 
@@ -33,7 +31,6 @@ export default function PersonalInfo({
       setFormData({
         first_name: profile.first_name || "",
         last_name: profile.last_name || "",
-        email: profile.email || "",
         username: profile.username || "",
       });
     }
@@ -46,11 +43,9 @@ export default function PersonalInfo({
     }));
   };
 
-  const handleSubmit = () => {
-    if (onSave) {
-      onSave(formData);
-    }
-  };
+  const handleSubmit = async () => {
+    await onSave?.(formData);
+    };
 
   return (
     <div className="personal-info-section">
@@ -81,30 +76,42 @@ export default function PersonalInfo({
           <div className="personal-divider" />
 
           <div className="personal-info-form">
-            <Input
-              className="personal-input"
-              placeholder="First name"
-              value={formData.first_name}
-              onChange={(e: React.ChangeEvent<HTMLInputElement>) => handleChange("first_name", e.target.value)}
-            />
+            <div className="input-group">
+                <label className="input-label">FIRST NAME</label>
+                <Input
+                className="personal-input"
+                placeholder="First name"
+                type="text"
+                value={formData.first_name}
+                onChange={(e) => setFormData((prev) => ({ ...prev, first_name: e.target.value }))}
+                />
+            </div>
 
-            <Input
-              className="personal-input"
-              placeholder="Last name"
-              value={formData.last_name}
-              onChange={(e: React.ChangeEvent<HTMLInputElement>) => handleChange("last_name", e.target.value)}
-            />
+            <div className="input-group">
+                <label className="input-label">LAST NAME</label>
+                <Input
+                className="personal-input"
+                placeholder="Last name"
+                type="text"
+                value={formData.last_name}
+                onChange={(e) => setFormData((prev) => ({ ...prev, last_name: e.target.value }))}
+                />
+            </div>
 
-            <Input
-              className="personal-input full-width"
-              placeholder="Username"
-              value={formData.username}
-              onChange={(e: React.ChangeEvent<HTMLInputElement>) => handleChange("username", e.target.value)}
-            />
-          </div>
+            <div className="input-group full-width">
+                <label className="input-label">USERNAME</label>
+                <Input
+                className="personal-input"
+                placeholder="Username"
+                type="text"
+                value={formData.username}
+                onChange={(e) => setFormData((prev) => ({ ...prev, username: e.target.value }))}
+                />
+            </div>
+            </div>
 
           <div className="personal-info-actions">
-            <Button onPress={handleSubmit}>
+            <Button className="save-btn" onPress={handleSubmit}>
                 <Icon icon="solar:diskette-bold" width={18} />
                 <span>Save Changes</span>
             </Button>
