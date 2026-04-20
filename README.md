@@ -28,3 +28,31 @@ The Titans Sports Engagement Platform is designed to bring fans closer to their 
 **Titan Up!** ⚔️🏈
 
 *Built with 💙 by Titans fans, for Titans fans
+
+## GitHub Pages desde `dev`
+
+Este repositorio quedó preparado para publicar solo el frontend de `apps/web` en GitHub Pages usando la rama `dev` como un entorno tipo staging simulado.
+
+### Qué hace el workflow
+
+- escucha `push` sobre `dev`
+- instala dependencias del frontend
+- genera el build de Vite con base `/<repo>/`
+- publica `apps/web/dist` en GitHub Pages
+
+### Archivo del workflow
+
+- `.github/workflows/deploy-pages-dev.yml`
+
+### Qué debes configurar en GitHub
+
+1. En `Settings -> Pages`, selecciona `Source: GitHub Actions`.
+2. Asegúrate de hacer push a la rama `dev`.
+3. Si quieres que los servicios remotos funcionen en Pages, define estas variables en el repo:
+
+- `VITE_API_BASE_URL` en `Settings -> Secrets and variables -> Actions -> Variables`
+- `VITE_SUPABASE_URL` en `Settings -> Secrets and variables -> Actions -> Variables`
+- `VITE_ELEVENLABS_AGENT_ID` en `Settings -> Secrets and variables -> Actions -> Variables`
+- `VITE_SUPABASE_PUBLISHABLE_DEFAULT_KEY` en `Settings -> Secrets and variables -> Actions -> Secrets`
+
+Si esas variables no están definidas, el frontend se puede publicar, pero las funciones que dependen de backend, Supabase o ElevenLabs no quedarán operativas en GitHub Pages.
