@@ -1,5 +1,4 @@
 import { NavLink } from "react-router-dom";
-import { SignOutButton } from "../auth/Signout";
 import { Auth } from "../../context/AuthContext";
 import { ModalComp } from "../general/modal";
 import { SignupForm } from "../auth/SignUpForm";

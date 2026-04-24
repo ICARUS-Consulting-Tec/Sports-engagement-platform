@@ -24,7 +24,7 @@ const AuthFormShell = ({ title, description, children }: AuthFormShellProps) => 
     </div>
 );
 
-const AuthDivider = ({ label }: { label: string }) => (
+const Divider = ({ label }: { label: string }) => (
     <div className="flex w-full items-center gap-4">
         <span className="h-px flex-1 bg-slate-300" />
         <p className="m-0 whitespace-nowrap text-sm tracking-[0.08em] text-slate-500">{label}</p>
@@ -125,7 +125,7 @@ export const SigninWithEmailForm = ({onSuccess,onSwitchToSignUp}: SignInProps) =
                     </Button>
                 </div>
 
-                <AuthDivider label="OR CONTINUE WITH" />
+                <Divider label="OR CONTINUE WITH" />
 
                 <div className="flex flex-col items-center gap-4">
                     <SigninWithGoogle />
