@@ -52,7 +52,7 @@ export const AuthContextProvider = ( {children} : AuthContextProps ) => {
 
     const authUnavailableResponse = {
         success: false,
-        error: "La autenticación no está configurada en este frontend.",
+        error: "Authentication is not configured in this frontend.",
     };
 
     //Sign up
