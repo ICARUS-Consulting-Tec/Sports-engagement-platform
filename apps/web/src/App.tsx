@@ -12,38 +12,41 @@ import NewsPage from "./pages/NewsPage";
 import ProfilePage from "./pages/ProfilePage";
 import HomePage from "./pages/HomePage";
 import CommunityPage from "./pages/CommunityPage";
+import { CartProvider } from "./context/CartContext";
 
 function App() {
   return (
-    <Routes>
-      <Route path="/" element={<HomePage />} />
-      <Route path="/matches" element={<MatchesPage />} />
-      <Route path="/matches/:id" element={<MatchRoomPage />} />
-      <Route 
-        path="/team" 
-        element={
-          <PrivateRoute>
-            <TeamPage />{''}
-          </PrivateRoute>
-        } 
-      />
-      <Route 
-        path="/profile" 
-        element={
-          <PrivateRoute>
-            <ProfilePage />
-          </PrivateRoute>
-        } 
-      />
-      <Route path="/team" element={<TeamPage />} />
-      <Route path="/community" element={<CommunityPage />} />
-      <Route path="/history" element={<HistoryPage />} />
-      <Route path="/store" element={<StorePage />} />
-      <Route path="/paySuccess" element={<PaySuccess />} />
-      <Route path="/offseason" element={<OffSeasonPage />} />
-      <Route path="/voice-agent" element={<VoiceAgent />} />
-      <Route path="/news" element={<NewsPage />} />
-    </Routes>
+    <CartProvider>
+      <Routes>
+        <Route path="/" element={<HomePage />} />
+        <Route path="/matches" element={<MatchesPage />} />
+        <Route path="/matches/:id" element={<MatchRoomPage />} />
+        <Route 
+          path="/team" 
+          element={
+            <PrivateRoute>
+              <TeamPage />{''}
+            </PrivateRoute>
+          } 
+        />
+        <Route 
+          path="/profile" 
+          element={
+            <PrivateRoute>
+              <ProfilePage />
+            </PrivateRoute>
+          } 
+        />
+        <Route path="/team" element={<TeamPage />} />
+        <Route path="/community" element={<CommunityPage />} />
+        <Route path="/history" element={<HistoryPage />} />
+        <Route path="/store" element={<StorePage />} />
+        <Route path="/paySuccess" element={<PaySuccess />} />
+        <Route path="/offseason" element={<OffSeasonPage />} />
+        <Route path="/voice-agent" element={<VoiceAgent />} />
+        <Route path="/news" element={<NewsPage />} />
+      </Routes>
+    </CartProvider>
   );
 }
 

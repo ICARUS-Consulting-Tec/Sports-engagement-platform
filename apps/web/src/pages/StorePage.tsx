@@ -1,84 +1,136 @@
-import { useEffect, useState } from "react";
-import { getProducts, createCheckout } from "../services/storeService";
-import { useNavigate } from "react-router-dom";
-import type { StoreProduct } from "../types";
-import Navbar from "../components/layout/Navbar";
-
-async function HandleOnClick(default_price: string, quantity: string | number){
-  try {
-    const data = await createCheckout(default_price, Number(quantity));
-    window.location.href = data.url;
-  } catch (err) {
-    console.error("Checkout error:", err);
-  }
-}
+import { useEffect, useState, useMemo } from 'react';
+import { getProducts } from '../services/storeService';
+import type { StoreProduct } from '../types';
+import Navbar from '../components/layout/Navbar';
+import ProductCard from '../components/store/ProductCard';
+import FilterBar from '../components/store/FilterBar';
+import RarityDropdown from '../components/store/RarityDropdown';
+import ProductCounter from '../components/store/ProductCounter';
+import CartButton from '../components/store/CartButton';
+import { useCart } from '../context/CartContext';
+import { enrichProductsWithTags } from '../data/mockProducts';
 
 export default function StorePage() {
   const [products, setProducts] = useState<StoreProduct[]>([]);
   const [loading, setLoading] = useState(true);
-  const [quantity, setQuantity] = useState(1);
-  const navigate = useNavigate();
+  
+  // Filtros
+  const [selectedType, setSelectedType] = useState<string | null>(null);
+  const [selectedRarity, setSelectedRarity] = useState<string | null>(null);
+  const [priceRange, setPriceRange] = useState<[number, number]>([0, 200]);
+
+  const { addToCart } = useCart();
 
   useEffect(() => {
     getProducts()
-      .then((res) => setProducts(res.products))
+      .then((res) => {
+        const enrichedProducts = enrichProductsWithTags(res.products);
+        setProducts(enrichedProducts);
+         
+        const maxPrice = Math.max(...enrichedProducts.map(p => p.price_amount), 200);
+        setPriceRange([0, maxPrice]);
+      })
       .catch(console.error)
       .finally(() => setLoading(false));
   }, []);
 
+  const filteredProducts = useMemo(() => {
+    let filtered = products;
+
+    if (selectedType) {
+      filtered = filtered.filter(p => p.type === selectedType);
+    }
+
+    if (selectedRarity) {
+      filtered = filtered.filter(p => p.rarity === selectedRarity);
+    }
+
+    filtered = filtered.filter(p => {
+      return p.price_amount >= priceRange[0] && p.price_amount <= priceRange[1];
+    });
+
+    return filtered;
+  }, [products, selectedType, selectedRarity, priceRange]);
+
+  const maxPrice = useMemo(() => {
+    return Math.max(...products.map(p => p.price_amount), 200);
+  }, [products]);
+
   if (loading) {
     return (
       <div className="min-h-screen bg-[#F4F5F7]">
-        <main className="mx-auto w-full max-w-[1400px] p-6">
+        {/* Wrapper para el Navbar con max-width */}
+        <div className="mx-auto w-full max-w-[1400px] px-6">
           <Navbar />
+        </div>
+        <main className="mx-auto w-full max-w-[1400px] px-6">
           <p className="text-gray-600">Loading products…</p>
         </main>
       </div>
     );
   }
 
-  console.log("Products loaded:", products);
-
   return (
     <div className="min-h-screen bg-[#F4F5F7]">
-      <main className="mx-auto w-full max-w-[1400px] p-6">
+      {/* Wrapper para el Navbar con max-width */}
+      <div className="mx-auto w-full max-w-[1400px] px-6">
         <Navbar />
-        <h1 className="mb-6 text-2xl font-bold text-[#0f3d78]">Store</h1>
-        <div
-          style={{
-            display: "grid",
-            gridTemplateColumns: "repeat(auto-fill, minmax(250px, 1fr))",
-            gap: "1rem",
-          }}
-        >
-          {products &&
-            products.map((item) => (
-              <div
-                key={item.id}
-                style={{ border: "1px solid #ccc", padding: "1rem", borderRadius: "8px" }}
-              >
-                {item.images?.[0] && (
-                  <img src={item.images[0]} alt={item.name} style={{ width: "100%" }} />
-                )}
-                <h3>{item.name}</h3>
-                <p>{item.description}</p>
-                <p>${item.default_price}</p>
-                <label htmlFor="cantidad">Quantity: </label>
-                <input
-                  type="number"
-                  id="cantidad"
-                  name="cantidad"
-                  min={1}
-                  step={1}
-                  onChange={(e) => setQuantity(Number(e.target.value))}
+      </div>
+      
+      <main className="mx-auto w-full max-w-[1400px] px-6">
+        {/* Header */}
+        <div className="mb-8">
+          <h1 className="text-4xl font-bold text-[#0f3d78] mb-2">Store</h1>
+          <p className="text-gray-600">Encuentra los mejores productos de Titans</p>
+        </div>
+
+        {/* Filtros y Contador */}
+        <div className="grid grid-cols-1 lg:grid-cols-4 gap-6 mb-6">
+          {/* Sidebar de filtros */}
+          <aside className="lg:col-span-1 space-y-4">
+            <RarityDropdown
+              selectedRarity={selectedRarity}
+              onRarityChange={setSelectedRarity}
+            />
+            <FilterBar
+              selectedType={selectedType}
+              onTypeChange={setSelectedType}
+              priceRange={priceRange}
+              onPriceChange={(value) => setPriceRange(value as [number, number])}
+              maxPrice={maxPrice}
+            />
+          </aside>
+
+          {/* Grid de productos */}
+          <div className="lg:col-span-3">
+            <div className="mb-4">
+              <ProductCounter 
+                count={filteredProducts.length} 
+                totalCount={products.length}
+              />
+            </div>
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+              {filteredProducts.map((product) => (
+                <ProductCard
+                  key={product.id}
+                  product={product}
+                  onAddToCart={(product) => addToCart(product, 1)}
                 />
-                <button type="button" onClick={() => HandleOnClick(item.default_price, quantity)}>
-                  Buy
-                </button>
+              ))}
+            </div>
+
+            {filteredProducts.length === 0 && (
+              <div className="text-center py-12">
+                <p className="text-gray-600">No se encontraron productos con estos filtros</p>
               </div>
-            ))}
+            )}
+          </div>
         </div>
       </main>
+
+      {/* Botón flotante del carrito */}
+      <CartButton />
     </div>
   );
 }
