@@ -7,10 +7,10 @@ import type {
   WordleLeaderboardResponse,
 } from "../types/wordle";
 
-function buildAuthHeaders(authUserId?: string) {
-  return authUserId
+function buildAuthHeaders(accessToken?: string) {
+  return accessToken
     ? {
-        "x-user-id": authUserId,
+        Authorization: `Bearer ${accessToken}`,
       }
     : {};
 }
@@ -29,26 +29,26 @@ export async function getWordleLeaderboard(date?: string): Promise<WordleLeaderb
 
 export async function getWordleHistory(
   userId?: number | string,
-  authUserId?: string,
+  accessToken?: string,
 ): Promise<WordleHistoryResponse> {
   if (userId !== undefined && userId !== null) {
     return await apiFetch<WordleHistoryResponse>(`/offseason/wordle/history/${userId}`);
   }
 
   return await apiFetch<WordleHistoryResponse>("/offseason/wordle/history", {
-    headers: buildAuthHeaders(authUserId),
+    headers: buildAuthHeaders(accessToken),
   });
 }
 
 export async function saveWordleSession(
   payload: SaveWordleSessionPayload,
-  authUserId?: string,
+  accessToken?: string,
 ): Promise<SaveWordleSessionResponse> {
   return await apiFetch<SaveWordleSessionResponse>("/offseason/wordle/session", {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
-      ...buildAuthHeaders(authUserId),
+      ...buildAuthHeaders(accessToken),
     },
     body: JSON.stringify(payload),
   });
