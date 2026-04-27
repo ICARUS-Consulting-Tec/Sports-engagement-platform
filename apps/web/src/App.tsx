@@ -13,8 +13,11 @@ import ProfilePage from "./pages/ProfilePage";
 import HomePage from "./pages/HomePage";
 import CommunityPage from "./pages/CommunityPage";
 import FeedbackDrawer from "./components/feedback/FeedbackDrawer";
+import { Auth } from "./context/AuthContext";
 
 function App() {
+  const { session } = Auth();
+
   return (
     <>
     <Routes>
@@ -46,7 +49,7 @@ function App() {
       <Route path="/voice-agent" element={<VoiceAgent />} />
       <Route path="/news" element={<NewsPage />} />
     </Routes>
-    <FeedbackDrawer />
+    {session ? <FeedbackDrawer /> : null}
     </>
   );
 }
