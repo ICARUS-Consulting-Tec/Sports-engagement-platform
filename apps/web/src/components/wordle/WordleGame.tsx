@@ -77,7 +77,7 @@ function WordleGame() {
         attempt_count: attemptCount,
         playtime_seconds: playtimeSeconds,
         puzzle_date: puzzleDate,
-      }, session.user.id);
+      }, session.access_token);
 
       setLeaderboard(response.leaderboard);
     } catch (error) {
