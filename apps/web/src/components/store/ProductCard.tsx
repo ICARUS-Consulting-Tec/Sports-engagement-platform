@@ -19,7 +19,7 @@ export default function ProductCard({ product, onAddToCart }: ProductCardProps) 
   const typeColors = {
     'Jerseys': 'primary',
     'Headwear': 'secondary',
-    'Performance': 'success',
+    'Performance': 'default',
     'Collectibles': 'default'
   } as const;
 

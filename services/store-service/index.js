@@ -40,20 +40,23 @@ app.get("/health", async (req, res) => {
 
 app.post("/create_checkout", async (req, res) => {
   try {
-    const { price_id, quantity, origin } = req.body;
+    const { line_items, origin } = req.body;
 
     // Usa el origin del cliente si viene, sino FRONTEND_URL del .env
     const baseUrl = origin || process.env.FRONTEND_URL || "http://localhost:5173";
 
+    // Validar que line_items sea un array con al menos un elemento
+    if (!Array.isArray(line_items) || line_items.length === 0) {
+      return res.status(400).json({
+        status: "error",
+        error: "line_items must be a non-empty array"
+      });
+    }
+
     const session = await stripe.checkout.sessions.create({
       payment_method_types: ["card"],
       mode: "payment",
-      line_items: [
-        {
-          price: price_id,
-          quantity: quantity,
-        }
-      ],
+      line_items: line_items,
       success_url: `${baseUrl}/paySuccess`,
       cancel_url: `${baseUrl}/store`,
     });

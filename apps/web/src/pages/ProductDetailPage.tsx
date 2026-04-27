@@ -83,16 +83,21 @@ export default function ProductDetailPage() {
 
   return (
     <div className="min-h-screen bg-[#F4F5F7]">
-        <main className="mx-auto w-full max-w-[1400px] p-6">
-            <Navbar />
-        <button
-          type="button"
-          onClick={() => navigate('/store')}
-          className="mb-4 inline-flex items-center gap-2 text-[#0B2A4A] hover:underline"
-        >
-          <img src={backIcon} alt="" className="h-5 w-5" />
-          Back to store
-        </button>
+      <main className="mx-auto w-full max-w-[1400px] p-6">
+        <Navbar />
+        
+        {/* Barra con Back y Cart Button */}
+        <div className="mb-6 flex items-center justify-between">
+          <button
+            type="button"
+            onClick={() => navigate('/store')}
+            className="inline-flex items-center gap-2 text-[#0B2A4A] hover:underline"
+          >
+            <img src={backIcon} alt="" className="h-5 w-5" />
+            Back to store
+          </button>
+          <CartButton />
+        </div>
 
         <div className="grid gap-8 md:grid-cols-2">
           <div className="overflow-hidden rounded-2xl border border-slate-200 bg-white">
@@ -120,23 +125,23 @@ export default function ProductDetailPage() {
             </div>
 
             {showSize && product.sizes ? (
-                <div className="max-w-xs">
-                    <label htmlFor="product-size" className="mb-1 block text-sm font-medium text-[#0B2A4A]">
-                    Size
-                    </label>
-                    <select
-                    id="product-size"
-                    value={size}
-                    onChange={(e) => setSize(e.target.value)}
-                    className="w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm text-[#0B2A4A] focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
-                    >
-                    {product.sizes.map((s) => (
-                        <option key={s} value={s}>
-                        {s}
-                        </option>
-                    ))}
-                    </select>
-                </div>
+              <div className="max-w-xs">
+                <label htmlFor="product-size" className="mb-1 block text-sm font-medium text-[#0B2A4A]">
+                  Size
+                </label>
+                <select
+                  id="product-size"
+                  value={size}
+                  onChange={(e) => setSize(e.target.value)}
+                  className="w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm text-[#0B2A4A] focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+                >
+                  {product.sizes.map((s) => (
+                    <option key={s} value={s}>
+                      {s}
+                    </option>
+                  ))}
+                </select>
+              </div>
             ) : null}
 
             <div className="flex max-w-xs items-center gap-3">
@@ -176,7 +181,7 @@ export default function ProductDetailPage() {
               Add to cart
             </Button>
 
-            <div className="border-t border-slate-200 pt-2">
+            <div className="border-t border-slate-300 pt-2">
               <button
                 type="button"
                 onClick={() => setShippingOpen((o) => !o)}
@@ -193,15 +198,15 @@ export default function ProductDetailPage() {
                 />
               </button>
               {shippingOpen ? (
-                <p className="border-t border-slate-200 pb-3 pt-2 text-sm text-slate-600">
-                    Free standard shipping on orders over $75. Expedited shipping available at checkout. 
-                    Orders typically arrive within 5-7 business days. International shipping may take 10-14 days. 
-                    All orders are processed within 1-2 business days.
+                <p className="pb-3 pt-2 text-sm text-slate-600">
+                  Free standard shipping on orders over $75. Expedited shipping available at checkout. 
+                  Orders typically arrive within 5-7 business days. International shipping may take 10-14 days. 
+                  All orders are processed within 1-2 business days.
                 </p>
-                ) : null}
+              ) : null}
             </div>
 
-            <div className="border-t border-slate-200 pt-2">
+            <div className="border-t border-slate-300 pt-2">
               <button
                 type="button"
                 onClick={() => setDescOpen((o) => !o)}
@@ -215,7 +220,7 @@ export default function ProductDetailPage() {
                 />
               </button>
               {descOpen ? (
-                <div className="border-t border-slate-200 pb-3 pt-2 text-sm text-slate-600">
+                <div className="pb-3 pt-2 text-sm text-slate-600">
                   {product.description ?? 'No description for this product.'}
                 </div>
               ) : null}
@@ -224,7 +229,6 @@ export default function ProductDetailPage() {
         </div>
       </main>
 
-      <CartButton />
       <CartSlide />
     </div>
   );

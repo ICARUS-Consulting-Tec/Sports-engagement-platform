@@ -45,10 +45,15 @@ export default function CartSlide() {
 
   async function goToCheckout() {
     if (cart.length === 0) return;
-    const first = cart[0]!;
+    
     try {
-      const priceId = resolveStripePriceId(first.product.default_price);
-      const { url } = await createCheckout(priceId, first.quantity);
+      // Construir array de line_items con todos los productos del carrito
+      const lineItems = cart.map((item) => ({
+        price: resolveStripePriceId(item.product.default_price),
+        quantity: item.quantity,
+      }));
+
+      const { url } = await createCheckout(lineItems);
       clearCart();
       closeCart();
       window.location.href = url;
