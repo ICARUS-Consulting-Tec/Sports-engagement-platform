@@ -5,6 +5,10 @@ import React, {
   useRef,
   useState,
 } from "react";
+import {
+  createFeedback,
+  uploadFeedbackImages,
+} from "../../services/feedbackService";
 
 export const NAV = "#002244";
 export const ACCENT = "#4B92DB";
@@ -25,6 +29,29 @@ export const CATEGORIES = [
 export const MAX_MESSAGE_LENGTH = 1500;
 export const MAX_IMAGES = 5;
 export const ACCEPTED_TYPES = ["image/png", "image/jpg", "image/jpeg", "image/webp"];
+const BLOCKED_WORDS = [
+  "chingada",
+  "chingado",
+  "chingar",
+  "chingas",
+  "chingues",
+  "cojudo",
+  "cojuda",
+  "cojer",
+  "culero",
+  "culera",
+  "estupido",
+  "estupida",
+  "idiota",
+  "imbecil",
+  "mierda",
+  "pene",
+  "pendeja",
+  "pendejo",
+  "pinche",
+  "puta",
+  "puto",
+];
 
 export interface FormState {
   category: string;
@@ -46,12 +73,43 @@ export const EMPTY_FORM: FormState = {
   images: [],
 };
 
+function normalizeForModeration(value: string): string {
+  return value
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .toLowerCase();
+}
+
+function findBlockedWord(value: string): string | null {
+  const tokens = normalizeForModeration(value)
+    .replace(/[^a-z0-9]+/g, " ")
+    .trim()
+    .split(/\s+/)
+    .filter(Boolean);
+
+  for (const token of tokens) {
+    if (BLOCKED_WORDS.includes(token)) {
+      return token;
+    }
+  }
+
+  return null;
+}
+
 function validateForm(form: FormState): FormErrors {
   const nextErrors: FormErrors = {};
+  const blockedSubjectWord = findBlockedWord(form.subject);
+  const blockedMessageWord = findBlockedWord(form.message);
 
   if (!form.category) nextErrors.category = "Please select a category.";
   if (!form.subject.trim()) nextErrors.subject = "Subject is required.";
   if (!form.message.trim()) nextErrors.message = "Message is required.";
+  if (blockedSubjectWord) {
+    nextErrors.subject = "Please remove offensive language from the subject.";
+  }
+  if (blockedMessageWord) {
+    nextErrors.message = "Please remove offensive language from your message.";
+  }
 
   return nextErrors;
 }
@@ -59,6 +117,8 @@ function validateForm(form: FormState): FormErrors {
 export function useFeedbackDrawer() {
   const [open, setOpen] = useState(false);
   const [submitted, setSubmitted] = useState(false);
+  const [submitting, setSubmitting] = useState(false);
+  const [submitError, setSubmitError] = useState<string | null>(null);
   const [form, setForm] = useState<FormState>(EMPTY_FORM);
   const [errors, setErrors] = useState<FormErrors>({});
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -101,6 +161,8 @@ export function useFeedbackDrawer() {
     setForm(EMPTY_FORM);
     setErrors({});
     setSubmitted(false);
+    setSubmitting(false);
+    setSubmitError(null);
     if (fileInputRef.current) {
       fileInputRef.current.value = "";
     }
@@ -118,6 +180,7 @@ export function useFeedbackDrawer() {
   const setField = useCallback((field: "category" | "subject" | "message", value: string) => {
     setForm((prev) => ({ ...prev, [field]: value }));
     setErrors((prev) => ({ ...prev, [field]: undefined }));
+    setSubmitError(null);
   }, []);
 
   const addImages = useCallback((files: FileList | null) => {
@@ -129,6 +192,7 @@ export function useFeedbackDrawer() {
       ...prev,
       images: [...prev.images, ...validImages].slice(0, MAX_IMAGES),
     }));
+    setSubmitError(null);
 
     if (fileInputRef.current) {
       fileInputRef.current.value = "";
@@ -140,22 +204,47 @@ export function useFeedbackDrawer() {
       ...prev,
       images: prev.images.filter((_, imageIndex) => imageIndex !== index),
     }));
+    setSubmitError(null);
   }, []);
 
-  const handleSubmit = useCallback((event: React.FormEvent<HTMLFormElement>) => {
+  const handleSubmit = useCallback(async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
 
     const nextErrors = validateForm(form);
     setErrors(nextErrors);
 
-    if (Object.keys(nextErrors).length === 0) {
+    if (Object.keys(nextErrors).length > 0) {
+      return;
+    }
+
+    try {
+      setSubmitting(true);
+      setSubmitError(null);
+
+      const imageUrls = await uploadFeedbackImages(form.images);
+
+      await createFeedback({
+        category: form.category.trim(),
+        subject: form.subject.trim(),
+        message: form.message.trim(),
+        image_urls: imageUrls,
+      });
+
       setSubmitted(true);
+    } catch (error) {
+      setSubmitError(
+        error instanceof Error ? error.message : "Could not submit feedback.",
+      );
+    } finally {
+      setSubmitting(false);
     }
   }, [form]);
 
   return {
     open,
     submitted,
+    submitting,
+    submitError,
     form,
     errors,
     previews,

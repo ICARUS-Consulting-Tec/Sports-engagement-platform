@@ -18,6 +18,8 @@ export default function FeedbackDrawer() {
   const {
     open,
     submitted,
+    submitting,
+    submitError,
     form,
     errors,
     previews,
@@ -197,21 +199,29 @@ export default function FeedbackDrawer() {
               >
                 <InfoIcon className="h-4 w-4 shrink-0" style={{ color: ACCENT }} />
                 <p className="text-xs" style={{ color: ACCENT }}>
-                  Messages are reviewed to keep the community respectful.
+                  Messages are reviewed to keep the community respectful. Images are sent with the feedback submission.
                 </p>
               </div>
 
+              {submitError && (
+                <div className="rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
+                  {submitError}
+                </div>
+              )}
+
               <button
                 type="submit"
+                disabled={submitting}
                 className="w-full rounded-xl py-3 text-sm font-semibold text-white transition-opacity hover:opacity-90 focus:outline-none"
                 style={{ backgroundColor: NAV }}
               >
-                Submit Feedback
+                {submitting ? "Submitting..." : "Submit Feedback"}
               </button>
 
               <button
                 type="button"
                 onClick={handleClose}
+                disabled={submitting}
                 className="w-full rounded-xl border border-gray-200 py-3 text-sm font-medium text-gray-600 transition-colors hover:bg-gray-50 focus:outline-none"
               >
                 Cancel

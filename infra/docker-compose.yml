@@ -83,6 +83,8 @@ services:
     environment:
       PORT: 4012
       FEEDBACKMAIL_DB_URL: ${FEEDBACKMAIL_DB_URL}
+      OPENAI_API_KEY: ${OPENAI_API_KEY:-}
+      OPENAI_MODERATION_MODEL: ${OPENAI_MODERATION_MODEL:-omni-moderation-latest}
     networks:
       - supabase_net
 

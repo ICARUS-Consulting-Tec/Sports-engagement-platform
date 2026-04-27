@@ -11,6 +11,31 @@ const MAX_SUBJECT_LENGTH = 160;
 const MAX_MESSAGE_LENGTH = 1500;
 const MAX_IMAGES = 5;
 const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+const OPENAI_API_KEY = process.env.OPENAI_API_KEY;
+const OPENAI_MODERATION_MODEL = process.env.OPENAI_MODERATION_MODEL || "omni-moderation-latest";
+const BLOCKED_WORDS = new Set([
+  "chingada",
+  "chingado",
+  "chingar",
+  "chingas",
+  "chingues",
+  "cojuda",
+  "cojudo",
+  "cojer",
+  "culera",
+  "culero",
+  "estupida",
+  "estupido",
+  "idiota",
+  "imbecil",
+  "mierda",
+  "pene",
+  "pendeja",
+  "pendejo",
+  "pinche",
+  "puta",
+  "puto",
+]);
 
 function getImageUrls(value) {
   if (value === undefined || value === null) return [];
@@ -20,6 +45,64 @@ function getImageUrls(value) {
   if (urls.some((item) => !item)) return null;
 
   return urls;
+}
+
+function normalizeForModeration(value) {
+  return value
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .toLowerCase();
+}
+
+function findBlockedWord(value) {
+  const tokens = normalizeForModeration(value)
+    .replace(/[^a-z0-9]+/g, " ")
+    .trim()
+    .split(/\s+/)
+    .filter(Boolean);
+
+  for (const token of tokens) {
+    if (BLOCKED_WORDS.has(token)) {
+      return token;
+    }
+  }
+
+  return null;
+}
+
+async function moderateWithOpenAI(subject, message) {
+  if (!OPENAI_API_KEY) {
+    return { enabled: false, flagged: false };
+  }
+
+  const response = await fetch("https://api.openai.com/v1/moderations", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${OPENAI_API_KEY}`,
+    },
+    body: JSON.stringify({
+      model: OPENAI_MODERATION_MODEL,
+      input: `Subject: ${subject}\nMessage: ${message}`,
+    }),
+  });
+
+  const data = await response.json();
+
+  if (!response.ok) {
+    const apiError = data && data.error && data.error.message
+      ? data.error.message
+      : "OpenAI moderation request failed";
+    throw new Error(apiError);
+  }
+
+  const result = Array.isArray(data.results) ? data.results[0] : null;
+
+  return {
+    enabled: true,
+    flagged: Boolean(result && result.flagged),
+    categories: result && result.categories ? result.categories : {},
+  };
 }
 
 app.get("/health", async (req, res) => {
@@ -47,6 +130,8 @@ app.post("/", async (req, res) => {
     const subject = typeof req.body.subject === "string" ? req.body.subject.trim() : "";
     const message = typeof req.body.message === "string" ? req.body.message.trim() : "";
     const imageUrls = getImageUrls(req.body.image_urls);
+    const blockedSubjectWord = findBlockedWord(subject);
+    const blockedMessageWord = findBlockedWord(message);
 
     if (!category) return res.status(400).json({ error: "category is required" });
     if (!subject) return res.status(400).json({ error: "subject is required" });
@@ -66,6 +151,20 @@ app.post("/", async (req, res) => {
     if (imageUrls.length > MAX_IMAGES) {
       return res.status(400).json({ error: `image_urls supports a maximum of ${MAX_IMAGES} images` });
     }
+    if (blockedSubjectWord) {
+      return res.status(400).json({ error: "subject contains offensive language" });
+    }
+    if (blockedMessageWord) {
+      return res.status(400).json({ error: "message contains offensive language" });
+    }
+
+    const moderation = await moderateWithOpenAI(subject, message);
+    if (moderation.flagged) {
+      return res.status(400).json({
+        error: "feedback was blocked by moderation",
+        moderation: moderation.categories,
+      });
+    }
 
     const result = await pool.query(
       `INSERT INTO recommendations (id, category, subject, message, image_urls, created_at)
@@ -76,6 +175,9 @@ app.post("/", async (req, res) => {
 
     res.status(201).json(result.rows[0]);
   } catch (error) {
+    if (OPENAI_API_KEY && /OpenAI moderation/i.test(error.message)) {
+      return res.status(503).json({ error: "moderation service unavailable" });
+    }
     res.status(500).json({ error: error.message });
   }
 });
