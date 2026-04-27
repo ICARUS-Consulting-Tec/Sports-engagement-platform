@@ -12,3 +12,11 @@ export async function insertNewUser(data: InsertNewUserRequest){
     body: JSON.stringify(data)
   });
 }
+
+export async function getMyProfile(accessToken: string): Promise<{status: string; profile: Profile}> {
+  return await apiFetch<{status: string; profile: Profile}>("/profile/me", {
+    headers: {
+      Authorization: `Bearer ${accessToken}`
+    }
+  });
+}

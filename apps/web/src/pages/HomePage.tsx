@@ -11,13 +11,20 @@ import { getClassicMatches } from "../services/historyService";
 import type { ClassicMatch } from "../types/history";
 import "../styles/home.css";
 import bestSellers from "../assets/home/bestSellers.png";
+import { useNavigate } from "react-router-dom";
+import { Auth } from "../context/AuthContext";
 
 function HomePage() {
   const [classicMatches, setClassicMatches] = useState<ClassicMatch[]>([]);
   const [classicMatchesLoading, setClassicMatchesLoading] = useState(true);
   const [classicMatchesError, setClassicMatchesError] = useState("");
+  const { role } = Auth();
+  const navigate = useNavigate();
 
   useEffect(() => {
+    if (role === 'admin') {
+        navigate('/admin');
+      }
     let isMounted = true;
 
     async function loadClassicMatches() {
@@ -48,7 +55,9 @@ function HomePage() {
     return () => {
       isMounted = false;
     };
-  }, []);
+  }, [role]);
+
+  
 
   return (
     <div className="home-page">

@@ -12,37 +12,94 @@ import NewsPage from "./pages/NewsPage";
 import ProfilePage from "./pages/ProfilePage";
 import HomePage from "./pages/HomePage";
 import CommunityPage from "./pages/CommunityPage";
+import AdminPage from "./pages/AdminPage";
+import AdminRoute from "./components/admin/AdminRoute";
+import UserRoute from "./components/user/UserRoute";
+
 
 function App() {
   return (
     <Routes>
-      <Route path="/" element={<HomePage />} />
-      <Route path="/matches" element={<MatchesPage />} />
-      <Route path="/matches/:id" element={<MatchRoomPage />} />
+      <Route path="/" element={
+        <UserRoute>
+          <HomePage />
+        </UserRoute>
+        } />
+      <Route path="/matches" element={
+        <UserRoute>
+          <MatchesPage />
+        </UserRoute>
+        } />
+      <Route path="/matches/:id" element={
+        <UserRoute>
+          <MatchRoomPage />
+        </UserRoute>
+        } />
       <Route 
         path="/team" 
         element={
-          <PrivateRoute>
-            <TeamPage />{''}
-          </PrivateRoute>
+          <UserRoute>
+            <PrivateRoute>
+              <TeamPage />{''}
+            </PrivateRoute>
+          </UserRoute>
         } 
       />
       <Route 
         path="/profile" 
         element={
-          <PrivateRoute>
-            <ProfilePage />
-          </PrivateRoute>
-        } 
+          <UserRoute>
+            <PrivateRoute>
+              <ProfilePage />
+            </PrivateRoute>
+          </UserRoute>
+        } />
+      <Route path="/team" element={
+        <UserRoute>
+          <TeamPage />
+        </UserRoute>
+      } />
+      <Route path="/community" element={
+        <UserRoute>
+          <CommunityPage />
+        </UserRoute>
+      } />
+      <Route path="/history" element={
+        <UserRoute>
+          <HistoryPage />
+        </UserRoute>
+      } />
+      <Route path="/store" element={
+        <UserRoute>
+          <StorePage />
+        </UserRoute>
+      } />
+      <Route path="/paySuccess" element={
+        <UserRoute>
+          <PaySuccess />
+        </UserRoute>
+      } />
+      <Route path="/offseason" element={
+        <UserRoute>
+          <OffSeasonPage />
+        </UserRoute>
+      } />
+      <Route path="/voice-agent" element={
+        <UserRoute>
+          <VoiceAgent />
+        </UserRoute>
+      } />
+      <Route path="/news" element={
+        <UserRoute>
+          <NewsPage />
+        </UserRoute>
+      } />
+      <Route path="/admin" element={
+          <AdminRoute>
+            <AdminPage />
+          </AdminRoute>
+        }
       />
-      <Route path="/team" element={<TeamPage />} />
-      <Route path="/community" element={<CommunityPage />} />
-      <Route path="/history" element={<HistoryPage />} />
-      <Route path="/store" element={<StorePage />} />
-      <Route path="/paySuccess" element={<PaySuccess />} />
-      <Route path="/offseason" element={<OffSeasonPage />} />
-      <Route path="/voice-agent" element={<VoiceAgent />} />
-      <Route path="/news" element={<NewsPage />} />
     </Routes>
   );
 }
