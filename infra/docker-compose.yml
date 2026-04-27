@@ -137,7 +137,7 @@ services:
   community-service:
     build: 
       context: ../services/community-service
-    container_name: community
+    container_name: icarus-community
     environment: 
       PORT: 4001
       COMMUNITY_DB_URL: postgresql://community_svc:CommunitySvc_2026_dev@supabase-db:5432/community_db
