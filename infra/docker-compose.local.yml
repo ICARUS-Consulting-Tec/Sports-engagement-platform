@@ -39,3 +39,8 @@ services:
   cards-service:
     environment:
       CARDS_DB_URL: postgresql://cards_svc:CardsSvc_2026_dev@host.docker.internal:15432/cards_db
+
+  community-service: 
+    environment: 
+      COMMUNITY_DB_URL: postgresql://community_svc:CommunitySvc_2026_dev@host.docker.internal:15432/community_db
+
