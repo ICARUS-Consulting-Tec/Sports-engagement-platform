@@ -41,12 +41,12 @@ app.post("/new_post", async (req, res) => {
             });
         }
         
-        const result = pool.query(`
+        const result = await pool.query(`
             INSERT INTO posts (
                 user_id, 
                 category_id, 
                 title, 
-                content, 
+                content
             )
             values ($1, $2, $3, $4)
             RETURNING
@@ -99,9 +99,18 @@ app.get("/get_posts", async (req, res) => {
 
 app.delete("/delete_post", async (req, res) => {
     try{
+        const { post_id } = req.body;
+
+        if (!post_id) {
+            return res.status(400).json({
+                success: false,
+                message: "post_id is required"
+            });
+        }
+
         const result = await pool.query(`
             DELETE FROM posts
-            WHERE post_id = ${req.post_id}
+            WHERE post_id = $1
             RETURNING 
                 post_id, 
                 category_id,
@@ -110,12 +119,13 @@ app.delete("/delete_post", async (req, res) => {
                 views_count, 
                 upvotes_count,
                 created_at
-        `);
+        `, [post_id]);
 
         res.status(200).json({
             success: true,
             result: result.rows
-        })
+        });
+
     } catch(error) {
         res.status(500).json({
             success: false,
@@ -128,31 +138,41 @@ app.patch("/edit_post", async (req, res) => {
     try {
         const {
             post_id ,
-            user_id,
             new_category_name,
             new_title,
             new_content
         } = req.body;
 
+        if (!post_id) {
+            return res.status(400).json({
+                success: false,
+                message: "post_id is required"
+            });
+        }
+
         const result = await pool.query(`
-            UPDATE posts 
-            SET 
-                title = ${new_title},
-                content = ${new_content},
-                category_id = c.category_id
-            FROM categories c 
-            WHERE c."name" = ${new_category_name}
-            AND post_id = ${post_id} 
-            AND user_id = ${user_id}
+            UPDATE posts p
+            SET
+                title = COALESCE($1, p.title),
+                content = COALESCE($2, p.content),
+                category_id = COALESCE(c.category_id, p.category_id)
+            FROM categories c
+            WHERE c.name = $3
+              AND p.post_id = $4
             RETURNING
-                post_id, 
-                category_id, 
-                title, 
-                content, 
-                views_count, 
-                upvotes_count,
-                created_at 
-        `);
+                p.post_id,
+                p.category_id,
+                p.title,
+                p.content,
+                p.views_count,
+                p.upvotes_count,
+                p.created_at
+        `, [
+            new_title ?? null,
+            new_content ?? null,
+            new_category_name ?? null,
+            post_id
+        ]);
 
         res.status(200).json({
             success: true,
@@ -169,17 +189,24 @@ app.patch("/edit_post", async (req, res) => {
 
 app.get("/get_post_comments", async (req, res) => {
     try {
-        const {user_id, post_id} = req.query;
+        const { post_id } = req.query;
+        
+        if (!post_id) {
+            return res.status(400).json({
+                success: false,
+                message: "post_id is required"
+            });
+        }
+
         const result = await pool.query(`
-            SELECT 
+            SELECT
                 reply_id,
                 content,
                 upvotes_count,
                 created_at
             FROM replies r
-            WHERE r.post_id = ${post_id};
-            AND r.user_id = ${user_id};
-        `);
+            WHERE r.post_id = $1
+        `, [post_id]);
 
         res.status(200).json({
             success: true,
@@ -237,16 +264,23 @@ app.post("/create_comment", async (req, res) => {
 app.delete("/delete_reply", async (req, res) => {
     try {
         const {reply_id} = req.body;
+        if (!reply_id) {
+            return res.status(400).json({
+                success: false,
+                message: "reply_id is required"
+            });
+        }
+
         const result = await pool.query(`
-            DELETE FROM replies 
-            WHERE reply_id = ${reply_id}
+            DELETE FROM replies
+            WHERE reply_id = $1
             RETURNING
-               reply_id, 
-               post_id, 
-               content, 
-               upvotes_count, 
-               created_at 
-        `);
+               reply_id,
+               post_id,
+               content,
+               upvotes_count,
+               created_at
+        `, [reply_id]);
         
         res.status(200).json({
             success: true,
@@ -268,16 +302,23 @@ app.patch("/edit_comment", async (req, res) => {
             new_content
         } = req.body;
 
+        if (!reply_id || !new_content) {
+            return res.status(400).json({
+                success: false,
+                message: "reply_id and new_content are required"
+            });
+        }
+
         const result = await pool.query(`
             UPDATE replies
-            SET content = ${new_content}
-            WHERE reply_id = ${reply_id}
-            RETURNING 
-                reply_id, 
-                post_id,    
-                content, 
+            SET content = $1
+            WHERE reply_id = $2
+            RETURNING
+                reply_id,
+                post_id,
+                content,
                 upvotes_count
-        `);
+        `, [new_content, reply_id]);
 
         res.status(200).json({
             success: true, 
@@ -296,11 +337,18 @@ app.get("/user_posts", async (req, res) => {
     try{
         const { user_id } = req.query;
 
+        if (!user_id) {
+            return res.status(400).json({
+                success: false,
+                message: "user_id is required"
+            });
+        }
+
         const result = await pool.query(`
             SELECT *
-            FROM posts  
-            WHERE user_id = ${user_id}
-        `);
+            FROM posts
+            WHERE user_id = $1
+        `, [user_id]);
 
         res.status(200).json({
             success: true, 
@@ -350,7 +398,8 @@ app.get("/fan_of_week", async (req, res) => {
             GROUP BY p.user_id 
             ORDER BY 
                 post_count DESC, 
-                upvotes_count DESC;
+                upvotes_count DESC
+            LIMIT 1;
         `);
 
         res.status(200).json({
@@ -364,7 +413,7 @@ app.get("/fan_of_week", async (req, res) => {
             error: error.message
         });
     }
-})
+});
 
 app.listen(PORT, () => {
     console.log(`Community service running on port ${PORT}`);
