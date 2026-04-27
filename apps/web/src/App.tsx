@@ -9,13 +9,16 @@ import HistoryPage from "./pages/HistoryPage";
 import VoiceAgent from "./components/VoiceAgent/VoiceAgent";
 import PrivateRoute from "./components/auth/privateRoute";
 import NewsPage from "./pages/NewsPage";
+import ProfilePage from "./pages/ProfilePage";
+import HomePage from "./pages/HomePage";
+import CommunityPage from "./pages/CommunityPage";
 import FeedbackDrawer from "./components/feedback/FeedbackDrawer";
 
 function App() {
   return (
     <>
     <Routes>
-      <Route path="/" element={<MatchesPage />} />
+      <Route path="/" element={<HomePage />} />
       <Route path="/matches" element={<MatchesPage />} />
       <Route path="/matches/:id" element={<MatchRoomPage />} />
       <Route 
@@ -26,6 +29,16 @@ function App() {
           </PrivateRoute>
         } 
       />
+      <Route 
+        path="/profile" 
+        element={
+          <PrivateRoute>
+            <ProfilePage />
+          </PrivateRoute>
+        } 
+      />
+      <Route path="/team" element={<TeamPage />} />
+      <Route path="/community" element={<CommunityPage />} />
       <Route path="/history" element={<HistoryPage />} />
       <Route path="/store" element={<StorePage />} />
       <Route path="/paySuccess" element={<PaySuccess />} />

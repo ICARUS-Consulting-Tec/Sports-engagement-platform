@@ -98,7 +98,7 @@ export function useWordle(options: UseWordleOptions = {}) {
   const [board, setBoard] = useState<WordleBoard>(() => buildEmptyBoard());
   const [attempt, setAttempt] = useState(0);
   const [gameStatus, setGameStatus] = useState<WordleGameStatus>("playing");
-  const [message, setMessage] = useState("Adivina la palabra de 5 letras");
+  const [message, setMessage] = useState("Guess the 5-letter word");
 
   useEffect(() => {
     setTargetWord(pickDailyWord(activePuzzleDate));
@@ -106,7 +106,7 @@ export function useWordle(options: UseWordleOptions = {}) {
     setBoard(buildEmptyBoard());
     setAttempt(0);
     setGameStatus("playing");
-    setMessage("Adivina la palabra de 5 letras");
+    setMessage("Guess the 5-letter word");
   }, [activePuzzleDate]);
 
   const keyboardStatus = useMemo<WordleKeyboardStatus>(() => {
@@ -141,7 +141,7 @@ export function useWordle(options: UseWordleOptions = {}) {
 
       if (key === "ENTER") {
         if (currentGuess.length !== WORD_LENGTH) {
-          setMessage("Necesitas 5 letras para enviar");
+          setMessage("You need 5 letters to submit");
           return;
         }
 
@@ -157,7 +157,7 @@ export function useWordle(options: UseWordleOptions = {}) {
 
         if (currentGuess === targetWord) {
           setGameStatus("won");
-          setMessage("Ganaste. Excelente jugada.");
+          setMessage("You won. Great job.");
           onGameFinished?.({
             attemptCount: completedAttemptCount,
             gameStatus: "won",
@@ -169,7 +169,7 @@ export function useWordle(options: UseWordleOptions = {}) {
 
         if (attempt + 1 >= MAX_ATTEMPTS) {
           setGameStatus("lost");
-          setMessage(`Perdiste. La palabra era ${targetWord}.`);
+          setMessage(`You lost. The word was ${targetWord}.`);
           onGameFinished?.({
             attemptCount: completedAttemptCount,
             gameStatus: "lost",
@@ -181,7 +181,7 @@ export function useWordle(options: UseWordleOptions = {}) {
 
         setAttempt((previous) => previous + 1);
         setCurrentGuess("");
-        setMessage("Palabra incorrecta");
+        setMessage("Incorrect word");
         return;
       }
 
@@ -207,7 +207,7 @@ export function useWordle(options: UseWordleOptions = {}) {
     setBoard(buildEmptyBoard());
     setAttempt(0);
     setGameStatus("playing");
-    setMessage("Nueva partida iniciada");
+    setMessage("New game started");
   }, [activePuzzleDate]);
 
   const visibleBoard = useMemo(() => {

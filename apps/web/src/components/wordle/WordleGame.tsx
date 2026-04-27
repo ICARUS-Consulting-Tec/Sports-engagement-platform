@@ -38,7 +38,7 @@ function WordleGame() {
       setLeaderboard(wordleLeaderboard);
     } catch (error) {
       console.error("Error loading Wordle data:", error);
-      setLoadingMessage(error instanceof Error ? error.message : "No se pudo cargar Wordle.");
+      setLoadingMessage(error instanceof Error ? error.message : "Could not load Wordle.");
     } finally {
       setLoadingData(false);
     }
@@ -59,7 +59,9 @@ function WordleGame() {
 
     if (!session?.user?.id) {
       setIsSaving(false);
-      setSaveError("Juega como invitado o inicia sesion para guardar tu resultado en el leaderboard.");
+      setSaveError(
+        "Play as a guest or sign in to save your score on the leaderboard.",
+      );
       return;
     }
 
@@ -75,12 +77,12 @@ function WordleGame() {
         attempt_count: attemptCount,
         playtime_seconds: playtimeSeconds,
         puzzle_date: puzzleDate,
-      }, session.user.id);
+      }, session.access_token);
 
       setLeaderboard(response.leaderboard);
     } catch (error) {
       console.error("Error saving Wordle session:", error);
-      setSaveError(error instanceof Error ? error.message : "No se pudo guardar la sesion.");
+      setSaveError(error instanceof Error ? error.message : "Could not save your session.");
     } finally {
       setIsSaving(false);
     }
@@ -126,7 +128,7 @@ function WordleGame() {
             .catch((error) => {
               console.error("Error refreshing daily Wordle leaderboard:", error);
               setLoadingMessage(
-                error instanceof Error ? error.message : "No se pudo actualizar el puzzle diario.",
+                error instanceof Error ? error.message : "Could not refresh the daily puzzle.",
               );
             });
 
@@ -169,16 +171,16 @@ function WordleGame() {
           Off-Season Word Challenge
         </h2>
         <p className="m-0 leading-[1.6] text-[#516173]">
-          Un minijuego de 5 letras dentro del mismo apartado de Offseason.
+          A five-letter mini-game in the same Off-Season section.
         </p>
         <p className={MESSAGE_CLASS}>
           {session?.user?.id
-            ? "Tu primer intento del dia se guarda en el leaderboard con tu nickname."
-            : "Modo invitado: puedes jugar, pero tu resultado no se guarda hasta iniciar sesion."}
+            ? "Your first attempt of the day is saved on the leaderboard with your nickname."
+            : "Guest mode: you can play, but your score is not saved until you sign in."}
         </p>
         {loadingMessage ? <p className={MESSAGE_CLASS}>{loadingMessage}</p> : null}
         {saveError ? <p className={MESSAGE_CLASS}>{saveError}</p> : null}
-        {isSaving ? <p className={MESSAGE_CLASS}>Guardando resultado...</p> : null}
+        {isSaving ? <p className={MESSAGE_CLASS}>Saving score...</p> : null}
       </header>
 
       <div className="grid grid-cols-[minmax(0,1.4fr)_minmax(280px,0.8fr)] items-start gap-5 max-[900px]:grid-cols-1">
@@ -186,7 +188,7 @@ function WordleGame() {
           <WordleGrid board={board} />
           <p className={MESSAGE_CLASS}>{message}</p>
           <p className={MESSAGE_CLASS}>
-            Puzzle diario: {puzzleDate} · Intento {Math.min(attempt + 1, maxAttempts)} de {maxAttempts}
+            Daily puzzle: {puzzleDate} · Attempt {Math.min(attempt + 1, maxAttempts)} of {maxAttempts}
           </p>
 
           <div className="rounded-xl border border-[#d8dee5] bg-[#f5f8fb] p-4 shadow-none">
@@ -194,7 +196,7 @@ function WordleGame() {
           </div>
 
           {gameStatus !== "playing" ? (
-            <p className="m-0 text-center font-bold text-[#0b2a55]">Palabra: {targetWord}</p>
+            <p className="m-0 text-center font-bold text-[#0b2a55]">Word: {targetWord}</p>
           ) : null}
         </div>
 

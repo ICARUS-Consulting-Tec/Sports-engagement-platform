@@ -17,7 +17,7 @@ function OffSeasonPage() {
         <Navbar />
 
         <section className="mb-9 flex flex-wrap items-start justify-between gap-6 rounded-[28px] bg-[linear-gradient(90deg,#0B2A55_0%,#1D4E89_50%,#60A5FA_100%)] px-10 py-[42px] text-white shadow-[0_10px_24px_rgba(0,0,0,0.12)]">
-          <h1 className="m-0 text-[58px] leading-[1.05] font-black">OFFSEASON</h1>
+          <h1 className="m-0 text-[58px] leading-[1.05] font-black">OFF-SEASON</h1>
         </section>
 
         <section className="grid gap-5">

@@ -29,7 +29,7 @@ function HistoryPage() {
         setHistoryData(response);
       } catch (loadError) {
         console.error("Error loading history page:", loadError);
-        setError("No se pudo cargar la historia del equipo.");
+        setError("Could not load team history.");
       } finally {
         setLoading(false);
       }
@@ -114,18 +114,21 @@ function HistoryPage() {
         </section>
 
         <section className="mt-2 mb-6 rounded-3xl border border-[#e6e9ef] bg-white p-6 shadow-[0_8px_20px_rgba(15,23,42,0.08)]">
-          <h2 className="mb-[18px] text-2xl font-extrabold text-[#0c2340]">
+          <h2 className="mb-3 text-2xl font-extrabold text-[#0c2340]">
             Historical Timeline
           </h2>
-          <div className="grid gap-[14px]">
+          <div className="relative py-2">
+            {/* Desktop vertical spine */}
+            <div className="absolute inset-y-0 left-1/2 hidden w-px -translate-x-1/2 bg-[#dde3ec] md:block" />
             {!loading && timelineEvents.length === 0 && !error ? (
               <article className="rounded-2xl border border-slate-200 bg-white px-4 py-6 text-center text-sm text-slate-500 shadow-[0_1px_2px_rgba(15,23,42,0.04)]">
                 No timeline events available.
               </article>
-            ) : timelineEvents.map((event) => (
+            ) : timelineEvents.map((event, index) => (
               <TimelineItem
                 key={event.id}
                 event={event}
+                index={index}
                 onOpenStory={handleOpenTimelineStory}
               />
             ))}
@@ -151,8 +154,8 @@ function HistoryPage() {
           </div>
         </section>
 
-        <section className="mb-6 mt-4 rounded-[28px] border border-[#e6e9ef] bg-white px-6 py-7 shadow-[0_8px_20px_rgba(15,23,42,0.08)] md:px-8 md:py-8">
-          <h2 className="mb-5 text-[34px] font-extrabold leading-none tracking-[-0.03em] text-[#0c2340]">
+        <section className="mb-6 mt-4 rounded-[28px] border border-[#e6e9ef] bg-white px-6 py-6 shadow-[0_8px_20px_rgba(15,23,42,0.08)] md:px-8 md:py-7">
+          <h2 className="mb-3 text-2xl font-extrabold text-[#0c2340]">
             Classic Matches Archive
           </h2>
           <div className="grid gap-5 lg:grid-cols-2 lg:gap-6">

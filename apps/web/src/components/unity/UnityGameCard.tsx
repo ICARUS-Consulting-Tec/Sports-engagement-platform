@@ -15,7 +15,7 @@ function UnityGameCard({ unityConfig }: UnityGameCardProps) {
           Off-Season Challenge
         </h2>
         <p className="m-0 leading-[1.6] text-[#516173]">
-          Juego embebido con puente TypeScript para Joy-Con por WebHID
+          Embedded game with a TypeScript bridge for Joy-Con via WebHID
         </p>
       </header>
 
