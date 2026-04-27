@@ -7,6 +7,7 @@ import Addresses from "../components/Profile/Addresses";
 import Badges from "../components/Profile/Badges";
 import "../styles/profile.css";
 import AddressModal from "../components/Profile/AddressModal";
+import { supabase } from "../supabaseClient";
 
 import {
   getMyAddresses,
@@ -180,7 +181,59 @@ function ProfilePage() {
     } finally {
         setIsLoadingBadges(false);
     }
-    };
+  };
+
+  const handleAvatarUpload = async (file: File) => {
+    const MAX_SIZE = 2 * 1024 * 1024;
+    const ALLOWED_TYPES = ["image/png", "image/jpeg", "image/gif"];
+
+    if (!ALLOWED_TYPES.includes(file.type)) {
+      alert("Only JPG, PNG or GIF allowed");
+      return;
+    }
+
+    if (file.size > MAX_SIZE) {
+      alert("File must be smaller than 2MB");
+      return;
+    }
+
+    const {
+      data: { session },
+    } = await supabase.auth.getSession();
+
+    const user = session?.user;
+    if (!user) {
+      alert("User not authenticated");
+      return;
+    }
+
+    const fileExt = file.name.split(".").pop();
+    const filePath = `${user.id}/avatar-${Date.now()}.${fileExt}`;
+
+    const { error: uploadError } = await supabase.storage
+      .from("avatars")
+      .upload(filePath, file, {
+        upsert: true,
+      });
+
+    if (uploadError) {
+      console.error(uploadError);
+      alert("Error uploading image");
+      return;
+    }
+
+    const { data } = supabase.storage
+      .from("avatars")
+      .getPublicUrl(filePath);
+
+    const publicUrl = data.publicUrl;
+
+    const updatedProfile = await updateMyProfile({
+      avatar_url: publicUrl,
+    });
+
+    setProfile(updatedProfile);
+  };
 
   useEffect(() => {
     if (session) {
@@ -233,8 +286,11 @@ function ProfilePage() {
 
           <div className="profile-content">
             {activeTab === "personal" && (
-              <PersonalInfo profile={profile}
-                            onSave={handleSaveProfile} />
+              <PersonalInfo
+                profile={profile}
+                onSave={handleSaveProfile}
+                onAvatarUpload={handleAvatarUpload}
+              />
             )}
 
             {activeTab === "addresses" && (
