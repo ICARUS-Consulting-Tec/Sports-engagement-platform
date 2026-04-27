@@ -1,4 +1,3 @@
-import { Button, Badge } from '@heroui/react';
 import { useCart } from '../../context/CartContext';
 import cartIcon from '../../assets/icons/cart.svg';
 
@@ -6,21 +5,17 @@ export default function CartButton() {
   const { openCart, cartItemCount } = useCart();
 
   return (
-    <Badge 
-      content={cartItemCount} 
-      color="danger" 
-      isInvisible={cartItemCount === 0}
-      shape="circle"
+    <button
+      onClick={openCart}
+      className="relative inline-flex items-center gap-2 rounded-xl bg-blue-600 px-5 py-2.5 text-sm font-semibold text-white shadow-sm transition-all hover:bg-blue-700 hover:shadow-md"
     >
-      <Button
-        isIconOnly
-        color="primary"
-        variant="flat"
-        onPress={openCart}
-        className="fixed bottom-6 right-6 w-14 h-14 rounded-full shadow-lg z-50"
-      >
-        <img src={cartIcon} alt="Cart" className="w-6 h-6" />
-      </Button>
-    </Badge>
+      <img src={cartIcon} alt="" className="h-5 w-5 brightness-0 invert" />
+      <span>Cart</span>
+      {cartItemCount > 0 && (
+        <span className="ml-1 flex h-5 min-w-[20px] items-center justify-center rounded-full bg-red-600 px-1.5 text-xs font-bold text-white">
+          {cartItemCount}
+        </span>
+      )}
+    </button>
   );
 }

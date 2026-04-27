@@ -9,15 +9,28 @@ import ProductCounter from '../components/store/ProductCounter';
 import CartButton from '../components/store/CartButton';
 import { useCart } from '../context/CartContext';
 import { enrichProductsWithTags } from '../data/mockProducts';
+import CartSlide from '../components/store/CartSlide';
+import '../styles/store.css';
+
+const DEFAULT_SLIDER_MAX = 200;
+
+function getSafeMaxPriceFromProducts(list: StoreProduct[]): number {
+  const amounts = list
+    .map((p) => p.price_amount)
+    .filter((n) => Number.isFinite(n) && n >= 0);
+  if (amounts.length === 0) {
+    return Math.max(1, DEFAULT_SLIDER_MAX);
+  }
+  return Math.max(1, ...amounts, DEFAULT_SLIDER_MAX);
+}
 
 export default function StorePage() {
   const [products, setProducts] = useState<StoreProduct[]>([]);
   const [loading, setLoading] = useState(true);
-  
-  // Filtros
+
   const [selectedType, setSelectedType] = useState<string | null>(null);
   const [selectedRarity, setSelectedRarity] = useState<string | null>(null);
-  const [priceRange, setPriceRange] = useState<[number, number]>([0, 200]);
+  const [priceRange, setPriceRange] = useState<[number, number]>([0, DEFAULT_SLIDER_MAX]);
 
   const { addToCart } = useCart();
 
@@ -26,44 +39,58 @@ export default function StorePage() {
       .then((res) => {
         const enrichedProducts = enrichProductsWithTags(res.products);
         setProducts(enrichedProducts);
-         
-        const maxPrice = Math.max(...enrichedProducts.map(p => p.price_amount), 200);
-        setPriceRange([0, maxPrice]);
+        const top = getSafeMaxPriceFromProducts(enrichedProducts);
+        setPriceRange([0, top]);
       })
       .catch(console.error)
       .finally(() => setLoading(false));
   }, []);
 
+  const maxPrice = useMemo(
+    () => getSafeMaxPriceFromProducts(products),
+    [products]
+  );
+
+  useEffect(() => {
+    setPriceRange(([lo, hi]) => {
+      if (hi > maxPrice) {
+        return [lo, maxPrice];
+      }
+      return [lo, hi];
+    });
+  }, [maxPrice]);
+
   const filteredProducts = useMemo(() => {
     let filtered = products;
 
     if (selectedType) {
-      filtered = filtered.filter(p => p.type === selectedType);
+      filtered = filtered.filter((p) => p.type === selectedType);
     }
 
     if (selectedRarity) {
-      filtered = filtered.filter(p => p.rarity === selectedRarity);
+      filtered = filtered.filter((p) => p.rarity === selectedRarity);
     }
 
-    filtered = filtered.filter(p => {
-      return p.price_amount >= priceRange[0] && p.price_amount <= priceRange[1];
+    filtered = filtered.filter((p) => {
+      if (!Number.isFinite(p.price_amount)) {
+        return false;
+      }
+      return (
+        p.price_amount >= priceRange[0] && p.price_amount <= priceRange[1]
+      );
     });
 
     return filtered;
   }, [products, selectedType, selectedRarity, priceRange]);
 
-  const maxPrice = useMemo(() => {
-    return Math.max(...products.map(p => p.price_amount), 200);
-  }, [products]);
-
   if (loading) {
     return (
       <div className="min-h-screen bg-[#F4F5F7]">
-        {/* Wrapper para el Navbar con max-width */}
-        <div className="mx-auto w-full max-w-[1400px] px-6">
+        <div className="mx-auto w-full max-w-[1400px] px-6 pt-4">
           <Navbar />
         </div>
-        <main className="mx-auto w-full max-w-[1400px] px-6">
+        
+        <main className="mx-auto w-full max-w-[1400px] px-6 pt-6">
           <p className="text-gray-600">Loading products…</p>
         </main>
       </div>
@@ -72,22 +99,20 @@ export default function StorePage() {
 
   return (
     <div className="min-h-screen bg-[#F4F5F7]">
-      {/* Wrapper para el Navbar con max-width */}
-      <div className="mx-auto w-full max-w-[1400px] px-6">
+      <main className="mx-auto w-full max-w-[1400px] p-6">
         <Navbar />
-      </div>
-      
-      <main className="mx-auto w-full max-w-[1400px] px-6">
-        {/* Header */}
-        <div className="mb-8">
-          <h1 className="text-4xl font-bold text-[#0f3d78] mb-2">Store</h1>
-          <p className="text-gray-600">Encuentra los mejores productos de Titans</p>
-        </div>
+        <section
+          className="store-hero-bar mb-8"
+          aria-label="Store"
+        >
+          <h1 className="store-hero-title store-hero-title--onblue">Store</h1>
+          <p className="store-hero-subtitle store-hero-subtitle--onblue">
+            Find the best Titans products
+          </p>
+        </section>
 
-        {/* Filtros y Contador */}
-        <div className="grid grid-cols-1 lg:grid-cols-4 gap-6 mb-6">
-          {/* Sidebar de filtros */}
-          <aside className="lg:col-span-1 space-y-4">
+        <div className="mb-6 grid grid-cols-1 gap-6 lg:grid-cols-4">
+          <aside className="space-y-4 lg:col-span-1">
             <RarityDropdown
               selectedRarity={selectedRarity}
               onRarityChange={setSelectedRarity}
@@ -96,21 +121,23 @@ export default function StorePage() {
               selectedType={selectedType}
               onTypeChange={setSelectedType}
               priceRange={priceRange}
-              onPriceChange={(value) => setPriceRange(value as [number, number])}
+              onPriceChange={(value) =>
+                setPriceRange(value as [number, number])
+              }
               maxPrice={maxPrice}
             />
           </aside>
 
-          {/* Grid de productos */}
           <div className="lg:col-span-3">
-            <div className="mb-4">
-              <ProductCounter 
-                count={filteredProducts.length} 
+            <div className="mb-4 flex items-center justify-between">
+              <ProductCounter
+                count={filteredProducts.length}
                 totalCount={products.length}
               />
+              <CartButton />
             </div>
 
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+            <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
               {filteredProducts.map((product) => (
                 <ProductCard
                   key={product.id}
@@ -121,16 +148,17 @@ export default function StorePage() {
             </div>
 
             {filteredProducts.length === 0 && (
-              <div className="text-center py-12">
-                <p className="text-gray-600">No se encontraron productos con estos filtros</p>
+              <div className="py-12 text-center">
+                <p className="text-gray-600">
+                  No products found with these filters
+                </p>
               </div>
             )}
           </div>
         </div>
       </main>
 
-      {/* Botón flotante del carrito */}
-      <CartButton />
+      <CartSlide />
     </div>
   );
 }

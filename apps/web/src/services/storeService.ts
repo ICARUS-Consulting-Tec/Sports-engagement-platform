@@ -14,6 +14,7 @@ export async function createCheckout(priceId: string, quantity: number) {
         body: JSON.stringify({
             price_id: priceId,
             quantity: quantity,
+            origin: window.location.origin,
         }),
     });
 }

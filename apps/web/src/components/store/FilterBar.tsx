@@ -21,14 +21,26 @@ export default function FilterBar({
   onTypeChange,
   priceRange,
   onPriceChange,
-  maxPrice
+  maxPrice,
 }: FilterBarProps) {
+  const minBound = 0;
+  const safeMax = Math.max(
+    1,
+    Number.isFinite(maxPrice) && maxPrice > 0 ? maxPrice : 200
+  );
+  const rawUpper = priceRange[1];
+  const upper = Math.min(
+    Math.max(minBound, Number.isFinite(rawUpper) ? rawUpper : 0),
+    safeMax
+  );
+  const [lo, hi] = [priceRange[0], upper];
+
   return (
-    <div className="bg-white rounded-lg p-6 shadow-sm space-y-6">
+    <div className="space-y-6 rounded-lg bg-white p-6 shadow-sm">
       <div>
-        <h3 className="text-sm font-semibold text-[#0B2A4A] mb-3">Category</h3>
+        <h3 className="mb-3 text-sm font-semibold text-[#0B2A4A]">Category</h3>
         <div className="flex flex-wrap gap-2">
-          {PRODUCT_TYPES.map(type => (
+          {PRODUCT_TYPES.map((type) => (
             <Button
               key={type.label}
               variant={selectedType === type.id ? 'solid' : 'bordered'}
@@ -37,9 +49,10 @@ export default function FilterBar({
               onClick={() => onTypeChange(type.id)}
               className={`
                 transition-all duration-200
-                ${selectedType === type.id 
-                  ? 'bg-blue-600 text-white shadow-md scale-105' 
-                  : 'bg-white text-gray-700 border-gray-300 hover:bg-blue-50 hover:border-blue-400 hover:shadow-sm'
+                ${
+                  selectedType === type.id
+                    ? 'scale-105 bg-blue-600 text-white shadow-md'
+                    : 'border border-gray-300 bg-white text-gray-700 hover:border-blue-400 hover:bg-blue-50 hover:shadow-sm'
                 }
               `}
             >
@@ -50,18 +63,22 @@ export default function FilterBar({
       </div>
 
       <div>
-        <h3 className="text-sm font-semibold text-[#0B2A4A] mb-3">Price Range</h3>
+        <h3 className="mb-3 text-sm font-semibold text-[#0B2A4A]">Price Range</h3>
         <input
           type="range"
-          min={0}
-          max={maxPrice}
-          value={priceRange[1]}
-          onChange={(e) => onPriceChange([priceRange[0], Number(e.target.value)])}
-          className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-blue-600"
+          min={minBound}
+          max={safeMax}
+          step={1}
+          value={upper}
+          onChange={(e) => {
+            const v = Number(e.target.value);
+            onPriceChange([lo, v]);
+          }}
+          className="h-2 w-full cursor-pointer appearance-none rounded-lg bg-gray-200 accent-blue-600"
         />
-        <div className="flex justify-between text-sm text-gray-600 mt-2">
-          <span className="font-medium">${priceRange[0]}</span>
-          <span className="font-medium">${priceRange[1]}</span>
+        <div className="mt-2 flex justify-between text-sm text-gray-600">
+          <span className="font-medium">${lo.toFixed(0)}</span>
+          <span className="font-medium">${hi.toFixed(0)}</span>
         </div>
       </div>
     </div>

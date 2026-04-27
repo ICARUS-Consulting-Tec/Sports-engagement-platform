@@ -7,7 +7,7 @@ export default function ProductCounter({ count, totalCount }: ProductCounterProp
   return (
     <div className="text-sm text-gray-600">
       Mostrando <span className="font-semibold text-[#0f3d78]">{count}</span> 
-      {count !== totalCount && ` de ${totalCount}`} productos
+      {count !== totalCount && ` de ${totalCount}`} products
     </div>
   );
 }

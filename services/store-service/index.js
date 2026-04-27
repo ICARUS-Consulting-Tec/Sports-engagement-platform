@@ -40,52 +40,54 @@ app.get("/health", async (req, res) => {
 
 app.post("/create_checkout", async (req, res) => {
   try {
-    const { price_id, quantity } = req.body;
+    const { price_id, quantity, origin } = req.body;
+
+    // Usa el origin del cliente si viene, sino FRONTEND_URL del .env
+    const baseUrl = origin || process.env.FRONTEND_URL || "http://localhost:5173";
 
     const session = await stripe.checkout.sessions.create({
       payment_method_types: ["card"],
       mode: "payment",
       line_items: [
         {
-            price: price_id,
-            quantity: quantity,
-       }
-    ],
-      success_url: `${process.env.FRONTEND_URL}/paySuccess`,
-      cancel_url: `${process.env.FRONTEND_URL}`,
-    })
+          price: price_id,
+          quantity: quantity,
+        }
+      ],
+      success_url: `${baseUrl}/paySuccess`,
+      cancel_url: `${baseUrl}/store`,
+    });
 
-    // We send back the client_secret, not a URL
     res.status(200).json({ 
-        "status": "success",
-        "url": session.url 
+      status: "success",
+      url: session.url 
     });
 
   } catch (e) {
     res.status(500).json({
-        "status": "error", 
-        error: e.message 
+      status: "error", 
+      error: e.message 
     });
   }
 });
 
 app.get("/get_products", async (req, res) => {
-    try {
-        const products = await stripe.products.list({
-            limit: 5
-        });
+  try {
+    const products = await stripe.products.list({
+      limit: 20,
+      expand: ["data.default_price"],
+    });
 
-        res.status(200).json({
-            "status": "success",
-            products: products.data
-        });
-
-    } catch (e) {
-        res.status(500).json({
-            "status": "error",
-            error: e.message
-        })
-    }
+    res.status(200).json({
+      status: "success",
+      products: products.data,
+    });
+  } catch (e) {
+    res.status(500).json({
+      status: "error",
+      error: e.message,
+    });
+  }
 });
 
 app.listen(PORT, () => {

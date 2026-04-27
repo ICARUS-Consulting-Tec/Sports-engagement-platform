@@ -33,7 +33,7 @@ export interface StoreProduct {
   id: string;
   name: string;
   description?: string;
-  default_price: string;
+  default_price: string | { id: string; unit_amount: number | null; currency?: string };
   images?: string[];
   
   rarity: 'New' | 'Popular' | 'Limited';

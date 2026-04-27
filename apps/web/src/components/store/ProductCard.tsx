@@ -11,9 +11,9 @@ export default function ProductCard({ product, onAddToCart }: ProductCardProps) 
   const navigate = useNavigate();
 
   const rarityColors = {
-    'New': 'success',
-    'Popular': 'warning',
-    'Limited': 'danger'
+    'New': 'success',      
+    'Popular': 'warning',  
+    'Limited': 'danger'    
   } as const;
 
   const typeColors = {

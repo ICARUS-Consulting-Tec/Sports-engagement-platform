@@ -13,34 +13,39 @@ import ProfilePage from "./pages/ProfilePage";
 import HomePage from "./pages/HomePage";
 import CommunityPage from "./pages/CommunityPage";
 import { CartProvider } from "./context/CartContext";
+import ProductDetailPage from "./pages/ProductDetailPage";
+import AddedToCartToast from "./components/store/AddedToCartToast";
 
 function App() {
   return (
     <CartProvider>
+      <AddedToCartToast />
       <Routes>
         <Route path="/" element={<HomePage />} />
         <Route path="/matches" element={<MatchesPage />} />
         <Route path="/matches/:id" element={<MatchRoomPage />} />
-        <Route 
-          path="/team" 
+        <Route
+          path="/team"
           element={
             <PrivateRoute>
-              <TeamPage />{''}
+              <TeamPage />
+              {''}
             </PrivateRoute>
-          } 
+          }
         />
-        <Route 
-          path="/profile" 
+        <Route
+          path="/profile"
           element={
             <PrivateRoute>
               <ProfilePage />
             </PrivateRoute>
-          } 
+          }
         />
         <Route path="/team" element={<TeamPage />} />
         <Route path="/community" element={<CommunityPage />} />
         <Route path="/history" element={<HistoryPage />} />
         <Route path="/store" element={<StorePage />} />
+        <Route path="/store/product/:id" element={<ProductDetailPage />} />
         <Route path="/paySuccess" element={<PaySuccess />} />
         <Route path="/offseason" element={<OffSeasonPage />} />
         <Route path="/voice-agent" element={<VoiceAgent />} />
