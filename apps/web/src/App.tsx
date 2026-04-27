@@ -9,9 +9,11 @@ import HistoryPage from "./pages/HistoryPage";
 import VoiceAgent from "./components/VoiceAgent/VoiceAgent";
 import PrivateRoute from "./components/auth/privateRoute";
 import NewsPage from "./pages/NewsPage";
+import FeedbackDrawer from "./components/feedback/FeedbackDrawer";
 
 function App() {
   return (
+    <>
     <Routes>
       <Route path="/" element={<MatchesPage />} />
       <Route path="/matches" element={<MatchesPage />} />
@@ -31,6 +33,8 @@ function App() {
       <Route path="/voice-agent" element={<VoiceAgent />} />
       <Route path="/news" element={<NewsPage />} />
     </Routes>
+    <FeedbackDrawer />
+    </>
   );
 }
 
