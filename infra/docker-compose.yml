@@ -16,6 +16,7 @@ services:
       - offseason-service
       - tweets-service
       - news-service
+      - feedback-service
     networks:
       - supabase_net
 
@@ -72,6 +73,16 @@ services:
       NEWS_SORT: ${NEWS_SORT:-publishedAt}
       NEWS_LANGUAGE: ${NEWS_LANGUAGE:-en}
       NEWS_DB_URL: ${NEWS_DB_URL:-}
+    networks:
+      - supabase_net
+
+  feedback-service:
+    build:
+      context: ../services/feedback_service
+    container_name: icarus-feedback
+    environment:
+      PORT: 4012
+      FEEDBACKMAIL_DB_URL: ${FEEDBACKMAIL_DB_URL}
     networks:
       - supabase_net
 

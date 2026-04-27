@@ -39,3 +39,7 @@ services:
   cards-service:
     environment:
       CARDS_DB_URL: postgresql://cards_svc:CardsSvc_2026_dev@host.docker.internal:15432/cards_db
+  
+  feedback-service:
+    environment:
+      FEEDBACKMAIL_DB_URL: postgresql://feedback_svc:FeedbackSvc_2026_dev@host.docker.internal:15432/feedback_db
