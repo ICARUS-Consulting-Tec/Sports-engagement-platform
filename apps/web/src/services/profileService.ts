@@ -1,8 +1,13 @@
 import { apiFetch } from "./api";
-import type { Profile, InsertNewUserRequest } from "../types";
+import type { Profile, InsertNewUserRequest, ProfileResponse } from "../types";
 
 export async function getProfile(id = 1): Promise<Profile> {
   return await apiFetch<Profile>(`/profile/${id}`);
+}
+
+export async function getAccount(accountId = 1): Promise<Profile> {
+  const data = await apiFetch<ProfileResponse>(`/profile/account/${accountId}`);
+  return data.profile;
 }
 
 export async function insertNewUser(data: InsertNewUserRequest){

@@ -1,24 +1,74 @@
 import { useEffect, useState } from "react";
+import { getTopContributors } from "../../services/communityService";
+import { getAccount } from "../../services/profileService";
 
-//mock data
-const top_contributors = [
-  {name: "Daniela", points: 8534},
-  {name: "Saldaña", points: 7000},
-  {name: "Pepe", points: 5200}
-];
-
-//check if it could be put in a separate file
 interface Contributor {
-  name: string, 
-  points: number
-};
+  userId: number;
+  name: string;
+  postCount: number;
+}
 
 const TopContributors = () => {
     const [contributors, setContributors] = useState<Contributor[]>([]);
+    const [loading, setLoading] = useState(true);
+    const [error, setError] = useState("");
 
     useEffect(() => {
-      //api call to set contributors list
+      let isMounted = true;
+
+      async function loadTopContributors() {
+        try {
+          setLoading(true);
+          setError("");
+
+          const data = await getTopContributors();
+
+          const withProfiles = await Promise.all(
+            data.map(async (item) => {
+              const userId = Number(item.user_id);
+              const postCount = Number(item.post_count ?? 0);
+
+              try {
+                const profile = await getAccount(userId);
+                return {
+                  userId,
+                  name: profile?.username || `User #${userId}`,
+                  postCount,
+                };
+              } catch {
+                return {
+                  userId,
+                  name: `User #${userId}`,
+                  postCount,
+                };
+              }
+            })
+          );
+
+          if (isMounted) {
+            setContributors(withProfiles);
+          }
+        } catch (err) {
+          console.error("Error loading top contributors:", err);
+          if (isMounted) {
+            setError("No se pudieron cargar los top contributors.");
+          }
+        } finally {
+          if (isMounted) {
+            setLoading(false);
+          }
+        }
+      }
+
+      void loadTopContributors();
+
+      return () => {
+        isMounted = false;
+      };
     }, []);
+
+    if (loading) return <p className="py-4 text-center">Cargando top contributors...</p>;
+    if (error) return <p className="py-4 text-center text-red-500">{error}</p>;
 
     return(
         <>
@@ -27,12 +77,12 @@ const TopContributors = () => {
                 Top Contributors
               </h3>
               <ol className="space-y-2 text-sm text-[#334155]">
-                {top_contributors.map((fan, index) => {
+                {contributors.map((fan, index) => {
                   const rank = index + 1;
                   const isFirst = rank === 1;
 
                   return (
-                    <li key={fan.name} className="flex items-center gap-4">
+                    <li key={fan.userId} className="flex items-center gap-4">
                       <span
                         className={[
                           "flex h-11 w-11 items-center justify-center rounded-full font-bold",
@@ -46,7 +96,7 @@ const TopContributors = () => {
 
                       <div className="leading-tight">
                         <p className="text-lg font-semibold text-[#0B2A55]">{fan.name}</p>
-                        <p className="text-sm text-[#9AA4B2]">{fan.points} pts</p>
+                        <p className="text-sm text-[#9AA4B2]">{fan.postCount} posts</p>
                       </div>
                     </li>
                   );

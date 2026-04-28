@@ -47,6 +47,11 @@ export interface Profile {
   avatar_url: string;
 }
 
+export type ProfileResponse = {
+  status: string;
+  profile: Profile;
+};
+
 export interface InsertNewUserRequest {
   user_id: string, 
   country: string,
