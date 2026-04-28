@@ -49,7 +49,7 @@ async function getPacksRemaining(client, userId) {
   return packResult.rows.length > 0 ? packResult.rows[0].packs_remaining : 12;
 }
 
-// ─── Health Check ────────────────────────────────────────────
+// Health Check 
 app.get("/health", async (req, res) => {
   try {
     const result = await pool.query("SELECT NOW() AS now");
@@ -69,7 +69,7 @@ app.get("/health", async (req, res) => {
   }
 });
 
-// ─── GET /roster ─────────────────────────────────────────────
+// GET /roster
 // Returns all cards with athlete info. If user_id is provided
 // as a query param, includes whether each card is unlocked.
 app.get("/roster", async (req, res) => {
@@ -132,7 +132,7 @@ app.get("/roster", async (req, res) => {
   }
 });
 
-// ─── GET /roster/:athleteId ──────────────────────────────────
+// GET /roster/:athleteId 
 // Returns a single athlete's card with full statistics.
 app.get("/roster/:athleteId", async (req, res) => {
   try {
@@ -174,7 +174,7 @@ app.get("/roster/:athleteId", async (req, res) => {
   }
 });
 
-// ─── GET /pack/status?user_id= ────────────────────────────────
+// GET /pack/status?user_id=
 // Returns current opening state for a user (if any)
 app.get("/pack/status", async (req, res) => {
   try {
@@ -209,7 +209,7 @@ app.get("/pack/status", async (req, res) => {
   }
 });
 
-// ─── POST /pack/start ─────────────────────────────────────────
+// POST /pack/start 
 // Starts a timed pack opening (24h). Only one active at a time.
 app.post("/pack/start", async (req, res) => {
   const client = await pool.connect();
@@ -276,7 +276,7 @@ app.post("/pack/start", async (req, res) => {
   }
 });
 
-// ─── POST /pack/claim ─────────────────────────────────────────
+// POST /pack/claim
 // Claims a ready pack: unlocks cards and marks the opening claimed.
 app.post("/pack/claim", async (req, res) => {
   const client = await pool.connect();
@@ -361,7 +361,7 @@ app.post("/pack/claim", async (req, res) => {
   }
 });
 
-// ─── POST /pack/open ─────────────────────────────────────────
+// POST /pack/open
 // Opens a card pack for a user. Unlocks random cards they
 // don't already own: 3 common + 1 rare/elite + chance for titan.
 app.post("/pack/open", async (req, res) => {
@@ -374,7 +374,7 @@ app.post("/pack/open", async (req, res) => {
   }
 });
 
-// ─── GET /collection/:userId ─────────────────────────────────
+// GET /collection/:userId 
 // Returns collection stats for a user.
 app.get("/collection/:userId", async (req, res) => {
   try {
