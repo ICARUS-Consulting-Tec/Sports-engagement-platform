@@ -42,5 +42,6 @@ services:
 
   community-service: 
     environment: 
+      PROFILE_SERVICE_URL: http://profile-service:4006
       COMMUNITY_DB_URL: postgresql://community_svc:CommunitySvc_2026_dev@host.docker.internal:15432/community_db
 

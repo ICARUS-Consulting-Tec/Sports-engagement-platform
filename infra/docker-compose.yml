@@ -140,6 +140,7 @@ services:
     container_name: icarus-community
     environment: 
       PORT: 4001
+      PROFILE_SERVICE_URL: http://profile-service:4006
       COMMUNITY_DB_URL: postgresql://community_svc:CommunitySvc_2026_dev@supabase-db:5432/community_db
     ports: 
       - "4001:4001"

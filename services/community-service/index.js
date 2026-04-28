@@ -5,6 +5,32 @@ const app = express();
 app.use(express.json());
 
 const PORT = process.env.PORT || 4001;
+const PROFILE_SERVICE_URL = process.env.PROFILE_SERVICE_URL || "http://profile-service:4006";
+
+async function getProfilesByAccountIds(accountIds) {
+  if (!Array.isArray(accountIds) || accountIds.length === 0) return [];
+
+  const controller = new AbortController();
+  const timeout = setTimeout(() => controller.abort(), 2500);
+
+  try {
+    const response = await fetch(`${PROFILE_SERVICE_URL}/accounts/batch`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ account_ids: accountIds }),
+      signal: controller.signal
+    });
+
+    if (!response.ok) return [];
+    const data = await response.json();
+    return data?.profiles || [];
+  } catch (error) {
+    console.error("community-service batch profile lookup failed:", error.message);
+    return [];
+  } finally {
+    clearTimeout(timeout);
+  }
+}
 
 app.get("/health", async (req, res) => {
     try {
@@ -80,18 +106,122 @@ app.post("/new_post", async (req, res) => {
 app.get("/get_posts", async (req, res) => {
     try {
         const result = await pool.query(`
-            SELECT * 
-            FROM posts
-            ORDER BY created_at
+            SELECT 
+                p.post_id, 
+                p.user_id, 
+                c.name as category_name, 
+                p.title, 
+                p.content, 
+                p.views_count, 
+                p.upvotes_count,
+                COUNT(r.reply_id)::INTEGER as replies_count,
+                p.created_at 
+            FROM posts p
+            JOIN categories c ON c.category_id = p.category_id
+            LEFT JOIN replies r ON r.post_id = p.post_id 
+            GROUP BY p.post_id, c.category_id, c.name
+            ORDER BY p.created_at DESC
         `);
+
+        const posts = result.rows;
+
+        const uniqueUserIds = [...new Set(posts.map((p) => p.user_id).filter((id) => id != null))];
+        const profiles = await getProfilesByAccountIds(uniqueUserIds);
+
+        const profileMap = new Map(
+            profiles.map((profile) => [
+                profile.account_id,
+                profile.username || profile.first_name || `User ${profile.account_id}`
+            ])
+        );
+
+        const enriched = posts.map((post) => ({
+            ...post,
+            user_name: profileMap.get(post.user_id) || `User ${post.user_id}`
+        }));
 
         res.status(200).json({
             success: true,
-            result: result.rows,
+            result: enriched
         });
+
     } catch(error) {
         res.status(500).json({
             success: false, 
+            error: error.message
+        });
+    }
+});
+
+app.patch("/increment_post_view", async (req, res) => {
+    try {
+        const { post_id } = req.body;
+
+        if (!post_id) {
+            return res.status(400).json({
+                success: false,
+                message: "post_id is required"
+            });
+        }
+
+        const result = await pool.query(`
+            UPDATE posts
+            SET views_count = views_count + 1
+            WHERE post_id = $1
+            RETURNING post_id, views_count
+        `, [post_id]);
+
+        if (result.rows.length === 0) {
+            return res.status(404).json({
+                success: false,
+                message: "Post not found"
+            });
+        }
+
+        res.status(200).json({
+            success: true,
+            result: result.rows[0]
+        });
+    } catch (error) {
+        res.status(500).json({
+            success: false,
+            error: error.message
+        });
+    }
+});
+
+app.patch("/increment_post_upvote", async (req, res) => {
+    try {
+        const { post_id } = req.body;
+
+        if (!post_id) {
+            return res.status(400).json({
+                success: false,
+                message: "post_id is required"
+            });
+        }
+
+        const result = await pool.query(`
+            UPDATE posts
+            SET upvotes_count = upvotes_count + 1
+            WHERE post_id = $1
+            RETURNING post_id, upvotes_count
+        `, [post_id]);
+
+        if (result.rows.length === 0) {
+            return res.status(404).json({
+                success: false,
+                message: "Post not found"
+            });
+        }
+
+        res.status(200).json({
+            success: true,
+            result: result.rows[0]
+        });
+    } catch (error) {
+        res.status(500).json({
+            success: false,
             error: error.message
         });
     }

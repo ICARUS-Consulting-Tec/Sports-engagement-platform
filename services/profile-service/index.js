@@ -638,6 +638,43 @@ app.get("/debug/token", async (req, res) => {
   });
 });
 
+app.post("/accounts/batch", async (req, res) => {
+  try {
+    const { account_ids } = req.body;
+
+    if (!Array.isArray(account_ids) || account_ids.length === 0) {
+      return res.status(400).json({
+        status: "error",
+        message: "account_ids must be a non-empty array"
+      });
+    }
+
+    const result = await pool.query(
+      `
+      SELECT
+        account_id,
+        username,
+        first_name,
+        last_name,
+        avatar_url
+      FROM accounts
+      WHERE account_id = ANY($1::int[])
+      `,
+      [account_ids]
+    );
+
+    res.json({
+      status: "success",
+      profiles: result.rows
+    });
+  } catch (error) {
+    res.status(500).json({
+      status: "error",
+      error: error.message
+    });
+  }
+});
+
 app.listen(PORT, () => {
   console.log(`profile-service running on port ${PORT}`);
 });
