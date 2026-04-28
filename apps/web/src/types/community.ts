@@ -1,11 +1,13 @@
 export type Post = {
   post_id: number;
   user_id: number;
-  category_id: number;
+  user_name: string | null;
+  category_name: string;
   title: string;
   content: string;
   views_count: number;
   upvotes_count: number;
+  replies_count: number | null;
   created_at?: string;
 };
 

@@ -17,6 +17,24 @@ export async function getPosts(): Promise<Post[]> {
   return data.result;
 }
 
+export async function incrementPostView(postId: number): Promise<number> {
+  const data = await apiFetch<ApiItemResponse<{ post_id: number; views_count: number }>>("/community/increment_post_view", {
+    method: "PATCH",
+    body: JSON.stringify({ post_id: postId }),
+  });
+
+  return data.result.views_count;
+}
+
+export async function incrementPostUpvote(postId: number): Promise<number> {
+  const data = await apiFetch<ApiItemResponse<{ post_id: number; upvotes_count: number }>>("/community/increment_post_upvote", {
+    method: "PATCH",
+    body: JSON.stringify({ post_id: postId }),
+  });
+
+  return data.result.upvotes_count;
+}
+
 export async function createPost(payload: PostPayload): Promise<Post> {
   const data = await apiFetch<ApiItemResponse<Post>>("/community/new_post", {
     method: "POST",
