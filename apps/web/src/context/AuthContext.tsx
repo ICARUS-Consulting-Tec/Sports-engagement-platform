@@ -2,11 +2,13 @@ import React, { createContext, ReactNode, useContext, useEffect, useRef, useStat
 import { supabase } from "../supabaseClient";
 import { Session } from "@supabase/supabase-js";
 import { InsertNewUserRequest } from "../types";
-import { insertNewUser } from "../services/profileService";
+import { insertNewUser, getMyProfile } from "../services/profileService";
 
 //Auth default value type
 interface AuthContextType {
     session: Session | null;
+    role: string | null; 
+    loading: boolean;
     signUpNewUser: (email: string, password: string, fullName: string) => Promise<any>;
     SignInUser: (email: string, password: string) => Promise<any>;
     SignInWithGoogle: () => Promise<any>;
@@ -21,6 +23,8 @@ interface AuthContextProps extends React.PropsWithChildren{
 
 export const AuthContextProvider = ( {children} : AuthContextProps ) => {
     const [session, setSession ] = useState<Session | null>(null);
+    const [role, setRole] = useState<string | null>(null);
+    const [loading, setLoading] = useState(true);  // 👈 agregar
     const profileSyncedRef = useRef(false);
 
     const buildProfilePayload = (s: Session): InsertNewUserRequest => {
@@ -49,6 +53,13 @@ export const AuthContextProvider = ( {children} : AuthContextProps ) => {
         if (msg.includes("duplicate") || msg.includes("already exists") || msg.includes("http error 409")) return true;
         console.error("Error creating profile in own DB", err);
         return false;
+        }
+    };
+
+    const fetchProfile = async (s: Session) => {
+        const data = await getMyProfile(s.access_token);
+        if (data.status === "success") {
+            setRole(data.profile.role);
         }
     };
 
@@ -120,8 +131,7 @@ export const AuthContextProvider = ( {children} : AuthContextProps ) => {
                 queryParams: {
                     access_type: 'offline',
                     prompt: 'consent',
-                },
-                redirectTo: 'http://localhost:5173'
+                }
             } 
         });
 
@@ -145,6 +155,8 @@ export const AuthContextProvider = ( {children} : AuthContextProps ) => {
             if (session && !profileSyncedRef.current) {
                 profileSyncedRef.current = await syncProfileToOwnDb(session);
             }
+            if (session) await fetchProfile(session);
+            setLoading(false);
         });
 
         const {data: {subscription}} = supabase.auth.onAuthStateChange(async (_event, session) => {
@@ -154,7 +166,9 @@ export const AuthContextProvider = ( {children} : AuthContextProps ) => {
             }
             if (!session) {
                 profileSyncedRef.current = false;
+                setRole(null);
             }
+            if (session) await fetchProfile(session); 
         });
 
         return () => {
@@ -174,7 +188,7 @@ export const AuthContextProvider = ( {children} : AuthContextProps ) => {
 
     return (
         <AuthContext.Provider
-            value={{session, signUpNewUser, SignInUser, SignInWithGoogle, SignOut}}
+            value={{session, role, loading, signUpNewUser, SignInUser, SignInWithGoogle, SignOut}}
         >
             {children}
         </AuthContext.Provider>

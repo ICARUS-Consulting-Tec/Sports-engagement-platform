@@ -84,6 +84,7 @@ app.get("/", async (req, res) => {
         username,
         country,
         avatar_url,
+        role,
         created_at,
         updated_at
       FROM accounts
@@ -117,6 +118,7 @@ app.get("/me", requireAuth, async (req, res) => {
         username,
         country,
         avatar_url,
+        role,
         created_at,
         updated_at
       FROM accounts
@@ -493,6 +495,7 @@ app.get("/account/:accountId", async (req, res) => {
         username,
         country,
         avatar_url,
+        role,
         created_at,
         updated_at
       FROM accounts
@@ -530,6 +533,7 @@ app.get("/:id", async (req, res) => {
         username,
         country,
         avatar_url,
+        role,
         created_at,
         updated_at
       FROM accounts
@@ -592,6 +596,7 @@ app.post("/new/user", async (req, res) => {
         last_name,
         username,
         avatar_url,
+        role,
         created_at,
         updated_at
     `, [
