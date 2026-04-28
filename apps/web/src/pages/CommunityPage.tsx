@@ -1,34 +1,33 @@
 import { useState } from "react";
 import Navbar from "../components/layout/Navbar";
-import { Button } from "@heroui/react";
 import { ModalComp } from "../components/general/modal";
 import { NewPostForm } from "../components/community/newPostForm";
 import CommunityHeader from "../components/community/header";
 import PostComp from "../components/community/posts";
 import TopContributors from "../components/community/topContributors";
 import PostCategories from "../components/community/postsCategories";
+import CommunityBar from "../components/community/communityBar";
+import TopContributor from "../components/community/topContributor";
 
 function CommunityPage() {
   const [isOpen, setIsOpen] = useState<boolean>(false);
+  const [activeFilter, setActiveFilter] = useState<"hot" | "new" | "top">("hot");
 
   return (
     <div className="min-h-screen bg-[#F4F5F7]">
-      <main className="mx-auto w-full max-w-[1400px] p-6">
+      <main className="mx-auto w-full max-w-350 p-6">
         <Navbar />
         <div className="grid items-start gap-6 lg:grid-cols-[280px_minmax(0,1fr)]">
-          {/* Side bar components */}
           <div className="space-y-8">
             <PostCategories />
+            <TopContributor /> 
             <TopContributors />
-            <Button onClick={() => setIsOpen(true)}>
-              Test modal button
-            </Button>
           </div>
           
-          {/* Main components part */}
-          <div>
+          <div className="space-y-6">
             <CommunityHeader />
-            <PostComp />
+            <CommunityBar onSwitchOpenModal={setIsOpen} activeFilter={activeFilter} setActiveFilter={setActiveFilter}/>
+            <PostComp activeFilter={activeFilter}/>
           </div>
         </div>
         <ModalComp 
