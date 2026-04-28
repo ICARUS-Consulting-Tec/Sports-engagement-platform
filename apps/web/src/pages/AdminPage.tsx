@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { SignOutButton } from "../components/auth/Signout";
 import Dashboard from "../components/admin/Dashboard";
+import StoreManagment from "../components/admin/StoreManagment";
 import PostManagement from "../components/admin/PostManagement";
 import SidebarMenuAdmin from "../components/admin/SidebarMenuAdmin";
 import "../styles/admin.css";
@@ -22,8 +23,9 @@ function AdminPage() {
 
           <div className="profile-content">
             {activeTab === "dashboard" && <Dashboard />}
-
+            
             {activeTab === "cReports" && <PostManagement />}
+            {activeTab === "storeManagement" && <StoreManagment />}
           </div>
 
         </section>

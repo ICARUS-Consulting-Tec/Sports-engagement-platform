@@ -25,7 +25,8 @@ services:
     container_name: icarus-matches
     environment:
       PORT: 4002
-      MATCHES_DB_URL: postgresql://matches_svc:MatchesSvc_2026_dev@supabase-db-do4ksgcc0wksg4wwg4osgk0o:5432/matches_db
+      MATCHES_DB_URL: postgresql://matches_svc:MatchesSvc_2026_dev@host.docker.internal:15432/matches_db
+      DEMO_MATCH_IDS: "2"
     networks:
       - supabase_net
 
@@ -35,7 +36,8 @@ services:
     container_name: icarus-rooms
     environment:
       PORT: 4003
-      ROOMS_DB_URL: postgresql://rooms_svc:RoomsSvc_2026_dev@supabase-db-do4ksgcc0wksg4wwg4osgk0o:5432/rooms_db
+      ROOMS_DB_URL: postgresql://rooms_svc:RoomsSvc_2026_dev@host.docker.internal:15432/rooms_db
+      ROOMS_CHAT_PRUNE_INTERVAL_MS: "120000"
     networks:
       - supabase_net
 
@@ -45,7 +47,7 @@ services:
     container_name: icarus-analytics
     environment:
       PORT: 4004
-      ANALYTICS_DB_URL: postgresql://analytics_svc:AnalyticsSvc_2026_dev@supabase-db-do4ksgcc0wksg4wwg4osgk0o:5432/analytics_db
+      ANALYTICS_DB_URL: postgresql://analytics_svc:AnalyticsSvc_2026_dev@host.docker.internal:15432/analytics_db
     networks:
       - supabase_net
 
@@ -71,7 +73,8 @@ services:
       NEWS_PAGE_SIZE: ${NEWS_PAGE_SIZE:-20}
       NEWS_SORT: ${NEWS_SORT:-publishedAt}
       NEWS_LANGUAGE: ${NEWS_LANGUAGE:-en}
-      NEWS_DB_URL: ${NEWS_DB_URL:-}
+      NEWS_DB_URL: ${NEWS_DB_URL:-postgresql://news_svc:newsSvc_2026_dev@host.docker.internal:15432/news_cache}
+      NEWS_DB_MANAGE_SCHEMA: ${NEWS_DB_MANAGE_SCHEMA:-false}
     networks:
       - supabase_net
 
@@ -81,7 +84,7 @@ services:
     container_name: icarus-profile
     environment:
       PORT: 4006
-      PROFILE_DB_URL: postgresql://profile_svc:ProfileSvc_2026_dev@supabase-db:5432/profile_db
+      PROFILE_DB_URL: postgresql://profile_svc:ProfileSvc_2026_dev@host.docker.internal:15432/profile_db
       SUPABASE_URL: ${SUPABASE_URL}
       SUPABASE_ANON_KEY: ${SUPABASE_ANON_KEY}
     ports:
@@ -95,7 +98,7 @@ services:
     container_name: icarus-history
     environment:
       PORT: 4008
-      HISTORY_DB_URL: postgresql://history_svc:postgres@supabase-db-do4ksgcc0wksg4wwg4osgk0o:5432/history_db
+      HISTORY_DB_URL: postgresql://history_svc:postgres@host.docker.internal:15432/history_db
     ports:
     - "4008:4008"
     networks:
@@ -107,7 +110,7 @@ services:
     container_name: icarus-offseason
     environment:
       PORT: 4010
-      OFFSEASON_DB_URL: postgresql://offseason_svc:OffseasonSvc_2026_dev@supabase-db-do4ksgcc0wksg4wwg4osgk0o:5432/offseason_db
+      OFFSEASON_DB_URL: postgresql://offseason_svc:OffseasonSvc_2026_dev@host.docker.internal:15432/offseason_db
     ports:
       - "4010:4010"
     networks:
@@ -129,7 +132,7 @@ services:
     container_name: icarus-cards
     environment:
       PORT: 4009
-      CARDS_DB_URL: postgresql://cards_svc:CardsSvc_2026_dev@supabase-db-do4ksgcc0wksg4wwg4osgk0o:5432/cards_db
+      CARDS_DB_URL: postgresql://cards_svc:CardsSvc_2026_dev@host.docker.internal:15432/cards_db
     networks:
       - supabase_net
 
