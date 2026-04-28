@@ -10,10 +10,7 @@ function PostManagement() {
       </div>
 
       <Card className="personal-info-card">
-        <div className="personal-info-card-body">
-          
-
-        </div>
+  
       </Card>
     </div>
   );

@@ -46,3 +46,120 @@
   flex-shrink: 0;
   white-space: nowrap;
 }
+
+.stats-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 12px;
+    margin-bottom: 20px;
+}
+
+.admin-section-card {
+  width: 100%;
+  border-radius: 30px;
+  background: #f7f8fc;
+  padding: 28px 30px 30px;
+  box-shadow: 0 8px 24px rgba(15, 23, 42, 0.04);
+}
+
+.admin-section-card-header {
+  margin-bottom: 18px;
+}
+
+.admin-section-card-title {
+  margin: 0;
+  color: #13294b;
+  font-size: 1.1rem;
+  font-weight: 800;
+  line-height: 1.2;
+}
+
+.admin-section-card-list {
+  display: flex;
+  flex-direction: column;
+  gap: 22px;
+}
+
+.admin-section-card-item {
+  display: grid;
+  grid-template-columns: 18px minmax(0, 1fr) auto;
+  align-items: center;
+  column-gap: 22px;
+}
+
+.admin-section-card-dot {
+  width: 16px;
+  height: 16px;
+  border-radius: 999px;
+}
+
+.admin-section-card-dot-green {
+  background: #27ae60;
+}
+
+.admin-section-card-dot-yellow {
+  background: #d4af37;
+}
+
+.admin-section-card-dot-navy {
+  background: #13294b;
+}
+
+.admin-section-card-dot-red {
+  background: #c44646;
+}
+
+.admin-section-card-text {
+  margin: 0;
+  color: #3d4c73;
+  font-size: 0.98rem;
+  line-height: 1.35;
+  font-weight: 500;
+}
+
+.admin-section-card-time {
+  color: #b0bad1;
+  font-size: 0.95rem;
+  line-height: 1.2;
+  white-space: nowrap;
+}
+
+.two-col {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+    margin-top: 16px;
+}
+
+.horizontal-section {
+    margin-top: 16px;
+    background: #f8f9fc;
+    border-radius: 12px;
+    padding: 14px;
+}
+
+@media (max-width: 1200px) {
+  .stats-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 640px) {
+  .stats-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .admin-section-card {
+    padding: 24px 22px;
+  }
+
+  .admin-section-card-item {
+    grid-template-columns: 18px minmax(0, 1fr);
+    row-gap: 8px;
+    align-items: start;
+  }
+
+  .admin-section-card-time {
+    grid-column: 2;
+  }
+}

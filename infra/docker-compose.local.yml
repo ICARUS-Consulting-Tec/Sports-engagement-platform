@@ -39,3 +39,9 @@ services:
   cards-service:
     environment:
       CARDS_DB_URL: postgresql://cards_svc:CardsSvc_2026_dev@host.docker.internal:15432/cards_db
+
+  # dashboard-service:
+  #   environment:
+  #     PROFILE_SERVICE_URL: http://profile-service:4003
+  #     COMMUNITY_SERVICE_URL: http://community-service:4001
+

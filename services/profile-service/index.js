@@ -627,6 +627,65 @@ app.post("/new/user", async (req, res) => {
   }
 });
 
+app.get("/stats/members-per-month", async (req, res) => {
+  try {
+    const result = await pool.query(`
+      SELECT
+        DATE_TRUNC('month', created_at) AS month,
+        COUNT(*) AS new_members
+      FROM accounts
+      GROUP BY month
+      ORDER BY month;
+    `);
+
+    res.json(
+      result.rows.map((r) => ({
+        month: r.month,
+        new_members: Number(r.new_members),
+      }))
+    );
+  } catch (error) {
+    console.error("Error en /stats/members-per-month:", error);
+    res.status(500).json({ 
+      error: "Error al obtener miembros por mes",
+      details: error.message 
+    });
+  }
+});
+
+// // BONUS: Endpoint para estadísticas generales de perfiles
+// app.get("/stats/summary", async (req, res) => {
+//   try {
+//     const totalUsersResult = await pool.query(`
+//       SELECT COUNT(*) as total FROM accounts
+//     `);
+    
+//     const activeUsersResult = await pool.query(`
+//       SELECT COUNT(*) as active 
+//       FROM accounts 
+//       WHERE updated_at > NOW() - INTERVAL '30 days'
+//     `);
+    
+//     const newUsersResult = await pool.query(`
+//       SELECT COUNT(*) as new_users 
+//       FROM accounts 
+//       WHERE created_at > NOW() - INTERVAL '7 days'
+//     `);
+
+//     res.json({
+//       totalUsers: parseInt(totalUsersResult.rows[0].total),
+//       activeUsers: parseInt(activeUsersResult.rows[0].active),
+//       newUsersLast7Days: parseInt(newUsersResult.rows[0].new_users)
+//     });
+//   } catch (error) {
+//     console.error("Error en /stats/summary:", error);
+//     res.status(500).json({ 
+//       error: "Error al obtener resumen de estadísticas",
+//       details: error.message 
+//     });
+//   }
+// });
+
 
 app.get("/debug/token", async (req, res) => {
   const { data, error } = await supabase.auth.signInWithPassword({
