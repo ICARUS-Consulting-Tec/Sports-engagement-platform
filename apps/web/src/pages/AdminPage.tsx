@@ -2,6 +2,7 @@ import { useState } from "react";
 import { SignOutButton } from "../components/auth/Signout";
 import Dashboard from "../components/admin/Dashboard";
 import PostManagement from "../components/admin/PostManagement";
+import SuggestionBox from "../components/admin/SuggestionBox";
 import SidebarMenuAdmin from "../components/admin/SidebarMenuAdmin";
 import "../styles/admin.css";
 import "../styles/profile.css";
@@ -24,6 +25,8 @@ function AdminPage() {
             {activeTab === "dashboard" && <Dashboard />}
 
             {activeTab === "cReports" && <PostManagement />}
+
+            {activeTab === "suggestion" && <SuggestionBox />}
           </div>
 
         </section>
