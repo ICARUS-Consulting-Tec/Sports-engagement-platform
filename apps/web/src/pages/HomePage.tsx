@@ -10,41 +10,43 @@ import { Link } from "react-router-dom";
 import { getClassicMatches } from "../services/historyService";
 import type { ClassicMatch } from "../types/history";
 import "../styles/home.css";
-import bestSellers from "../assets/home/bestSellers.png";
+import { getProducts } from "../services/storeService";
+import { enrichProductsWithTags } from "../data/mockProducts";
+import ProductCard from "../components/store/ProductCard";
+import type { StoreProduct } from "../types";
+import ProductPreviewCard from "../components/store/ProductPreviewCard";
 
 function HomePage() {
   const [classicMatches, setClassicMatches] = useState<ClassicMatch[]>([]);
   const [classicMatchesLoading, setClassicMatchesLoading] = useState(true);
   const [classicMatchesError, setClassicMatchesError] = useState("");
 
+  const [bestSellers, setBestSellers] = useState<StoreProduct[]>([]);
+  const [bestSellersLoading, setBestSellersLoading] = useState(true);
+
   useEffect(() => {
     let isMounted = true;
-
-    async function loadClassicMatches() {
+  
+    async function loadBestSellers() {
       try {
-        setClassicMatchesLoading(true);
-        setClassicMatchesError("");
-
-        const matches = await getClassicMatches();
-
+        setBestSellersLoading(true);
+        const { products } = await getProducts();
+        const enriched = enrichProductsWithTags(products);
+        
         if (isMounted) {
-          setClassicMatches(matches.slice(0, 4));
+          setBestSellers(enriched.slice(0, 4)); 
         }
       } catch (error) {
-        console.error("Error loading classic matches:", error);
-
-        if (isMounted) {
-          setClassicMatchesError("No classic matches available.");
-        }
+        console.error("Error loading best sellers:", error);
       } finally {
         if (isMounted) {
-          setClassicMatchesLoading(false);
+          setBestSellersLoading(false);
         }
       }
     }
-
-    void loadClassicMatches();
-
+  
+    void loadBestSellers();
+  
     return () => {
       isMounted = false;
     };
@@ -147,13 +149,20 @@ function HomePage() {
             <Link to="/store" className="home-section-link">
               View more →<span aria-hidden="true"></span>
             </Link>
-          </div>
-          <img
-            src={bestSellers}
-            alt="Best sellers"
-            className="home-section-image"
-          />
-        </section>
+            </div>
+
+            <div className="mt-8 lg:mt-10">
+              {bestSellersLoading ? (
+                <div className="py-12 text-center text-slate-600">Loading products...</div>
+              ) : (
+                <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-4 lg:gap-6">
+                  {bestSellers.map((product) => (
+                    <ProductPreviewCard key={product.id} product={product} />
+                  ))}
+                </div>
+              )}
+            </div>
+          </section>
       </main>
     </div>
   );
