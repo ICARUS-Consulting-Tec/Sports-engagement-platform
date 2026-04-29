@@ -18,6 +18,16 @@ export interface TotalPostsStat {
   trend: "green" | "red" | "gray";
 }
 
+export interface StoreProductsResponse {
+  status: string;
+  products: unknown[];
+}
+
+export interface TotalProductsStat {
+  total_products: number;
+  trend: "green" | "red" | "gray";
+}
+
 export const dashboardService = {
   async getMembersPerMonth() {
     return apiFetch('/api/dashboard/stats/members-per-month');
@@ -35,6 +45,10 @@ export const dashboardService = {
     return apiFetch<TotalPostsStat>('/api/dashboard/stats/total-posts');
   },
 
+  async getTotalProducts() {
+    return apiFetch<TotalProductsStat>('/api/dashboard/stats/total-products');
+  },
+
   async getPostsPerDay() {
     return apiFetch('/api/dashboard/stats/posts-per-day');
   },
@@ -46,4 +60,5 @@ export const dashboardService = {
   async getTopContributors() {
     return apiFetch<ApiListResponse<TopContributor[]>>('/api/dashboard/top_contributors');
   }
+
 };

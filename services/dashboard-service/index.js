@@ -8,6 +8,8 @@ const PROFILE_SERVICE_URL =
   process.env.PROFILE_SERVICE_URL || "http://icarus-profile:4006";
 const COMMUNITY_SERVICE_URL =
   process.env.COMMUNITY_SERVICE_URL || "http://icarus-community:4001";
+const STORE_SERVICE_URL =
+  process.env.STORE_SERVICE_URL || "http://icarus-store:4005";
 
 async function fetchJson(url) {
   const response = await fetch(url);
@@ -31,7 +33,9 @@ app.get("/", (req, res) => {
       "/stats/posts-per-day",
       "/stats/posts-by-category",
       "/stats/total-posts",
+      "/stats/total-products",
       "/top_contributors",
+      "/get_products",
     ],
   });
 });
@@ -42,6 +46,7 @@ app.get("/health", (req, res) => {
     status: "ok",
     profileServiceUrl: PROFILE_SERVICE_URL,
     communityServiceUrl: COMMUNITY_SERVICE_URL,
+    storeServiceUrl: STORE_SERVICE_URL,
   });
 });
 
@@ -166,6 +171,42 @@ app.get("/top_contributors", async (req, res) => {
       service: "dashboard-service",
       status: "error",
       error: "Unable to fetch top contributors data",
+      details: error.message,
+    });
+  }
+});
+
+app.get("/get_products", async (req, res) => {
+  try {
+    const products = await fetchJson(`${STORE_SERVICE_URL}/get_products`);
+
+    res.json(products);
+  } catch (error) {
+    console.error("dashboard-service get_products lookup failed:", error);
+    res.status(502).json({
+      service: "dashboard-service",
+      status: "error",
+      error: "Unable to fetch products data",
+      details: error.message,
+    });
+  }
+});
+
+app.get("/stats/total-products", async (req, res) => {
+  try {
+    const data = await fetchJson(`${STORE_SERVICE_URL}/get_products`);
+    const products = Array.isArray(data.products) ? data.products : [];
+
+    res.json({
+      total_products: products.length,
+      trend: products.length > 0 ? "green" : "gray",
+    });
+  } catch (error) {
+    console.error("dashboard-service total-products lookup failed:", error);
+    res.status(502).json({
+      service: "dashboard-service",
+      status: "error",
+      error: "Unable to fetch total-products data",
       details: error.message,
     });
   }

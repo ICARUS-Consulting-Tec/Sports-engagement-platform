@@ -10,6 +10,7 @@ import {
   dashboardService,
   type TotalMembersStat,
   type TotalPostsStat,
+  type TotalProductsStat,
 } from "../../services/dashboardService";
 
 
@@ -27,6 +28,7 @@ function resolveStatsTrend(trend: StatsTrend | undefined, count: number | undefi
 export default function Dashboard() {
   const [totalMembers, setTotalMembers] = useState<TotalMembersStat | null>(null);
   const [totalPosts, setTotalPosts] = useState<TotalPostsStat | null>(null);
+  const [totalProducts, setTotalProducts] = useState<TotalProductsStat | null>(null);
   const [statsLoading, setStatsLoading] = useState(true);
 
   useEffect(() => {
@@ -35,9 +37,10 @@ export default function Dashboard() {
     async function loadStatsCards() {
       try {
         setStatsLoading(true);
-        const [membersResult, postsResult] = await Promise.allSettled([
+        const [membersResult, postsResult, productsResult] = await Promise.allSettled([
           dashboardService.getTotalMembers(),
           dashboardService.getTotalPosts(),
+          dashboardService.getTotalProducts(),
         ]);
 
         if (!isMounted) return;
@@ -50,10 +53,19 @@ export default function Dashboard() {
           setTotalPosts(postsResult.value);
         }
 
-        if (membersResult.status === "rejected" || postsResult.status === "rejected") {
+        if (productsResult.status === "fulfilled") {
+          setTotalProducts(productsResult.value);
+        }
+
+        if (
+          membersResult.status === "rejected" ||
+          postsResult.status === "rejected" ||
+          productsResult.status === "rejected"
+        ) {
           console.error("Error loading one or more dashboard stats cards:", {
             members: membersResult.status === "rejected" ? membersResult.reason : null,
             posts: postsResult.status === "rejected" ? postsResult.reason : null,
+            products: productsResult.status === "rejected" ? productsResult.reason : null,
           });
         }
       } catch (error) {
@@ -95,7 +107,12 @@ export default function Dashboard() {
                   trend={resolveStatsTrend(totalPosts?.trend, totalPosts?.new_today)}
                 />
                 <StatsCard/>
-                <StatsCard/>
+                <StatsCard
+                  title="TOTAL PRODUCTS"
+                  value={statsLoading ? "..." : (totalProducts?.total_products ?? 0).toLocaleString()}
+                  changeLabel="Available Online"
+                  trend={"gray"}
+                />
             </div>
             <div className="two-col">
                 <SectionCard/>
