@@ -114,13 +114,13 @@ export default function PostsPerDayChart({
             contentStyle={{ fontSize: 13, borderRadius: 8, border: "0.5px solid #e0e0e0" }}
             labelStyle={{ fontWeight: 500 }}
             formatter={(v) => [v, "Posts"]}
-            cursor={{ fill: "rgba(29,158,117,0.06)" }}
+            cursor={{ fill: "rgba(53, 118, 183, 0.06)" }}
           />
           <Bar dataKey="total_posts" radius={[4, 4, 0, 0]}>
             {data.map((entry, index) => (
               <Cell
                 key={index}
-                fill={entry.total_posts === max ? "#1d9e75" : "rgba(29,158,117,0.55)"}
+                fill={entry.total_posts === max ? "#4e83b7" : "#8bb1d7"}
               />
             ))}
           </Bar>

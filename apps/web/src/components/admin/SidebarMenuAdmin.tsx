@@ -8,7 +8,7 @@ type SidebarMenuProps = {
 
 function SidebarMenuAdmin({ activeTab, setActiveTab }: SidebarMenuProps) {
   return (
-    <Card className="profile-sidebar-card">
+    <Card className="profile-sidebar-card admin-sidebar-card">
       <button
         className={`profile-sidebar-item ${activeTab === "dashboard" ? "active" : ""}`}
         onClick={() => setActiveTab("dashboard")}

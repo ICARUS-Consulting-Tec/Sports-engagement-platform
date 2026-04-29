@@ -47,6 +47,13 @@
   white-space: nowrap;
 }
 
+.admin-sidebar-card {
+  position: sticky;
+  top: 24px;
+  align-self: flex-start;
+  z-index: 10;
+}
+
 .stats-grid {
     display: grid;
     grid-template-columns: repeat(4, 1fr);

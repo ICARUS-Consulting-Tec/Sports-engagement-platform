@@ -28,6 +28,32 @@ interface Props {
   title?: string;
 }
 
+const PRIMARY_BAR_COLOR = "#002244";
+const LIGHT_BAR_COLOR = "#b9cada";
+
+function hexToRgb(hex: string) {
+  const normalized = hex.replace("#", "");
+  const value = Number.parseInt(normalized, 16);
+
+  return {
+    r: (value >> 16) & 255,
+    g: (value >> 8) & 255,
+    b: value & 255,
+  };
+}
+
+function mixColors(from: string, to: string, amount: number) {
+  const start = hexToRgb(from);
+  const end = hexToRgb(to);
+  const ratio = Math.min(Math.max(amount, 0), 1);
+
+  const r = Math.round(start.r + (end.r - start.r) * ratio);
+  const g = Math.round(start.g + (end.g - start.g) * ratio);
+  const b = Math.round(start.b + (end.b - start.b) * ratio);
+
+  return `rgb(${r}, ${g}, ${b})`;
+}
+
 export default function PostsByCategoryChart({
   data: propData,
   endpoint,
@@ -96,6 +122,17 @@ export default function PostsByCategoryChart({
   const max = Math.max(...data.map((d) => d.total_posts));
   const chartHeight = Math.max(data.length * 44 + 40, 200);
 
+  function getBarColor(totalPosts: number) {
+    if (max <= 0) {
+      return LIGHT_BAR_COLOR;
+    }
+
+    const valueRatio = totalPosts / max;
+    const colorStrength = 0.18 + valueRatio * 0.82;
+
+    return mixColors(LIGHT_BAR_COLOR, PRIMARY_BAR_COLOR, colorStrength);
+  }
+
   return (
     <div className="admin-chart-card">
       <div className="admin-chart-card-header">
@@ -127,13 +164,13 @@ export default function PostsByCategoryChart({
             contentStyle={{ fontSize: 13, borderRadius: 8, border: "0.5px solid #e0e0e0" }}
             labelStyle={{ fontWeight: 500 }}
             formatter={(v: number) => [v, "Posts"]}
-            cursor={{ fill: "rgba(99,102,241,0.06)" }}
+            cursor={{ fill: "rgba(0,34,68,0.06)" }}
           />
           <Bar dataKey="total_posts" radius={[0, 4, 4, 0]}>
             {data.map((entry, index) => (
               <Cell
                 key={index}
-                fill={entry.total_posts === max ? "#6366f1" : "rgba(99,102,241,0.5)"}
+                fill={getBarColor(entry.total_posts)}
               />
             ))}
           </Bar>
