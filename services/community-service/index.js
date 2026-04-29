@@ -549,6 +549,90 @@ app.get("/fan_of_week", async (req, res) => {
     }
 });
 
+app.get("/stats/posts-per-day", async (req, res) => {
+  try {
+    const result = await pool.query(`
+      SELECT
+        DATE(created_at) AS day,
+        COUNT(*) AS total_posts
+      FROM posts
+      WHERE created_at >= NOW() - INTERVAL '14 days'
+      GROUP BY day
+      ORDER BY day;
+    `);
+
+    res.json(
+      result.rows.map((r) => ({
+        day: r.day,
+        total_posts: Number(r.total_posts),
+      }))
+    );
+  } catch (error) {
+    console.error("Error en /stats/posts-per-day:", error);
+    res.status(500).json({ 
+      error: "Error al obtener posts por día",
+      details: error.message 
+    });
+  }
+});
+
+
+app.get("/stats/posts-by-category", async (req, res) => {
+  try {
+    const result = await pool.query(`
+      SELECT
+        c.name AS category_name,
+        COUNT(*) AS total_posts
+      FROM posts p
+      JOIN categories c 
+        ON p.category_id = c.category_id
+      GROUP BY c.name
+      ORDER BY total_posts DESC;
+    `);
+
+    res.json(
+      result.rows.map((r) => ({
+        category: r.category_name,
+        total_posts: Number(r.total_posts),
+      }))
+    );
+  } catch (error) {
+    console.error("Error en /stats/posts-by-category:", error);
+    res.status(500).json({ 
+      error: "Error al obtener posts por categoría",
+      details: error.message 
+    });
+  }
+});
+
+app.get("/stats/total-posts", async (req, res) => {
+  try {
+    const result = await pool.query(`
+      SELECT
+        COUNT(*) 
+        AS total_posts,
+        COUNT(*) FILTER (WHERE created_at >= CURRENT_DATE) AS new_today
+      FROM posts;
+    `);
+
+    const new_today = Number(result.rows[0].new_today);
+
+    res.json({
+      total_posts: Number(result.rows[0].total_posts),
+      new_today,
+      trend: new_today > 0 ? "green" : "gray",
+    });
+    
+  } catch (error) {
+    console.error("Error en /stats/total-posts:", error);
+    res.status(500).json({
+      error: "Error al obtener publicaciones totales",
+      details: error.message,
+    });
+  }
+});
+
+
 app.listen(PORT, () => {
     console.log(`Community service running on port ${PORT}`);
 });

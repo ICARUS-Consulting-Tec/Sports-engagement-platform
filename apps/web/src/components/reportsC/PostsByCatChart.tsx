@@ -9,12 +9,17 @@ import {
   ResponsiveContainer,
   Cell,
 } from "recharts";
+import { dashboardService } from "../../services/dashboardService";
 import { MOCK_POSTS_BY_CATEGORY } from "./mockReportData";
 import "../../styles/admin.css";
 
 interface PostCategoryStat {
   category: string;
   total_posts: number;
+}
+
+interface PostsByCategoryResponse {
+  data?: PostCategoryStat[];
 }
 
 interface Props {
@@ -35,6 +40,19 @@ export default function PostsByCategoryChart({
   const [loading, setLoading] = useState<boolean>(!hasPropData);
   const [error, setError] = useState<string | null>(null);
 
+  function normalizeRows(payload: PostCategoryStat[] | PostsByCategoryResponse): PostCategoryStat[] {
+    const rows = Array.isArray(payload) ? payload : payload.data;
+
+    if (!Array.isArray(rows)) {
+      return [];
+    }
+
+    return rows.map((row) => ({
+      category: row.category,
+      total_posts: Number(row.total_posts),
+    }));
+  }
+
   useEffect(() => {
     if (hasPropData) {
       setData(propData!);
@@ -45,15 +63,18 @@ export default function PostsByCategoryChart({
 
     let isMounted = true;
 
-    fetch(endpoint ?? "/api/stats/posts-by-category")
-      .then((r) => {
-        if (!r.ok) throw new Error(`HTTP ${r.status}`);
-        return r.json();
-      })
-      .then((rows: { category: string; total_posts: number }[]) => {
+    const request = endpoint
+      ? fetch(endpoint).then((r) => {
+          if (!r.ok) throw new Error(`HTTP ${r.status}`);
+          return r.json();
+        })
+      : dashboardService.getPostsByCategory();
+
+    request
+      .then((payload: PostCategoryStat[] | PostsByCategoryResponse) => {
         if (!isMounted) return;
 
-        const formatted = rows.map((r) => ({ ...r, total_posts: Number(r.total_posts) }));
+        const formatted = normalizeRows(payload);
         setData(formatted.length > 0 ? formatted : MOCK_POSTS_BY_CATEGORY);
         setLoading(false);
         setError(null);

@@ -1,71 +1,70 @@
+import { useEffect, useState } from "react";
+import { dashboardService, type NewAccountStat } from "../../services/dashboardService";
 import "../../styles/admin.css";
 
-export type SectionCardItem = {
-  id: string | number;
-  text: string;
-  timeLabel: string;
-  color?: "green" | "yellow" | "navy" | "red";
-};
+function SectionCard({ title = "New Accounts" }: { title?: string }) {
+  const [accounts, setAccounts] = useState<NewAccountStat[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
-type SectionCardProps = {
-  title?: string;
-  items?: SectionCardItem[];
-};
+  useEffect(() => {
+    let isMounted = true;
 
-const DEFAULT_ITEMS: SectionCardItem[] = [
-  {
-    id: 1,
-    text: "@jramos joined the community",
-    timeLabel: "Hace 5 min",
-    color: "green",
-  },
-  {
-    id: 2,
-    text: "New post reported in the general forum",
-    timeLabel: "Hace 18 min",
-    color: "yellow",
-  },
-  {
-    id: 3,
-    text: "@carlosm made a purchase in the store",
-    timeLabel: "Hace 34 min",
-    color: "navy",
-  },
-  {
-    id: 4,
-    text: "Account @xxspammer99 flagged for multiple reports",
-    timeLabel: "Hace 1 hr",
-    color: "red",
-  },
-  {
-    id: 5,
-    text: "Suggestion #42 marked as completed",
-    timeLabel: "Hace 2 hrs",
-    color: "green",
-  },
-];
+    async function loadNewAccounts() {
+      try {
+        setLoading(true);
+        setError(null);
 
-function SectionCard({
-  title = "Recent Activity",
-  items = DEFAULT_ITEMS,
-}: SectionCardProps) {
+        const rows = await dashboardService.getNewAccounts();
+
+        if (!isMounted) return;
+
+        setAccounts(Array.isArray(rows) ? rows.slice(0, 5) : []);
+      } catch (err) {
+        console.error("Error loading new accounts:", err);
+        if (isMounted) {
+          setError("No se pudieron cargar las cuentas nuevas.");
+        }
+      } finally {
+        if (isMounted) {
+          setLoading(false);
+        }
+      }
+    }
+
+    void loadNewAccounts();
+
+    return () => {
+      isMounted = false;
+    };
+  }, []);
+
   return (
     <section className="admin-section-card">
       <header className="admin-section-card-header">
         <h3 className="admin-section-card-title">{title}</h3>
       </header>
 
-      <div className="admin-section-card-list">
-        {items.map((item) => (
-          <article key={item.id} className="admin-section-card-item">
-            <div className={`admin-section-card-dot admin-section-card-dot-${item.color ?? "green"}`} />
-
-            <p className="admin-section-card-text">{item.text}</p>
-
-            <span className="admin-section-card-time">{item.timeLabel}</span>
-          </article>
-        ))}
-      </div>
+      {loading ? (
+        <p className="admin-card-message admin-card-message-compact">Cargando cuentas nuevas...</p>
+      ) : error ? (
+        <p className="admin-card-message admin-card-message-compact admin-card-message-error">
+          {error}
+        </p>
+      ) : accounts.length === 0 ? (
+        <p className="admin-card-message admin-card-message-compact">No hay cuentas nuevas.</p>
+      ) : (
+        <div className="admin-section-card-list">
+          {accounts.map((account) => (
+            <article key={`${account.username}-${account.joined_ago}`} className="admin-section-card-item">
+              <p className="admin-section-card-text">
+                <span className="admin-section-card-username">@{account.username}</span> joined the community
+              </p>
+              <span className="admin-section-card-time">{account.joined_ago}</span>
+            </article>
+          ))}
+        </div>
+      )}
     </section>
   );
 }

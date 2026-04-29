@@ -17,6 +17,10 @@ interface PostStat {
   total_posts: number;
 }
 
+interface PostsPerDayResponse {
+  data?: PostStat[];
+}
+
 interface Props {
   data?: PostStat[];
   endpoint?: string;
@@ -32,6 +36,19 @@ export default function PostsPerDayChart({
   const [data, setData] = useState<PostStat[]>(hasPropData ? propData! : MOCK_POSTS_PER_DAY);
   const [loading, setLoading] = useState<boolean>(!hasPropData);
 
+  function normalizeRows(payload: PostStat[] | PostsPerDayResponse): PostStat[] {
+    const rows = Array.isArray(payload) ? payload : payload.data;
+
+    if (!Array.isArray(rows)) {
+      return [];
+    }
+
+    return rows.map((row) => ({
+      day: new Date(row.day).toLocaleDateString("es", { month: "short", day: "numeric" }),
+      total_posts: Number(row.total_posts),
+    }));
+  }
+
   useEffect(() => {
     if (hasPropData) {
       setData(propData!);
@@ -41,20 +58,17 @@ export default function PostsPerDayChart({
 
     let isMounted = true;
 
-    fetch(endpoint ?? "/api/stats/posts-per-day")
+    fetch(endpoint ?? "/api/dashboard/stats/posts-per-day")
       .then((r) => {
         if (!r.ok) {
           throw new Error(`HTTP ${r.status}`);
         }
         return r.json();
       })
-      .then((rows: { day: string; total_posts: number }[]) => {
+      .then((payload: PostStat[] | PostsPerDayResponse) => {
         if (!isMounted) return;
 
-        const formatted: PostStat[] = rows.map((r) => ({
-          day: new Date(r.day).toLocaleDateString("es", { month: "short", day: "numeric" }),
-          total_posts: Number(r.total_posts),
-        }));
+        const formatted = normalizeRows(payload);
 
         setData(formatted.length > 0 ? formatted : MOCK_POSTS_PER_DAY);
         setLoading(false);

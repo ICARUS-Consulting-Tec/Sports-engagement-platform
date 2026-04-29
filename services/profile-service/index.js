@@ -653,39 +653,65 @@ app.get("/stats/members-per-month", async (req, res) => {
   }
 });
 
-// // BONUS: Endpoint para estadísticas generales de perfiles
-// app.get("/stats/summary", async (req, res) => {
-//   try {
-//     const totalUsersResult = await pool.query(`
-//       SELECT COUNT(*) as total FROM accounts
-//     `);
-    
-//     const activeUsersResult = await pool.query(`
-//       SELECT COUNT(*) as active 
-//       FROM accounts 
-//       WHERE updated_at > NOW() - INTERVAL '30 days'
-//     `);
-    
-//     const newUsersResult = await pool.query(`
-//       SELECT COUNT(*) as new_users 
-//       FROM accounts 
-//       WHERE created_at > NOW() - INTERVAL '7 days'
-//     `);
+app.get("/stats/new-accounts", async (req, res) => {
+  try {
+    const result = await pool.query(`
+      SELECT
+        username,
+        CASE
+          WHEN NOW() - created_at < INTERVAL '1 minute'  THEN 'just now'
+          WHEN NOW() - created_at < INTERVAL '1 hour'    THEN EXTRACT(MINUTE FROM NOW() - created_at)::int || 'min ago'
+          WHEN NOW() - created_at < INTERVAL '1 day'     THEN EXTRACT(HOUR   FROM NOW() - created_at)::int || 'h ago'
+          WHEN NOW() - created_at < INTERVAL '1 week'    THEN EXTRACT(DAY    FROM NOW() - created_at)::int || 'd ago'
+          WHEN NOW() - created_at < INTERVAL '1 month'   THEN (EXTRACT(DAY   FROM NOW() - created_at) / 7)::int || 'w ago'
+          WHEN NOW() - created_at < INTERVAL '1 year'    THEN (EXTRACT(DAY   FROM NOW() - created_at) / 30)::int || 'mon ago'
+          ELSE                                                 EXTRACT(YEAR   FROM AGE(created_at))::int || ' años'
+        END AS joined_ago
+      FROM accounts
+      ORDER BY created_at DESC;
+    `);
 
-//     res.json({
-//       totalUsers: parseInt(totalUsersResult.rows[0].total),
-//       activeUsers: parseInt(activeUsersResult.rows[0].active),
-//       newUsersLast7Days: parseInt(newUsersResult.rows[0].new_users)
-//     });
-//   } catch (error) {
-//     console.error("Error en /stats/summary:", error);
-//     res.status(500).json({ 
-//       error: "Error al obtener resumen de estadísticas",
-//       details: error.message 
-//     });
-//   }
-// });
+    res.json(
+      result.rows.map((r) => ({
+        username: r.username,
+        joined_ago: r.joined_ago,
+      }))
+    );
+  } catch (error) {
+    console.error("Error en /stats/new-accounts:", error);
+    res.status(500).json({
+      error: "Error al obtener cuentas nuevas",
+      details: error.message,
+    });
+  }
+});
 
+app.get("/stats/total-members", async (req, res) => {
+  try {
+    const result = await pool.query(`
+      SELECT
+        COUNT(*)
+        AS total_members,
+        COUNT(*) FILTER (WHERE created_at >= NOW() - INTERVAL '7 days') AS new_this_week
+      FROM accounts;
+    `);
+
+    const new_this_week = Number(result.rows[0].new_this_week);
+
+    res.json({
+      total_members: Number(result.rows[0].total_members),
+      new_this_week,
+      trend: new_this_week > 0 ? "green" : "gray",
+    });
+    
+  } catch (error) {
+    console.error("Error en /stats/total-members:", error);
+    res.status(500).json({
+      error: "Error al obtener miembros totales",
+      details: error.message,
+    });
+  }
+});
 
 app.get("/debug/token", async (req, res) => {
   const { data, error } = await supabase.auth.signInWithPassword({

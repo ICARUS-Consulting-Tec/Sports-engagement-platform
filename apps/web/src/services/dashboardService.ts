@@ -1,29 +1,49 @@
-// apps/web/src/services/dashboardService.ts
+import { apiFetch } from "./api";
+import type { ApiListResponse, TopContributor } from "../types/community";
+
+export interface NewAccountStat {
+  username: string;
+  joined_ago: string;
+}
+
+export interface TotalMembersStat {
+  total_members: number;
+  new_this_week: number;
+  trend: "green" | "red" | "gray";
+}
+
+export interface TotalPostsStat {
+  total_posts: number;
+  new_today: number;
+  trend: "green" | "red" | "gray";
+}
 
 export const dashboardService = {
-  // Obtener todas las estadísticas en una sola llamada
-  async getDashboardStats() {
-    const response = await fetch('http://localhost:4020/api/stats/dashboard');
-    if (!response.ok) throw new Error('Error fetching dashboard stats');
-    return response.json();
+  async getMembersPerMonth() {
+    return apiFetch('/api/dashboard/stats/members-per-month');
   },
 
-  // O llamadas individuales
-  async getMembersPerMonth() {
-    const response = await fetch('http://localhost:4020/api/stats/members-per-month');
-    if (!response.ok) throw new Error('Error fetching members');
-    return response.json();
+  async getNewAccounts() {
+    return apiFetch<NewAccountStat[]>('/api/dashboard/stats/new-accounts');
+  },
+
+  async getTotalMembers() {
+    return apiFetch<TotalMembersStat>('/api/dashboard/stats/total-members');
+  },
+
+  async getTotalPosts() {
+    return apiFetch<TotalPostsStat>('/api/dashboard/stats/total-posts');
   },
 
   async getPostsPerDay() {
-    const response = await fetch('http://localhost:4020/api/stats/posts-per-day');
-    if (!response.ok) throw new Error('Error fetching posts per day');
-    return response.json();
+    return apiFetch('/api/dashboard/stats/posts-per-day');
   },
 
   async getPostsByCategory() {
-    const response = await fetch('http://localhost:4020/api/stats/posts-by-category');
-    if (!response.ok) throw new Error('Error fetching posts by category');
-    return response.json();
+    return apiFetch('/api/dashboard/stats/posts-by-category');
+  },
+
+  async getTopContributors() {
+    return apiFetch<ApiListResponse<TopContributor[]>>('/api/dashboard/top_contributors');
   }
 };

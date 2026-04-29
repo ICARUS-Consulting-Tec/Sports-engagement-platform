@@ -155,6 +155,7 @@ services:
     environment:
       PORT: 4015
       PROFILE_SERVICE_URL: http://icarus-profile:4006
+      COMMUNITY_SERVICE_URL: http://icarus-community:4001
     ports:
       - "4015:4015"
     networks:

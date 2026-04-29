@@ -1,15 +1,77 @@
+import { useEffect, useState } from "react";
 import { Card } from "@heroui/react";
 import MembersPerWeekChart from "../reportsC/ChartCard";
-import StatsCard from "../reportsC/StatsCard";
+import StatsCard, { type StatsTrend } from "../reportsC/StatsCard";
 import SectionCard from "../reportsC/SectionCard";
 import PostsPerDayChart from "../reportsC/PostPerDayChart";
 import PostsByCategoryChart from "../reportsC/PostsByCatChart";
+import TopContributorsCard from "../reportsC/TopContributorsCard";
+import {
+  dashboardService,
+  type TotalMembersStat,
+  type TotalPostsStat,
+} from "../../services/dashboardService";
 
 
 import "../../styles/admin.css";
 import "../../styles/profile.css";
 
+function resolveStatsTrend(trend: StatsTrend | undefined, count: number | undefined): StatsTrend {
+  if (trend) {
+    return trend;
+  }
+
+  return Number(count ?? 0) > 0 ? "green" : "gray";
+}
+
 export default function Dashboard() {
+  const [totalMembers, setTotalMembers] = useState<TotalMembersStat | null>(null);
+  const [totalPosts, setTotalPosts] = useState<TotalPostsStat | null>(null);
+  const [statsLoading, setStatsLoading] = useState(true);
+
+  useEffect(() => {
+    let isMounted = true;
+
+    async function loadStatsCards() {
+      try {
+        setStatsLoading(true);
+        const [membersResult, postsResult] = await Promise.allSettled([
+          dashboardService.getTotalMembers(),
+          dashboardService.getTotalPosts(),
+        ]);
+
+        if (!isMounted) return;
+
+        if (membersResult.status === "fulfilled") {
+          setTotalMembers(membersResult.value);
+        }
+
+        if (postsResult.status === "fulfilled") {
+          setTotalPosts(postsResult.value);
+        }
+
+        if (membersResult.status === "rejected" || postsResult.status === "rejected") {
+          console.error("Error loading one or more dashboard stats cards:", {
+            members: membersResult.status === "rejected" ? membersResult.reason : null,
+            posts: postsResult.status === "rejected" ? postsResult.reason : null,
+          });
+        }
+      } catch (error) {
+        console.error("Error loading dashboard stats cards:", error);
+      } finally {
+        if (isMounted) {
+          setStatsLoading(false);
+        }
+      }
+    }
+
+    void loadStatsCards();
+
+    return () => {
+      isMounted = false;
+    };
+  }, []);
+
   return (
     <div className="personal-info-section">
       <div className="personal-info-header">
@@ -20,8 +82,18 @@ export default function Dashboard() {
       <Card className="personal-info-card">
         <div className="personal-info-card-body">
             <div className="stats-grid">
-                <StatsCard/>
-                <StatsCard/>
+                <StatsCard
+                  title="TOTAL MEMBERS"
+                  value={statsLoading ? "..." : (totalMembers?.total_members ?? 0).toLocaleString()}
+                  changeLabel={`+${totalMembers?.new_this_week ?? 0} this week`}
+                  trend={resolveStatsTrend(totalMembers?.trend, totalMembers?.new_this_week)}
+                />
+                <StatsCard
+                  title="TOTAL POSTS"
+                  value={statsLoading ? "..." : (totalPosts?.total_posts ?? 0).toLocaleString()}
+                  changeLabel={`+${totalPosts?.new_today ?? 0} today`}
+                  trend={resolveStatsTrend(totalPosts?.trend, totalPosts?.new_today)}
+                />
                 <StatsCard/>
                 <StatsCard/>
             </div>
@@ -32,7 +104,9 @@ export default function Dashboard() {
                 </div>
             </div>
             <div className="two-col">
-                <SectionCard/>
+                <div className="background-chart">
+                    <TopContributorsCard />
+                </div>
                 <div className="background-chart">
                     <PostsPerDayChart />
                 </div>

@@ -82,9 +82,16 @@
 
 .admin-section-card-item {
   display: grid;
-  grid-template-columns: 18px minmax(0, 1fr) auto;
+  grid-template-columns: minmax(0, 1fr) auto;
   align-items: center;
-  column-gap: 22px;
+  column-gap: 18px;
+  border-bottom: 1px solid rgba(19, 41, 75, 0.08);
+  padding-bottom: 14px;
+}
+
+.admin-section-card-item:last-child {
+  border-bottom: 0;
+  padding-bottom: 0;
 }
 
 .admin-section-card-dot {
@@ -115,6 +122,11 @@
   font-size: 0.98rem;
   line-height: 1.35;
   font-weight: 500;
+}
+
+.admin-section-card-username {
+  color: #13294b;
+  font-weight: 800;
 }
 
 .admin-section-card-time {
@@ -161,6 +173,81 @@
   line-height: 1.2;
 }
 
+.admin-card-message {
+  margin: 0;
+  padding: 28px 30px;
+  color: #6b7280;
+  font-size: 0.9rem;
+}
+
+.admin-card-message-compact {
+  padding: 0;
+}
+
+.admin-card-message-error {
+  color: #c44646;
+}
+
+.admin-top-contributors-card {
+  width: 100%;
+  padding: 28px 30px 30px;
+}
+
+.admin-top-contributors-list {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.admin-top-contributors-item {
+  display: grid;
+  grid-template-columns: 42px minmax(0, 1fr);
+  align-items: center;
+  gap: 14px;
+}
+
+.admin-top-contributors-rank {
+  display: flex;
+  width: 42px;
+  height: 42px;
+  align-items: center;
+  justify-content: center;
+  border-radius: 999px;
+  background: #e8eef8;
+  color: #13294b;
+  font-weight: 800;
+}
+
+.admin-top-contributors-item:first-child .admin-top-contributors-rank {
+  background: #3266ad;
+  color: #ffffff;
+}
+
+.admin-top-contributors-details {
+  min-width: 0;
+}
+
+.admin-top-contributors-name {
+  margin: 0;
+  color: #13294b;
+  font-size: 0.98rem;
+  font-weight: 800;
+  line-height: 1.25;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.admin-top-contributors-meta {
+  margin: 3px 0 0;
+  color: #8a96ad;
+  font-size: 0.86rem;
+  line-height: 1.25;
+}
+
 @media (max-width: 1200px) {
   .stats-grid {
     grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -177,12 +264,12 @@
   }
 
   .admin-section-card-item {
-    grid-template-columns: 18px minmax(0, 1fr);
+    grid-template-columns: minmax(0, 1fr);
     row-gap: 8px;
     align-items: start;
   }
 
   .admin-section-card-time {
-    grid-column: 2;
+    grid-column: 1;
   }
 }
