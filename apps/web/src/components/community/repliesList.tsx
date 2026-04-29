@@ -19,21 +19,31 @@ const RepliesList = ({ post_id }: RepliesListProps) => {
   }
 
   useEffect(() => {
+    let isMounted = true;
+
     async function loadPostReplies() {
-        try {
-            setLoading(true);
-            const data = await getPostComments(post_id);
-            setReplies(data);
-        } catch (error) {
-            console.error(error);
-            setLoading(false);
-        } finally {
-            setLoading(false);
+      try {
+        setLoading(true);
+        const data = await getPostComments(post_id);
+
+        if (isMounted) {
+          setReplies(data);
         }
+      } catch (error) {
+        console.error(error);
+      } finally {
+        if (isMounted) {
+          setLoading(false);
+        }
+      }
     }
 
     void loadPostReplies();
-  }, []);
+
+    return () => {
+      isMounted = false;
+    };
+  }, [post_id]);
 
   const visibleReplies = replies;
 
@@ -56,7 +66,7 @@ const RepliesList = ({ post_id }: RepliesListProps) => {
     <div className="space-y-4">
       <div className="max-h-85 space-y-4 overflow-y-auto pr-1">
         {visibleReplies.map((reply) => {
-          const name = "Anonymous";
+          const name = reply.user_name || (reply.user_id ? `User ${reply.user_id}` : "Anonymous");
           return (
             <div key={reply.reply_id} className="rounded-xl border border-slate-200 bg-white p-4">
               <div className="flex items-center gap-3">

@@ -97,6 +97,18 @@ export async function editComment(payload: EditCommentPayload): Promise<Comment[
   return data.result;
 }
 
+export async function incrementReplyUpvote(replyId: number): Promise<number> {
+  const data = await apiFetch<ApiItemResponse<{ reply_id: number; upvotes_count: number }>>(
+    "/community/increment_reply_upvote",
+    {
+      method: "PATCH",
+      body: JSON.stringify({ reply_id: replyId })
+    }
+  );
+
+  return data.result.upvotes_count;
+}
+
 export async function getUserPosts(userId: number): Promise<Post[]> {
   const data = await apiFetch<ApiListResponse<Post[]>>(
     `/community/user_posts?user_id=${userId}`
