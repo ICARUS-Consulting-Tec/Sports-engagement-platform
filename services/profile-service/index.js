@@ -84,6 +84,7 @@ app.get("/", async (req, res) => {
         username,
         country,
         avatar_url,
+        role,
         created_at,
         updated_at
       FROM accounts
@@ -117,6 +118,7 @@ app.get("/me", requireAuth, async (req, res) => {
         username,
         country,
         avatar_url,
+        role,
         created_at,
         updated_at
       FROM accounts
@@ -158,11 +160,11 @@ app.put("/me", requireAuth, async (req, res) => {
     const result = await pool.query(`
       UPDATE accounts
       SET
-        first_name = $1,
-        last_name = $2,
-        username = $3,
-        country = $4,
-        avatar_url = $5,
+        first_name = COALESCE($1, first_name),
+        last_name = COALESCE($2, last_name),
+        username = COALESCE($3, username),
+        country = COALESCE($4, country),
+        avatar_url = COALESCE($5, avatar_url),
         updated_at = NOW()
       WHERE user_id = $6
       RETURNING
@@ -493,6 +495,7 @@ app.get("/account/:accountId", async (req, res) => {
         username,
         country,
         avatar_url,
+        role,
         created_at,
         updated_at
       FROM accounts
@@ -530,6 +533,7 @@ app.get("/:id", async (req, res) => {
         username,
         country,
         avatar_url,
+        role,
         created_at,
         updated_at
       FROM accounts
@@ -592,6 +596,7 @@ app.post("/new/user", async (req, res) => {
         last_name,
         username,
         avatar_url,
+        role,
         created_at,
         updated_at
     `, [

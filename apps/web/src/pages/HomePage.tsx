@@ -6,25 +6,30 @@ import NewsHome from "../components/home/NewsHome";
 import CommunityHome from "../components/home/CommunityHome";
 import ClassicMatchCard from "../components/history/ClassicMatchCard";
 import { FaFire, FaNewspaper, FaTrophy, FaUsers } from "react-icons/fa";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { getClassicMatches } from "../services/historyService";
 import type { ClassicMatch } from "../types/history";
 import "../styles/home.css";
 import { getProducts } from "../services/storeService";
 import { enrichProductsWithTags } from "../data/mockProducts";
-import ProductCard from "../components/store/ProductCard";
 import type { StoreProduct } from "../types";
 import ProductPreviewCard from "../components/store/ProductPreviewCard";
+import { Auth } from "../context/AuthContext";
 
 function HomePage() {
   const [classicMatches, setClassicMatches] = useState<ClassicMatch[]>([]);
   const [classicMatchesLoading, setClassicMatchesLoading] = useState(true);
   const [classicMatchesError, setClassicMatchesError] = useState("");
+  const { role } = Auth();
+  const navigate = useNavigate();
 
   const [bestSellers, setBestSellers] = useState<StoreProduct[]>([]);
   const [bestSellersLoading, setBestSellersLoading] = useState(true);
 
   useEffect(() => {
+    if (role === 'admin') {
+        navigate('/admin');
+      }
     let isMounted = true;
   
     async function loadBestSellers() {
@@ -50,7 +55,9 @@ function HomePage() {
     return () => {
       isMounted = false;
     };
-  }, []);
+  }, [role]);
+
+  
 
   return (
     <div className="home-page">

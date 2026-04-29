@@ -56,6 +56,7 @@ export interface Profile {
   user_id: number | string;
   account_id: number | string;
   avatar_url: string;
+  role: string;
 }
 
 export interface InsertNewUserRequest {

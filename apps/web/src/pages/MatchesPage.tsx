@@ -1,9 +1,11 @@
 import { useEffect, useState } from "react";
 import Navbar from "../components/layout/Navbar";
 import MatchCard from "../components/matches/MatchCard";
+import { Button } from "@heroui/react";
 import { getMatches } from "../services/matchesService";
 import { getProfile } from "../services/profileService";
-import type { Match, ApiMatch, Profile } from "../types";
+import type { ApiMatch, Match, } from "../types/match";
+
 
 function getInitials(firstName?: string, lastName?: string): string {
   const first = firstName ? firstName.charAt(0).toUpperCase() : "";
@@ -13,18 +15,23 @@ function getInitials(firstName?: string, lastName?: string): string {
 
 function MatchesPage() {
   const [matches, setMatches] = useState<Match[]>([]);
-  const [profile, setProfile] = useState<Profile | null>(null);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState("");
+  const [error, setError] = useState<string | null>(null);
   const [profileError, setProfileError] = useState("");
+  const [visibleCount, setVisibleCount] = useState(6);
+  const visibleMatches = matches.slice(0, visibleCount);
+  const hasMoreMatches = visibleCount < matches.length;
+  const upcomingCount = matches.filter(
+  (m) => m.status === "UPCOMING"
+  ).length;
 
   useEffect(() => {
     async function loadPageData() {
-      try {
-        setLoading(true);
-        setError("");
-        setProfileError("");
+      setLoading(true);
+      setError(null);
+      setProfileError("");
 
+      try {
         const [matchesResult, profileResult] = await Promise.allSettled([
           getMatches(),
           getProfile(1),
@@ -32,81 +39,148 @@ function MatchesPage() {
 
         if (matchesResult.status === "fulfilled") {
           const mappedMatches = matchesResult.value.map(mapMatchToCardModel);
+
           setMatches(mappedMatches);
+
+          if (mappedMatches.length === 0) {
+            console.warn("No matches available");
+          }
         } else {
           console.error("Error loading matches:", matchesResult.reason);
-          setError("Could not load matches.");
+          setError("Match calendar is temporarily unavailable.");
         }
 
-        if (profileResult.status === "fulfilled") {
-          setProfile(profileResult.value);
-        } else {
+        if (profileResult.status === "rejected") {
           console.error("Error loading profile:", profileResult.reason);
-          setProfileError("Could not load profile.");
+          setProfileError("Could not load profile data.");
         }
+
       } catch (err) {
-        console.error("Error loading page data:", err);
-        setError("Could not load matches.");
+        console.error("Unexpected error:", err);
+        setError("Something went wrong. Please try again.");
       } finally {
         setLoading(false);
       }
     }
-
     loadPageData();
   }, []);
 
-  return (
-    <div style={styles.page}>
-      <main style={styles.container}>
-        <Navbar />
+  useEffect(() => {
+    async function pollMatches() {
+      try {
+        if (document.visibilityState !== "visible") return;
 
-        <section style={styles.hero}>
+        const matchesResult = await getMatches();
+        const mappedMatches = matchesResult.map(mapMatchToCardModel);
+
+        setMatches(mappedMatches);
+        setError(null);
+      } catch (err) {
+        console.error("Error polling matches:", err);
+      }
+    }
+
+    const interval = setInterval(pollMatches, 10000);
+
+    return () => clearInterval(interval);
+  }, []);
+
+  return (
+    <div className="min-h-screen bg-[#F4F5F7]">
+    <main className="mx-auto max-w-[1400px] px-6 py-6">
+      <Navbar />
+        <section className="mb-7 flex flex-wrap items-start justify-between gap-6 rounded-[28px] bg-gradient-to-r from-[#0B2A55] via-[#1D4E89] to-[#60A5FA] px-10 py-10 text-white shadow-xl">
           <div>
-            <h1 style={styles.title}>MATCH CALENDAR</h1>
-            <p style={styles.subtitle}>
+            <h1 className="mb-3 text-5xl font-black tracking-tight md:text-6xl">
+              MATCH CALENDAR
+            </h1>
+
+            <p className="mb-6 text-xl text-blue-50">
               Full season schedule and real-time match room access.
             </p>
 
-            <div style={styles.statsRow}>
+            <div className="flex flex-wrap gap-10">
               <div>
-                <span style={styles.statNumber}>{matches.length}</span>
-                <span style={styles.statText}>Games This Season</span>
+                <span className="mr-2 text-4xl font-black">{matches.length}</span>
+                <span className="text-lg text-blue-50">Games This Season</span>
               </div>
 
               <div>
-                <span style={styles.statNumber}>
-                  {matches.filter((match) => match.status === "UPCOMING").length}
-                </span>
-                <span style={styles.statText}>Upcoming Matches</span>
+                <span className="mr-2 text-4xl font-black">{upcomingCount}</span>
+                <span className="text-lg text-blue-50">Upcoming Matches</span>
               </div>
             </div>
           </div>
 
-          <div style={styles.filters}>
-            <button style={styles.filterButton}>2026 Season</button>
-            <button style={styles.filterButton}>All Venues</button>
+          <div className="flex flex-wrap gap-4">
+            <Button
+              variant="ghost"
+              className="h-14 min-w-44 rounded-2xl border border-white/30 bg-white/10 px-6 text-lg font-semibold text-white">
+              2025 Season
+            </Button>
+
+            <Button
+              variant="ghost"
+              className="h-14 min-w-44 rounded-2xl border border-white/30 bg-white/10 px-6 text-lg font-semibold text-white">
+              All Venues
+            </Button>
           </div>
         </section>
 
-        {loading && <p style={styles.message}>Loading matches...</p>}
+          {loading && (
+          <div className="rounded-2xl bg-white p-8 text-center text-slate-500 shadow-sm">
+            Loading match calendar...
+          </div>
+        )}
 
-        {error && <p style={styles.error}>{error}</p>}
+        {!loading && error && (
+          <div className="rounded-2xl border border-red-200 bg-red-50 p-8 text-center">
+            <h2 className="mb-2 text-xl font-bold text-red-700">
+              Match calendar unavailable
+            </h2>
+            <p className="mb-4 text-red-600">{error}</p>
+
+            <Button
+              onClick={() => window.location.reload()}
+              className="bg-red-600 text-white font-bold"
+            >
+              Retry
+            </Button>
+          </div>
+        )}
 
         {!loading && !error && matches.length === 0 && (
-          <p style={styles.message}>No matches available.</p>
+          <div className="rounded-2xl bg-white p-8 text-center shadow-sm">
+            <h2 className="mb-2 text-xl font-bold text-[#0B2A55]">
+              No matches available
+            </h2>
+            <p className="text-slate-500">
+              There are no scheduled matches to display right now.
+            </p>
+          </div>
         )}
 
         {!loading && !error && matches.length > 0 && (
-          <section style={styles.grid}>
-            {matches.map((match) => (
-              <MatchCard key={match.id} match={match} />
-            ))}
-          </section>
-        )}
+          <>
+            <section className="grid grid-cols-1 gap-7 md:grid-cols-2 xl:grid-cols-3">
+              {visibleMatches.map((match) => (
+                <MatchCard key={match.id} match={match} />
+              ))}
+            </section>
 
-        <div style={styles.bottomButtonContainer}>
-          <button style={styles.bottomButton}>View Past Seasons</button>
-        </div>
+            {hasMoreMatches && (
+              <div className="mt-10 flex justify-center">
+                <Button
+                  variant="ghost"
+                  className="rounded-full border-2 border-[#0B2A55] px-8 py-4 text-base font-bold text-[#0B2A55]"
+                  onClick={() => setVisibleCount((prev) => prev + 6)}
+                >
+                  View More Matches
+                </Button>
+              </div>
+            )}
+          </>
+        )}
       </main>
     </div>
   );
@@ -123,6 +197,15 @@ function mapMatchToCardModel(match: ApiMatch): Match {
     venue: buildVenueText(match),
     resultLabel: getResultLabel(match),
     resultValue: getResultValue(match),
+
+    homeTeam: match.home_team,
+    awayTeam: match.away_team,
+    homeTeamLogo: match.home_team_logo,
+    awayTeamLogo: match.away_team_logo,
+    homeTeamAbbreviation: match.home_team_abbreviation,
+    awayTeamAbbreviation: match.away_team_abbreviation,
+    homeScore: match.home_score,
+    awayScore: match.away_score,
   };
 }
 
@@ -171,38 +254,15 @@ function buildVenueText(match: ApiMatch): string {
 function getMatchStatus(match: ApiMatch): "LIVE" | "FINISHED" | "UPCOMING" {
   const status = String(match.status || "").toLowerCase();
 
-  if (
-    status.includes("live") ||
-    status.includes("in_progress") ||
-    status.includes("in progress")
-  ) {
+  if (status === "live" || status.includes("in_progress") || status.includes("in progress")) {
     return "LIVE";
   }
 
-  if (
-    status.includes("final") ||
-    status.includes("finished") ||
-    status.includes("completed")
-  ) {
+  if (status === "finished" || status.includes("final") || status.includes("completed")) {
     return "FINISHED";
   }
 
-  if (status.includes("scheduled")) {
-    return "UPCOMING";
-  }
-
-  if (!match.start_time) {
-    return "UPCOMING";
-  }
-
-  const now = new Date();
-  const start = new Date(match.start_time);
-
-  if (start > now) {
-    return "UPCOMING";
-  }
-
-  return "FINISHED";
+  return "UPCOMING";
 }
 
 function getResultLabel(match: ApiMatch): string {
@@ -228,11 +288,7 @@ function getResultValue(match: ApiMatch): string {
     return `${homeScore}-${awayScore}`;
   }
 
-  if (!match.start_time) {
-    return "Date TBD";
-  }
-
-  return getCountdownText(match.start_time);
+  return "Scheduled";
 }
 
 function getCountdownText(startTime: string): string {
@@ -266,168 +322,5 @@ function formatMatchDate(dateString?: string): string {
     year: "numeric",
   });
 }
-
-const styles: Record<string, React.CSSProperties> = {
-  page: {
-    minHeight: "100vh",
-    backgroundColor: "#F4F5F7",
-  },
-  topHeader: {
-    backgroundColor: "#1E1E1E",
-    color: "#94A3B8",
-    fontSize: "22px",
-    padding: "18px 24px",
-  },
-  container: {
-    maxWidth: "1400px",
-    margin: "0 auto",
-    padding: "24px",
-  },
-  hero: {
-    background: "linear-gradient(90deg, #0B2A55 0%, #1D4E89 50%, #60A5FA 100%)",
-    borderRadius: "28px",
-    padding: "42px 40px",
-    color: "white",
-    display: "flex",
-    justifyContent: "space-between",
-    alignItems: "flex-start",
-    gap: "24px",
-    flexWrap: "wrap",
-    boxShadow: "0 10px 24px rgba(0,0,0,0.12)",
-    marginBottom: "28px",
-  },
-  title: {
-    fontSize: "58px",
-    fontWeight: "900",
-    marginBottom: "10px",
-  },
-  subtitle: {
-    fontSize: "24px",
-    marginBottom: "22px",
-    color: "#E5EEF9",
-  },
-  statsRow: {
-    display: "flex",
-    gap: "40px",
-    flexWrap: "wrap",
-  },
-  statNumber: {
-    fontSize: "36px",
-    fontWeight: "900",
-    marginRight: "10px",
-  },
-  statText: {
-    fontSize: "18px",
-    color: "#E5EEF9",
-  },
-  filters: {
-    display: "flex",
-    gap: "16px",
-    flexWrap: "wrap",
-  },
-  filterButton: {
-    backgroundColor: "rgba(255,255,255,0.12)",
-    color: "white",
-    border: "1px solid rgba(255,255,255,0.2)",
-    borderRadius: "18px",
-    padding: "18px 24px",
-    fontSize: "20px",
-    cursor: "pointer",
-    minWidth: "180px",
-  },
-  profileCard: {
-    backgroundColor: "white",
-    borderRadius: "24px",
-    padding: "28px",
-    marginBottom: "32px",
-    boxShadow: "0 8px 20px rgba(15, 23, 42, 0.08)",
-    border: "1px solid #E2E8F0",
-  },
-  profileHeader: {
-    display: "flex",
-    alignItems: "center",
-    gap: "18px",
-    marginBottom: "24px",
-  },
-  avatarCircle: {
-    width: "72px",
-    height: "72px",
-    borderRadius: "50%",
-    background: "linear-gradient(135deg, #0B2A55 0%, #2563EB 100%)",
-    color: "white",
-    display: "flex",
-    alignItems: "center",
-    justifyContent: "center",
-    fontSize: "24px",
-    fontWeight: "800",
-  },
-  profileTitle: {
-    fontSize: "28px",
-    fontWeight: "800",
-    color: "#0F172A",
-    margin: 0,
-  },
-  profileUsername: {
-    fontSize: "18px",
-    color: "#64748B",
-    margin: "6px 0 0 0",
-  },
-  profileDetails: {
-    display: "grid",
-    gridTemplateColumns: "repeat(auto-fit, minmax(180px, 1fr))",
-    gap: "16px",
-  },
-  profileItem: {
-    backgroundColor: "#F8FAFC",
-    borderRadius: "18px",
-    padding: "16px",
-    border: "1px solid #E2E8F0",
-    display: "flex",
-    flexDirection: "column",
-    gap: "6px",
-  },
-  profileLabel: {
-    fontSize: "14px",
-    fontWeight: "700",
-    color: "#64748B",
-    textTransform: "uppercase",
-    letterSpacing: "0.04em",
-  },
-  profileValue: {
-    fontSize: "20px",
-    fontWeight: "700",
-    color: "#0F172A",
-  },
-  grid: {
-    display: "grid",
-    gridTemplateColumns: "repeat(auto-fit, minmax(320px, 1fr))",
-    gap: "28px",
-  },
-  bottomButtonContainer: {
-    display: "flex",
-    justifyContent: "center",
-    marginTop: "34px",
-  },
-  bottomButton: {
-    backgroundColor: "white",
-    color: "#0B2A55",
-    border: "2px solid #0B2A55",
-    borderRadius: "999px",
-    padding: "16px 28px",
-    fontSize: "18px",
-    fontWeight: "600",
-    cursor: "pointer",
-  },
-  message: {
-    fontSize: "18px",
-    color: "#475569",
-    marginBottom: "20px",
-  },
-  error: {
-    fontSize: "18px",
-    color: "#DC2626",
-    marginBottom: "20px",
-  },
-};
 
 export default MatchesPage;

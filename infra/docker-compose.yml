@@ -16,6 +16,7 @@ services:
       - offseason-service
       - tweets-service
       - news-service
+      - feedback-service
     networks:
       - supabase_net
 
@@ -25,8 +26,9 @@ services:
     container_name: icarus-matches
     environment:
       PORT: 4002
-      MATCHES_DB_URL: postgresql://matches_svc:MatchesSvc_2026_dev@host.docker.internal:15432/matches_db
-      DEMO_MATCH_IDS: "2"
+      MATCHES_DB_URL: postgresql://matches_svc:MatchesSvc_2026_dev@supabase-db-do4ksgcc0wksg4wwg4osgk0o:5432/matches_db
+      ENABLE_AUTO_SYNC: "false"
+      SYNC_INTERVAL_MS: 15000
     networks:
       - supabase_net
 
@@ -75,6 +77,18 @@ services:
       NEWS_LANGUAGE: ${NEWS_LANGUAGE:-en}
       NEWS_DB_URL: ${NEWS_DB_URL:-postgresql://news_svc:newsSvc_2026_dev@host.docker.internal:15432/news_cache}
       NEWS_DB_MANAGE_SCHEMA: ${NEWS_DB_MANAGE_SCHEMA:-false}
+    networks:
+      - supabase_net
+
+  feedback-service:
+    build:
+      context: ../services/feedback_service
+    container_name: icarus-feedback
+    environment:
+      PORT: 4012
+      FEEDBACKMAIL_DB_URL: ${FEEDBACKMAIL_DB_URL}
+      OPENAI_API_KEY: ${OPENAI_API_KEY:-}
+      OPENAI_MODERATION_MODEL: ${OPENAI_MODERATION_MODEL:-omni-moderation-latest}
     networks:
       - supabase_net
 
