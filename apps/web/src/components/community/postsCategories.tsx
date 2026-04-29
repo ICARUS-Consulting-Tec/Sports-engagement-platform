@@ -9,9 +9,12 @@ const categories = [
   "Tailgate & Events",
 ];
 
-const PostCategories = () => {
-  // Estado para manejar cuál categoría está activa
-  const [activeCategory, setActiveCategory] = useState("All Topics");
+interface PostCategoriesProps {
+  activeCategory: string;
+  onSelectCategory: (category: string) => void;
+}
+
+const PostCategories = ({ activeCategory, onSelectCategory }: PostCategoriesProps) => {
 
   useEffect(() => {
     console.log("Active category: ", activeCategory);
@@ -29,7 +32,7 @@ const PostCategories = () => {
           return (
             <li key={category}>
               <button
-                onClick={() => setActiveCategory(category)}
+                onClick={() => onSelectCategory(category)}
                 className={`w-full px-4 py-2 text-left text-sm transition-all duration-200 
                   ${
                     isActive

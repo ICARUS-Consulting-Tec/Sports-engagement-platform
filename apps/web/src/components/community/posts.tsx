@@ -13,7 +13,12 @@ import PostDetail from "./postDetail";
 import NewReply from "./newReply";
 import RepliesList from "./repliesList";
 
-const PostComp = ({activeFilter = "hot"}: {activeFilter?: "hot" | "new" | "top"}) => {
+type PostCompProps = {
+  activeFilter?: "hot" | "new" | "top";
+  activeCategory?: string;
+};
+
+const PostComp = ({ activeFilter = "hot", activeCategory = "All Topics" }: PostCompProps) => {
 
   const [posts, setPosts] = useState<Post[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
@@ -90,6 +95,10 @@ const PostComp = ({activeFilter = "hot"}: {activeFilter?: "hot" | "new" | "top"}
   };
 
   const displayPosts = filteredPosts(posts, activeFilter);
+  const categoryFilteredPosts =
+    activeCategory === "All Topics"
+      ? displayPosts
+      : displayPosts.filter((post) => post.category_name === activeCategory);
   if (loading) return <p className="py-8 text-center">Cargando posts...</p>;
   if (error) return <p className="py-8 text-center text-red-500">{error}</p>;
 
@@ -99,7 +108,7 @@ const PostComp = ({activeFilter = "hot"}: {activeFilter?: "hot" | "new" | "top"}
 
   return (
     <div className="space-y-4">
-      {displayPosts.map((post) => {
+      {categoryFilteredPosts.map((post) => {
         const trending = isTrending(post);
         const topContributor = isTopContributor(post);
         const isExpanded = expandedPostId === post.post_id;
