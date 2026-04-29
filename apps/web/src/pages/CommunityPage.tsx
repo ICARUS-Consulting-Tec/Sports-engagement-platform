@@ -13,6 +13,7 @@ function CommunityPage() {
   const [isOpen, setIsOpen] = useState<boolean>(false);
   const [activeFilter, setActiveFilter] = useState<"hot" | "new" | "top">("hot");
   const [activeCategory, setActiveCategory] = useState<string>("All Topics");
+  const [refreshKey, setRefreshKey] = useState<number>(0);
 
   return (
     <div className="min-h-screen bg-[#F4F5F7]">
@@ -31,13 +32,13 @@ function CommunityPage() {
           <div className="space-y-6">
             <CommunityHeader />
             <CommunityBar onSwitchOpenModal={setIsOpen} activeFilter={activeFilter} setActiveFilter={setActiveFilter}/>
-            <PostComp activeFilter={activeFilter} activeCategory={activeCategory} />
+            <PostComp activeFilter={activeFilter} activeCategory={activeCategory} refreshKey={refreshKey} />
           </div>
         </div>
         <ModalComp 
           isOpen={isOpen}
           onOpenChange={setIsOpen}
-          children={<NewPostForm onSwitchOpenModal={setIsOpen} onSuccess={() => setIsOpen(false)}/>}
+          children={<NewPostForm onSwitchOpenModal={setIsOpen} onSuccess={() => { setIsOpen(false); setRefreshKey(k => k + 1); }} />}
         />
       </main>
     </div>

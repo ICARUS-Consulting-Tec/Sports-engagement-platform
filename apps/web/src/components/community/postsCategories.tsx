@@ -4,7 +4,7 @@ const categories = [
   "All Topics",
   "Game Day",
   "Team Talk",
-  "Digital Collectibles",
+  "Cards",
   "Draft",
   "Tailgate & Events",
 ];

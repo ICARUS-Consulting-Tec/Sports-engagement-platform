@@ -8,7 +8,7 @@ import { useNavigate } from "react-router-dom";
 
 function Navbar() {
   const [isOpen, setIsOpen] = useState<boolean>(false);
-  const [authView, setAuthView] = useState<"signup" | "signin">("signup");
+  const [authView, setAuthView] = useState<"signup" | "signin">("signin");
   const { session } = Auth();
   const navigate = useNavigate();
 

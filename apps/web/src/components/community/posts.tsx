@@ -7,7 +7,7 @@ import {
   incrementPostUpvote,
   incrementPostView,
 } from "../../services/communityService";
-import { getInitials, getPostTime, filteredPosts } from "../../utils/postUtils";
+import { getInitials, filteredPosts } from "../../utils/postUtils";
 import { ModalComp } from "../general/modal";
 import PostDetail from "./postDetail";
 import NewReply from "./newReply";
@@ -16,9 +16,10 @@ import RepliesList from "./repliesList";
 type PostCompProps = {
   activeFilter?: "hot" | "new" | "top";
   activeCategory?: string;
+  refreshKey?: number;
 };
 
-const PostComp = ({ activeFilter = "hot", activeCategory = "All Topics" }: PostCompProps) => {
+const PostComp = ({ activeFilter = "hot", activeCategory = "All Topics", refreshKey }: PostCompProps) => {
 
   const [posts, setPosts] = useState<Post[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
@@ -49,7 +50,7 @@ const PostComp = ({ activeFilter = "hot", activeCategory = "All Topics" }: PostC
     return () => {
       isMounted = false;
     };
-  }, []);
+  }, [refreshKey]);
 
   const handleTogglePostDetails = async (postId: number) => {
     const isExpanding = expandedPostId !== postId;
@@ -200,7 +201,18 @@ const PostComp = ({ activeFilter = "hot", activeCategory = "All Topics" }: PostC
             <PostDetail post={selectedPost} />
             <NewReply 
               postId={selectedPost.post_id}
-              onSuccess={() => setIsDetailsOpen(false)}
+              onSuccess={(newComments) => {
+                if (newComments && selectedPost) {
+                  setPosts((currentPosts) =>
+                    currentPosts.map((p) =>
+                      p.post_id === selectedPost.post_id
+                        ? { ...p, replies_count: newComments.length }
+                        : p
+                    )
+                  );
+                }
+                setIsDetailsOpen(false);
+              }}
               onCancel={() => setIsDetailsOpen(false)}
             />
           </div>
