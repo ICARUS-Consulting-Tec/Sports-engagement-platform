@@ -7,7 +7,7 @@ import {
   incrementPostUpvote,
   incrementPostView,
 } from "../../services/communityService";
-import { getInitials, getPostTime, filteredPosts } from "../../utils/postUtils";
+import { getInitials, filteredPosts } from "../../utils/postUtils";
 import { ModalComp } from "../general/modal";
 import PostDetail from "./postDetail";
 import NewReply from "./newReply";
