@@ -23,14 +23,24 @@ function priceAmountInMajorUnits(product: {
   default_price?: unknown;
 }): number {
   const dp = product.default_price;
-  if (dp && typeof dp === "object" && dp !== null && "unit_amount" in dp) {
-    const cents = (dp as { unit_amount: number | null }).unit_amount;
-    if (typeof cents === "number" && Number.isFinite(cents)) {
-      return cents / 100;
+  if (dp && typeof dp === "object" && dp !== null) {
+    const o = dp as {
+      unit_amount?: number | null;
+      unit_amount_decimal?: string | null;
+    };
+    if (typeof o.unit_amount === "number" && Number.isFinite(o.unit_amount)) {
+      return o.unit_amount / 100;
+    }
+    if (
+      typeof o.unit_amount_decimal === "string" &&
+      o.unit_amount_decimal.trim()
+    ) {
+      const parsed = Number.parseFloat(o.unit_amount_decimal);
+      return Number.isFinite(parsed) ? parsed : 0;
     }
   }
   if (typeof dp === "string" && !dp.startsWith("price_")) {
-    const raw = parseFloat(dp.replace(/[^0-9.]/g, ""));
+    const raw = Number.parseFloat(dp.replace(/[^0-9.]/g, ""));
     return Number.isFinite(raw) ? raw : 0;
   }
   return 0;
