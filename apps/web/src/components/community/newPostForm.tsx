@@ -10,7 +10,7 @@ interface NewPostFormProps {
 
 export const NewPostForm = (props: NewPostFormProps) => {
     const { session } = Auth();
-    const {onSwitchOpenModal} = props;
+    const {onSwitchOpenModal, onSuccess} = props;
     const [category, setCategory] = useState<string>("");
     const [title, setTitle] = useState<string>("");
     const [postContent, setPostContent] = useState<string>("");
@@ -30,6 +30,7 @@ export const NewPostForm = (props: NewPostFormProps) => {
                 title:title, 
                 content:postContent
             });
+            onSuccess();
         } catch(error) {
             console.error(error);
             setLoading(false);

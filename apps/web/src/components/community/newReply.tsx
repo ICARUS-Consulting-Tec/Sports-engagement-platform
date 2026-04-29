@@ -2,10 +2,11 @@ import { Button, Form, Label, TextArea } from "@heroui/react";
 import React, { useState } from "react";
 import { Auth } from "../../context/AuthContext";
 import { createComment } from "../../services/communityService";
+import type { Comment } from "../../types/community";
 
 interface NewReplyProps {
 	postId: number;
-	onSuccess?: () => void;
+	onSuccess?: (newComments?: Comment[]) => void;
 	onCancel?: () => void;
 }
 
@@ -29,14 +30,14 @@ const NewReply = ({ postId, onSuccess, onCancel }: NewReplyProps) => {
 
 		try {
 			setLoading(true);
-			await createComment({
+			const newComments = await createComment({
 				post_id: postId,
 				user_id: session.user.id,
 				content: trimmed
 			});
 
 			setContent("");
-			onSuccess?.();
+			onSuccess?.(newComments);
 		} catch (error) {
 			console.error("Error creating reply:", error);
 		} finally {
