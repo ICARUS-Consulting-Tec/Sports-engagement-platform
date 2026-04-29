@@ -1,5 +1,7 @@
 import { Button, FieldError, Form, Input, Label, TextArea, TextField } from "@heroui/react";
 import React, { useState } from "react"
+import { Auth } from "../../context/AuthContext";
+import { createPost } from "../../services/communityService";
 
 interface NewPostFormProps {
     onSuccess: () => void;
@@ -7,13 +9,34 @@ interface NewPostFormProps {
 }
 
 export const NewPostForm = (props: NewPostFormProps) => {
+    const { session } = Auth();
     const {onSwitchOpenModal} = props;
     const [category, setCategory] = useState<string>("");
     const [title, setTitle] = useState<string>("");
     const [postContent, setPostContent] = useState<string>("");
+    const [loading, setLoading] = useState<boolean>(false);
 
     const handleNewPost = async (e: React.FormEvent<HTMLFormElement>) => {
-        console.log("Handle function");
+        e.preventDefault();
+        try {
+            setLoading(true);
+            if (!session?.user?.id) {
+                console.error("Missing user id in session");
+                return;
+            }
+            await createPost({
+                user_id: session.user.id,
+                category_name:category,
+                title:title, 
+                content:postContent
+            });
+        } catch(error) {
+            console.error(error);
+            setLoading(false);
+        } finally {
+            setLoading(false);
+            onSwitchOpenModal(false);
+        }
     }
 
     return(
@@ -68,5 +91,5 @@ export const NewPostForm = (props: NewPostFormProps) => {
                 </div>
             </Form>
         </>
-    )
+    );
 }

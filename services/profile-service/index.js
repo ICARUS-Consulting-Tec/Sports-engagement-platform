@@ -638,14 +638,14 @@ app.get("/debug/token", async (req, res) => {
   });
 });
 
-app.post("/accounts/batch", async (req, res) => {
+app.post("/profiles/batch", async (req, res) => {
   try {
-    const { account_ids } = req.body;
+    const { profiles_ids } = req.body;
 
-    if (!Array.isArray(account_ids) || account_ids.length === 0) {
+    if (!Array.isArray(profiles_ids) || profiles_ids.length === 0) {
       return res.status(400).json({
         status: "error",
-        message: "account_ids must be a non-empty array"
+        message: "profiles_ids must be a non-empty array"
       });
     }
 
@@ -653,20 +653,22 @@ app.post("/accounts/batch", async (req, res) => {
       `
       SELECT
         account_id,
+        user_id,
         username,
         first_name,
         last_name,
         avatar_url
       FROM accounts
-      WHERE account_id = ANY($1::int[])
+      WHERE user_id = ANY($1::uuid[])
       `,
-      [account_ids]
+      [profiles_ids]
     );
 
     res.json({
       status: "success",
       profiles: result.rows
     });
+    
   } catch (error) {
     res.status(500).json({
       status: "error",

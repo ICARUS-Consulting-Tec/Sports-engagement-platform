@@ -7,17 +7,17 @@ app.use(express.json());
 const PORT = process.env.PORT || 4001;
 const PROFILE_SERVICE_URL = process.env.PROFILE_SERVICE_URL || "http://profile-service:4006";
 
-async function getProfilesByAccountIds(accountIds) {
-  if (!Array.isArray(accountIds) || accountIds.length === 0) return [];
+async function getProfilesByUserIds(userIds) {
+  if (!Array.isArray(userIds) || userIds.length === 0) return [];
 
   const controller = new AbortController();
   const timeout = setTimeout(() => controller.abort(), 2500);
 
   try {
-    const response = await fetch(`${PROFILE_SERVICE_URL}/accounts/batch`, {
+    const response = await fetch(`${PROFILE_SERVICE_URL}/profiles/batch`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ account_ids: accountIds }),
+      body: JSON.stringify({ profiles_ids: userIds }),
       signal: controller.signal
     });
 
@@ -55,12 +55,12 @@ app.post("/new_post", async (req, res) => {
     try {
         const {
             user_id,
-            category_id, 
+            category_name, 
             title, 
             content
         } = req.body;
 
-        if (!title || !content || !category_id) {
+        if (!title || !content || !category_name) {
             return res.status(400).json({
                 success: false, 
                 message: "Post title, content and category are ALL required"
@@ -74,8 +74,14 @@ app.post("/new_post", async (req, res) => {
                 title, 
                 content
             )
-            values ($1, $2, $3, $4)
+            values (
+                $1, 
+                (SELECT category_id FROM categories WHERE name=$2), 
+                $3, 
+                $4
+            )
             RETURNING
+                post_id, 
                 user_id,
                 category_id,
                 title,
@@ -85,7 +91,7 @@ app.post("/new_post", async (req, res) => {
                 created_at
         `, [
             user_id,
-            category_id,
+            category_name,
             title, 
             content
         ]);
@@ -126,12 +132,12 @@ app.get("/get_posts", async (req, res) => {
         const posts = result.rows;
 
         const uniqueUserIds = [...new Set(posts.map((p) => p.user_id).filter((id) => id != null))];
-        const profiles = await getProfilesByAccountIds(uniqueUserIds);
+        const profiles = await getProfilesByUserIds(uniqueUserIds);
 
         const profileMap = new Map(
             profiles.map((profile) => [
-                profile.account_id,
-                profile.username || profile.first_name || `User ${profile.account_id}`
+                profile.user_id,
+                profile.username || profile.first_name || `User ${profile.user_id}`
             ])
         );
 
@@ -285,10 +291,8 @@ app.patch("/edit_post", async (req, res) => {
             SET
                 title = COALESCE($1, p.title),
                 content = COALESCE($2, p.content),
-                category_id = COALESCE(c.category_id, p.category_id)
-            FROM categories c
-            WHERE c.name = $3
-              AND p.post_id = $4
+                category_id = COALESCE((SELECT category_id FROM categories WHERE name = $3), p.category_id)
+            WHERE p.post_id = $4
             RETURNING
                 p.post_id,
                 p.category_id,

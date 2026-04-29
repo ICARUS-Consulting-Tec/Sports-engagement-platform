@@ -1,9 +1,9 @@
 import { useEffect, useState } from "react";
 import { getTopContributors } from "../../services/communityService";
-import { getAccount } from "../../services/profileService";
+import { getProfile } from "../../services/profileService";
 
 interface Contributor {
-  userId: number;
+  userId: string;
   name: string;
   postCount: number;
 }
@@ -25,14 +25,19 @@ const TopContributors = () => {
 
           const withProfiles = await Promise.all(
             data.map(async (item) => {
-              const userId = Number(item.user_id);
+              const userId = item.user_id;
               const postCount = Number(item.post_count ?? 0);
 
+              if (!userId) {
+                return null;
+              }
+
               try {
-                const profile = await getAccount(userId);
+                const response = await getProfile(userId);
+                const profileData = response;
                 return {
                   userId,
-                  name: profile?.username || `User #${userId}`,
+                  name: profileData?.username || `User #${userId}`,
                   postCount,
                 };
               } catch {
@@ -43,6 +48,8 @@ const TopContributors = () => {
                 };
               }
             })
+          ).then((results): Contributor[] =>
+            results.filter((r): r is Contributor => r !== null)
           );
 
           if (isMounted) {

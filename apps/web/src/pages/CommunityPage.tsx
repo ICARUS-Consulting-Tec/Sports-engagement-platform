@@ -33,7 +33,7 @@ function CommunityPage() {
         <ModalComp 
           isOpen={isOpen}
           onOpenChange={setIsOpen}
-          children={<NewPostForm onSwitchOpenModal={setIsOpen} onSuccess={() => {}}/>}
+          children={<NewPostForm onSwitchOpenModal={setIsOpen} onSuccess={() => setIsOpen(false)}/>}
         />
       </main>
     </div>

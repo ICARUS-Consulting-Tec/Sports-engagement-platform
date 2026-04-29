@@ -1,6 +1,6 @@
 export type Post = {
   post_id: number;
-  user_id: number;
+  user_id: string;
   user_name: string | null;
   category_name: string;
   title: string;
@@ -12,8 +12,8 @@ export type Post = {
 };
 
 export type PostPayload = {
-  user_id?: number | null;
-  category_id: number;
+  user_id?: string | null;
+  category_name: string;
   title: string;
   content: string;
 };
@@ -28,7 +28,7 @@ export type EditPostPayload = {
 export type Comment = {
   reply_id: number;
   post_id: number;
-  user_id?: number;
+  user_id?: string;
   content: string;
   upvotes_count: number;
   created_at?: string;
@@ -36,7 +36,7 @@ export type Comment = {
 
 export type CommentPayload = {
   post_id: number;
-  user_id: number;
+  user_id: string;
   content: string;
 };
 
@@ -46,12 +46,12 @@ export type EditCommentPayload = {
 };
 
 export type TopContributor = {
-  user_id: number;
+  user_id: string;
   post_count: number;
 };
 
 export type FanOfWeek = {
-  user_id: number;
+  user_id: string;
   post_count: number;
   upvotes_count: number;
 };

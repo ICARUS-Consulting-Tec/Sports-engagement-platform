@@ -2,7 +2,7 @@ import { Icon } from "@iconify/react";
 import { FanOfWeek } from "../../types/community";
 import { getFanOfWeek } from "../../services/communityService";
 import { useEffect, useState } from "react";
-import { getAccount } from "../../services/profileService";
+import { getProfile } from "../../services/profileService";
 import { Profile } from "../../types";
 import { getInitials } from "../../utils/postUtils";
 
@@ -25,17 +25,18 @@ export default function TopContributor() {
                 }
                 setFanOfWeek(data);
                 setPoints((data.upvotes_count ?? 0) * (data.post_count ?? 0));
-                const user = await getAccount(data.user_id);
-                if (!user || user.user_id == null) {
-                    console.error("Error getting account");
-                    return;
-                
-            }
+                const response = await getProfile(data.user_id);
+                const user = response;
 
-            setTopUser(user);
-            } catch (error) {
-            console.error("Error loading fan of the week ", error);
-            }
+                if (!user || !user.user_id) {
+                  console.error("Error getting profile");
+                  return;
+                }
+
+                setTopUser(user);
+              } catch (error) {
+                console.error("Error loading fan of the week ", error);
+              }
         }
 
         void loadFanOfWeek();
