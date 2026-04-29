@@ -46,20 +46,29 @@ export const AuthContextProvider = ( {children} : AuthContextProps ) => {
         try {
             const payload = buildProfilePayload(s);
             await insertNewUser(payload);
-        return true;
+            return true;
         } catch (err: any) {
-        const msg = String(err?.message || "").toLowerCase();
-        // Si ya existe por user_id o username, no rompas login
-        if (msg.includes("duplicate") || msg.includes("already exists") || msg.includes("http error 409")) return true;
-        console.error("Error creating profile in own DB", err);
-        return false;
+            const msg = String(err?.message || "").toLowerCase();
+            // Si ya existe por user_id o username, no rompas login ni reintentes en loop.
+            if (msg.includes("duplicate") || msg.includes("already exists") || msg.includes("http error 409")) {
+                return true;
+            }
+            console.error("Error creating profile in own DB", err);
+            return false;
         }
     };
 
     const fetchProfile = async (s: Session) => {
-        const data = await getMyProfile(s.access_token);
-        if (data.status === "success") {
-            setRole(data.profile.role);
+        try {
+            const data = await getMyProfile(s.access_token);
+            if (data.status === "success") {
+                setRole(data.profile.role);
+            }
+            return data.profile;
+        } catch (err: any) {
+            console.error("Error fetching profile:", err);
+            setRole(null);
+            return null;
         }
     };
 
@@ -153,22 +162,28 @@ export const AuthContextProvider = ( {children} : AuthContextProps ) => {
         supabase.auth.getSession().then(async ({ data: {session}}) => {
             setSession(session);
             if (session && !profileSyncedRef.current) {
+                profileSyncedRef.current = true;
                 profileSyncedRef.current = await syncProfileToOwnDb(session);
             }
-            if (session) await fetchProfile(session);
+            if (session) {
+                await fetchProfile(session);
+            }
             setLoading(false);
         });
 
         const {data: {subscription}} = supabase.auth.onAuthStateChange(async (_event, session) => {
             setSession(session);
             if (session && !profileSyncedRef.current) {
+                profileSyncedRef.current = true;
                 profileSyncedRef.current = await syncProfileToOwnDb(session);
             }
             if (!session) {
                 profileSyncedRef.current = false;
                 setRole(null);
             }
-            if (session) await fetchProfile(session); 
+            if (session) {
+                await fetchProfile(session);
+            }
         });
 
         return () => {

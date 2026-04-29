@@ -22,7 +22,7 @@ export async function apiFetch<T = unknown>(endpoint: string, options: RequestIn
   const data = await response.json();
 
   if (!response.ok) {
-    throw new Error((data as { error?: string }).error || `HTTP error ${response.status}`);
+    throw new Error((data as { error?: string; message?: string }).message || (data as { error?: string }).error || `HTTP error ${response.status}`);
   }
 
   return data as T;

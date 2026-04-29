@@ -660,7 +660,7 @@ app.get("/stats/new-accounts", async (req, res) => {
         username,
         CASE
           WHEN NOW() - created_at < INTERVAL '1 minute'  THEN 'just now'
-          WHEN NOW() - created_at < INTERVAL '1 hour'    THEN EXTRACT(MINUTE FROM NOW() - created_at)::int || 'min ago'
+          WHEN NOW() - created_at < INTERVAL '1 hour'    THEN EXTRACT(MINUTE FROM NOW() - created_at)::int || 'm ago'
           WHEN NOW() - created_at < INTERVAL '1 day'     THEN EXTRACT(HOUR   FROM NOW() - created_at)::int || 'h ago'
           WHEN NOW() - created_at < INTERVAL '1 week'    THEN EXTRACT(DAY    FROM NOW() - created_at)::int || 'd ago'
           WHEN NOW() - created_at < INTERVAL '1 month'   THEN (EXTRACT(DAY   FROM NOW() - created_at) / 7)::int || 'w ago'
@@ -703,7 +703,7 @@ app.get("/stats/total-members", async (req, res) => {
       new_this_week,
       trend: new_this_week > 0 ? "green" : "gray",
     });
-    
+
   } catch (error) {
     console.error("Error en /stats/total-members:", error);
     res.status(500).json({
