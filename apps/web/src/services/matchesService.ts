@@ -1,5 +1,5 @@
 import { apiFetch } from "./api";
-import type { ApiMatch } from "../types";
+import type { ApiMatch } from "../types/match";
 
 export async function getMatches(): Promise<ApiMatch[]> {
   return await apiFetch<ApiMatch[]>("/matches/");
