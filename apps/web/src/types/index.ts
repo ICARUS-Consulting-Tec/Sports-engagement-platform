@@ -33,8 +33,19 @@ export interface StoreProduct {
   id: string;
   name: string;
   description?: string;
-  default_price: string;
+  default_price: string | { id: string; unit_amount: number | null; currency?: string };
   images?: string[];
+  
+  rarity: 'New' | 'Popular' | 'Limited';
+  type: 'Jerseys' | 'Headwear' | 'Performance' | 'Collectibles';
+  sizes?: string[];  
+  price_amount: number; 
+}
+
+export interface CartItem {
+  product: StoreProduct;
+  quantity: number;
+  selectedSize?: string;
 }
 
 export interface Profile {
@@ -112,6 +123,28 @@ export interface PackOpenResult {
 }
 
 export type PackOpeningStatus = "NONE" | "OPENING" | "READY";
+
+// ─── Admin Store ─────────────────────────────────────────────
+
+export interface AdminVariant {
+  priceId: string;
+  size: string | null;
+  inventory_count: number;
+  sku: string | null;
+  unit_amount: number; // en centavos
+}
+
+export interface AdminProduct {
+  id: string;
+  name: string;
+  category: string | null;
+  product_type: "clothing" | "footwear" | "no_size" | null;
+  rarity: string | null;
+  status: "active" | "inactive";
+  image: string | null;
+  totalStock: number;
+  variants: AdminVariant[];
+}
 
 export interface PackOpeningState {
   status: PackOpeningStatus;

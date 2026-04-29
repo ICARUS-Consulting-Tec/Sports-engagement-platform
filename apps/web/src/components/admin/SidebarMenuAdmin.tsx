@@ -24,8 +24,8 @@ function SidebarMenuAdmin({ activeTab, setActiveTab }: SidebarMenuProps) {
       </button>
 
       <button
-        className={`profile-sidebar-item ${activeTab === "storeM" ? "active" : ""}`}
-        onClick={() => setActiveTab("storeM")}
+        className={`profile-sidebar-item ${activeTab === "storeManagement" ? "active" : ""}`}
+        onClick={() => setActiveTab("storeManagement")}
       >
         Store Management
       </button>
