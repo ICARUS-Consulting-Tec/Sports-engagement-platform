@@ -133,9 +133,32 @@
 
 .horizontal-section {
     margin-top: 16px;
-    background: #f8f9fc;
+    background: #f7f8fc;
     border-radius: 12px;
-    padding: 14px;
+    box-shadow: 0 8px 24px rgba(15, 23, 42, 0.04);
+}
+
+.background-chart{
+    background: #f7f8fc;
+    border-radius: 12px;
+    box-shadow: 0 8px 24px rgba(15, 23, 42, 0.04);
+}
+
+.admin-chart-card {
+  width: 100%;
+  padding: 28px 30px 30px;
+}
+
+.admin-chart-card-header {
+  margin-bottom: 14px;
+}
+
+.admin-chart-card-title {
+  margin: 0;
+  color: #13294b;
+  font-size: 1.05rem;
+  font-weight: 800;
+  line-height: 1.2;
 }
 
 @media (max-width: 1200px) {

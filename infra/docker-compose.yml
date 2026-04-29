@@ -16,6 +16,7 @@ services:
       - offseason-service
       - tweets-service
       - news-service
+      - dashboard-service
     networks:
       - supabase_net
 
@@ -132,17 +133,18 @@ services:
       CARDS_DB_URL: postgresql://cards_svc:CardsSvc_2026_dev@supabase-db-do4ksgcc0wksg4wwg4osgk0o:5432/cards_db
     networks:
       - supabase_net
-  
-  # dashboard-service:
-  #   build:
-  #     context: ../services/dashboard-service
-  #   container_name: icarus-dashboard
-  #   environment:
-  #     PORT: 4020
-  #     PROFILE_SERVICE_URL: http://profile-service:4003
-  #     COMMUNITY_SERVICE_URL: http://community-service:4001
-  #   networks:
-  #     - supabase_net
+
+  dashboard-service:
+    build:
+      context: ../services/dashboard-service
+    container_name: icarus-dashboard
+    environment:
+      PORT: 4015
+      PROFILE_SERVICE_URL: http://icarus-profile:4006
+    ports:
+      - "4015:4015"
+    networks:
+      - supabase_net
 
 networks:
   supabase_net:

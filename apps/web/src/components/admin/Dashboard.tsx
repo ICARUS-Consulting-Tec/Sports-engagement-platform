@@ -27,11 +27,16 @@ export default function Dashboard() {
             </div>
             <div className="two-col">
                 <SectionCard/>
-                <MembersPerWeekChart />
+                <div className="background-chart">
+                    <MembersPerWeekChart />
+                </div>
             </div>
             <div className="two-col">
                 <SectionCard/>
-                <PostsPerDayChart />
+                <div className="background-chart">
+                    <PostsPerDayChart />
+                </div>
+                
             </div>
             <div className="horizontal-section">
                 <PostsByCategoryChart />
