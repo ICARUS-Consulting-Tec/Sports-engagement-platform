@@ -29,6 +29,7 @@ export type Comment = {
   reply_id: number;
   post_id: number;
   user_id?: string;
+  user_name?: string | null;
   content: string;
   upvotes_count: number;
   created_at?: string;

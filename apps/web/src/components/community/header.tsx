@@ -17,12 +17,12 @@ const CommunityHeader = ()  => {
                 </p>
                 <div className="mt-5 flex flex-wrap gap-8 text-white/95">
                     <div className="flex items-center gap-6">
-                    <p className="text-3xl font-extrabold">{activeFans}</p> {/* <p className="text-3xl font-extrabold">{activeFans}</p> */}
-                    <p className="text-xs uppercase tracking-wide text-white/80">Active Fans Today</p>
+                        <p className="text-3xl font-extrabold">{activeFans}</p> {/* <p className="text-3xl font-extrabold">{activeFans}</p> */}
+                        <p className="text-xs uppercase tracking-wide text-white/80">Active Fans Today</p>
                     </div>
                     <div className="flex items-center gap-6">
-                    <p className="text-3xl font-extrabold">{liveDiscussions}</p> {/* <p className="text-3xl font-extrabold">{liveDiscussions}</p> */}
-                    <p className="text-xs uppercase tracking-wide text-white/80">Live Discussions</p>
+                        <p className="text-3xl font-extrabold">{liveDiscussions}</p> {/* <p className="text-3xl font-extrabold">{liveDiscussions}</p> */}
+                        <p className="text-xs uppercase tracking-wide text-white/80">Live Discussions</p>
                     </div>
                 </div>
             </section>

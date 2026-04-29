@@ -335,6 +335,7 @@ app.get("/get_post_comments", async (req, res) => {
         const result = await pool.query(`
             SELECT
                 reply_id,
+                user_id,
                 content,
                 upvotes_count,
                 created_at
@@ -342,9 +343,25 @@ app.get("/get_post_comments", async (req, res) => {
             WHERE r.post_id = $1
         `, [post_id]);
 
+        const replies = result.rows;
+        const uniqueUserIds = [...new Set(replies.map((r) => r.user_id).filter((id) => id != null))];
+        const profiles = await getProfilesByUserIds(uniqueUserIds);
+
+        const profileMap = new Map(
+            profiles.map((profile) => [
+                profile.user_id,
+                profile.username || profile.first_name || `User ${profile.user_id}`
+            ])
+        );
+
+        const enriched = replies.map((reply) => ({
+            ...reply,
+            user_name: reply.user_id ? profileMap.get(reply.user_id) || "Anonymous" : "Anonymous"
+        }));
+
         res.status(200).json({
             success: true,
-            result: result.rows,
+            result: enriched,
         });
 
     } catch(error) {
@@ -373,6 +390,7 @@ app.post("/create_comment", async (req, res) => {
             RETURNING
                 reply_id, 
                 post_id, 
+                user_id,
                 content, 
                 upvotes_count,
                 created_at
@@ -411,6 +429,7 @@ app.delete("/delete_reply", async (req, res) => {
             RETURNING
                reply_id,
                post_id,
+             user_id,
                content,
                upvotes_count,
                created_at
@@ -467,6 +486,43 @@ app.patch("/edit_comment", async (req, res) => {
     }
 });
 
+app.patch("/increment_reply_upvote", async (req, res) => {
+    try {
+        const { reply_id } = req.body;
+
+        if (!reply_id) {
+            return res.status(400).json({
+                success: false,
+                message: "reply_id is required"
+            });
+        }
+
+        const result = await pool.query(`
+            UPDATE replies
+            SET upvotes_count = upvotes_count + 1
+            WHERE reply_id = $1
+            RETURNING reply_id, upvotes_count
+        `, [reply_id]);
+
+        if (result.rows.length === 0) {
+            return res.status(404).json({
+                success: false,
+                message: "Reply not found"
+            });
+        }
+
+        res.status(200).json({
+            success: true,
+            result: result.rows[0]
+        });
+    } catch (error) {
+        res.status(500).json({
+            success: false,
+            error: error.message
+        });
+    }
+});
+
 app.get("/user_posts", async (req, res) => {
     try{
         const { user_id } = req.query;
@@ -506,6 +562,7 @@ app.get("/top_contributors", async (req, res) => {
             FROM posts
             GROUP BY user_id 
             ORDER BY post_count DESC
+            LIMIT 5
         `);
 
         res.status(200).json({
