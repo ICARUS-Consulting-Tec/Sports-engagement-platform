@@ -4,7 +4,16 @@ function resolveApiUrl(endpoint: string): string {
   if (API_BASE_URL && endpoint.startsWith("/api/")) {
     return `${API_BASE_URL}${endpoint.slice(4)}`;
   }
-  return `${API_BASE_URL}${endpoint}`;
+
+  if (API_BASE_URL) {
+    return `${API_BASE_URL}${endpoint}`;
+  }
+
+  if (endpoint.startsWith("/api/")) {
+    return endpoint;
+  }
+
+  return `/api${endpoint.startsWith("/") ? endpoint : `/${endpoint}`}`;
 }
 
 export async function apiFetch<T = unknown>(endpoint: string, options: RequestInit = {}): Promise<T> {
@@ -18,11 +27,18 @@ export async function apiFetch<T = unknown>(endpoint: string, options: RequestIn
   };
 
   const response = await fetch(url, config);
-
-  const data = await response.json();
+  const contentType = response.headers.get("content-type") || "";
+  const isJson = contentType.includes("application/json");
+  const data = isJson ? await response.json() : await response.text();
 
   if (!response.ok) {
-    throw new Error((data as { error?: string }).error || `HTTP error ${response.status}`);
+    if (isJson) {
+      throw new Error((data as { error?: string }).error || `HTTP error ${response.status}`);
+    }
+
+    throw new Error(typeof data === "string" && data.trim()
+      ? data
+      : `HTTP error ${response.status}`);
   }
 
   return data as T;

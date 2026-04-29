@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import type { TimelineEvent } from "../../types/history";
+import { useScrollReveal } from "./useScrollReveal";
 
 type TimelineItemProps = {
   event: TimelineEvent;
@@ -8,6 +9,8 @@ type TimelineItemProps = {
 };
 
 function TimelineItem({ event, index, onOpenStory }: TimelineItemProps) {
+  const { ref, isVisible } = useScrollReveal<HTMLDivElement>();
+
   const imageSources = useMemo(
     () =>
       [event.imageReferenceUrl, event.image].filter(
@@ -16,11 +19,15 @@ function TimelineItem({ event, index, onOpenStory }: TimelineItemProps) {
       ),
     [event.image, event.imageReferenceUrl],
   );
+
   const [imageIndex, setImageIndex] = useState(0);
 
   useEffect(() => {
     setImageIndex(0);
   }, [event.id, event.image, event.imageReferenceUrl]);
+
+  const currentImageSrc = imageSources[imageIndex];
+  const isLeft = index % 2 === 0;
 
   function handleOpenStory() {
     onOpenStory(event);
@@ -33,54 +40,79 @@ function TimelineItem({ event, index, onOpenStory }: TimelineItemProps) {
     }
   }
 
-  const currentImageSrc = imageSources[imageIndex];
-  const isLeft = index % 2 === 0;
+  const animationClass = isVisible
+    ? "translate-y-0 opacity-100"
+    : "translate-y-5 opacity-0";
 
-  const imageBlock = currentImageSrc ? (
-    <div className="w-[100px] shrink-0">
-      <img
-        alt={event.alt}
-        className="h-full w-full object-cover"
-        onError={() => setImageIndex((i) => i + 1)}
-        src={currentImageSrc}
-      />
-    </div>
-  ) : (
-    <div className="flex w-[80px] shrink-0 items-center justify-center bg-[linear-gradient(135deg,#153865_0%,#4B92DB_100%)]">
-      <span className="text-[12px] font-extrabold tracking-[0.06em] text-white">
-        {event.year}
-      </span>
-    </div>
-  );
+  const imageCardClass =
+    "group w-full max-w-[430px] cursor-pointer overflow-hidden rounded-[24px] border border-[#dbe3ef] bg-white shadow-[0_14px_34px_rgba(15,23,42,0.10)] transition duration-300 hover:-translate-y-1 hover:shadow-[0_22px_50px_rgba(15,23,42,0.16)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#4B92DB] focus-visible:ring-offset-2";
 
-  const card = (
+  const textCardClass =
+    "group w-full max-w-[430px] cursor-pointer overflow-hidden rounded-[24px] border border-[#dbe3ef] bg-white shadow-[0_14px_34px_rgba(15,23,42,0.10)] transition duration-300 hover:-translate-y-1 hover:shadow-[0_22px_50px_rgba(15,23,42,0.16)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#4B92DB] focus-visible:ring-offset-2";
+
+  const imageCard = (
     <article
-      aria-label={`Open full story for ${event.title}`}
-      className={`flex min-h-[88px] w-full cursor-pointer overflow-hidden rounded-xl border border-[#e5e7eb] bg-white shadow-[0_2px_8px_rgba(15,23,42,0.07)] outline-none transition duration-200 hover:-translate-y-0.5 hover:border-slate-300 hover:shadow-[0_8px_20px_rgba(15,23,42,0.10)] focus-visible:ring-2 focus-visible:ring-[#0C2340] focus-visible:ring-offset-1${!isLeft ? " flex-row-reverse" : ""}`}
-      onClick={handleOpenStory}
-      onKeyDown={handleKeyDown}
       role="button"
       tabIndex={0}
+      aria-label={`Open full story for ${event.title}`}
+      onClick={handleOpenStory}
+      onKeyDown={handleKeyDown}
+      className={imageCardClass}
     >
-      <div className="flex min-w-0 flex-1 flex-col justify-center gap-0.5 p-3">
-        <h3 className="text-[13px] font-bold leading-snug text-[#0C2340]">
-          {event.title}
-        </h3>
-        <p className="line-clamp-2 text-[11px] leading-[1.5] text-slate-500">
-          {event.description}
-        </p>
+      {currentImageSrc ? (
+        <div className="h-[250px] overflow-hidden bg-[#e9eef4] lg:h-[270px]">
+          <img
+            src={currentImageSrc}
+            alt={event.alt}
+            onError={() => setImageIndex((current) => current + 1)}
+            className="h-full w-full object-cover transition duration-500 group-hover:scale-[1.02]"
+          />
+        </div>
+      ) : (
+        <div className="flex h-[250px] items-center justify-center bg-[linear-gradient(135deg,#002244_0%,#4B92DB_100%)] text-[32px] font-extrabold tracking-[0.10em] text-white lg:h-[270px]">
+          {event.year}
+        </div>
+      )}
+    </article>
+  );
+
+  const textCard = (
+    <article
+      role="button"
+      tabIndex={0}
+      aria-label={`Open full story for ${event.title}`}
+      onClick={handleOpenStory}
+      onKeyDown={handleKeyDown}
+      className={textCardClass}
+    >
+      <div className="flex h-[250px] flex-col justify-between p-6 lg:h-[270px]">
+        <div className="space-y-4">
+          <span className="inline-flex items-center rounded-full bg-[#eef4fb] px-3 py-1 text-[11px] font-extrabold uppercase tracking-[0.10em] text-[#4B92DB]">
+            Titans Legacy
+          </span>
+
+          <div className="space-y-3">
+            <h3 className="text-[24px] font-extrabold leading-[1.06] text-[#002244] lg:text-[27px]">
+              {event.title}
+            </h3>
+            <p className="line-clamp-5 text-[15px] leading-[1.75] text-slate-600">
+              {event.description}
+            </p>
+          </div>
+        </div>
+
         <button
-          className="mt-1 inline-flex items-center gap-1 border-none bg-transparent p-0 text-[11px] font-bold text-[#4B92DB]"
-          onClick={(e) => {
-            e.stopPropagation();
+          type="button"
+          onClick={(mouseEvent) => {
+            mouseEvent.stopPropagation();
             handleOpenStory();
           }}
-          type="button"
+          className="inline-flex items-center gap-2 border-none bg-transparent p-0 text-[15px] font-bold text-[#4B92DB]"
         >
           {event.linkLabel}
           <svg
             aria-hidden="true"
-            className="h-3 w-3"
+            className="h-4 w-4"
             fill="none"
             stroke="currentColor"
             strokeLinecap="round"
@@ -92,39 +124,106 @@ function TimelineItem({ event, index, onOpenStory }: TimelineItemProps) {
           </svg>
         </button>
       </div>
-      {imageBlock}
     </article>
   );
 
   return (
-    <div className="relative mb-4 md:mb-7">
-      {/* Mobile: left spine with year badge + card */}
-      <div className="flex items-start gap-3 md:hidden">
-        <div className="flex flex-col items-center pt-1">
-          <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-[#0C2340] shadow-md ring-2 ring-[#e6e9ef]">
-            <span className="text-center text-[8px] font-extrabold leading-tight tracking-wide text-white">
-              {event.year}
-            </span>
+    <div
+      ref={ref}
+      className={`relative transition-all duration-500 ease-out ${animationClass}`}
+      style={{ transitionDelay: `${Math.min(index * 45, 160)}ms` }}
+    >
+      <div className="grid grid-cols-[44px_minmax(0,1fr)] gap-4 md:hidden">
+        <div className="relative flex justify-center">
+          <div
+            className={`relative z-10 flex h-11 w-11 items-center justify-center rounded-full bg-[#002244] text-center text-[11px] font-extrabold tracking-[0.08em] text-white shadow-[0_10px_22px_rgba(0,34,68,0.24)] ring-4 ring-[#f8fbff] transition-all duration-500 ${
+              isVisible ? "scale-100 opacity-100" : "scale-90 opacity-0"
+            }`}
+          >
+            {event.year}
           </div>
-          <div className="mt-1 w-px flex-1 bg-[#dde3ec]" />
         </div>
-        <div className="flex-1 pb-3">{card}</div>
+
+        <article
+          role="button"
+          tabIndex={0}
+          aria-label={`Open full story for ${event.title}`}
+          onClick={handleOpenStory}
+          onKeyDown={handleKeyDown}
+          className="group w-full max-w-[540px] cursor-pointer overflow-hidden rounded-[24px] border border-[#dbe3ef] bg-white shadow-[0_14px_34px_rgba(15,23,42,0.10)] transition duration-300 hover:-translate-y-1 hover:shadow-[0_22px_50px_rgba(15,23,42,0.16)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#4B92DB] focus-visible:ring-offset-2"
+        >
+          <div className={`grid min-h-[220px] ${currentImageSrc ? "grid-cols-[44%_56%]" : "grid-cols-1"}`}>
+            {currentImageSrc ? (
+              <div className="overflow-hidden bg-[#e9eef4]">
+                <img
+                  src={currentImageSrc}
+                  alt={event.alt}
+                  onError={() => setImageIndex((current) => current + 1)}
+                  className="h-full w-full object-cover transition duration-500 group-hover:scale-[1.02]"
+                />
+              </div>
+            ) : null}
+
+            <div className="flex flex-col justify-between space-y-4 p-5">
+              <div className="space-y-4">
+                <span className="inline-flex items-center rounded-full bg-[#eef4fb] px-3 py-1 text-[11px] font-extrabold uppercase tracking-[0.10em] text-[#4B92DB]">
+                  Titans Legacy
+                </span>
+
+                <div className="space-y-2">
+                  <h3 className="text-[21px] font-extrabold leading-[1.08] text-[#002244]">
+                    {event.title}
+                  </h3>
+                  <p className="line-clamp-4 text-[14px] leading-[1.7] text-slate-600">
+                    {event.description}
+                  </p>
+                </div>
+              </div>
+
+              <button
+                type="button"
+                onClick={(mouseEvent) => {
+                  mouseEvent.stopPropagation();
+                  handleOpenStory();
+                }}
+                className="inline-flex items-center gap-2 border-none bg-transparent p-0 text-[14px] font-bold text-[#4B92DB]"
+              >
+                {event.linkLabel}
+                <svg
+                  aria-hidden="true"
+                  className="h-4 w-4"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth="2"
+                  viewBox="0 0 12 12"
+                >
+                  <path d="M2.5 6h7m-3-3 3 3-3 3" />
+                </svg>
+              </button>
+            </div>
+          </div>
+        </article>
       </div>
 
-      {/* Desktop: alternating left/right with center year badge */}
-      <div className="hidden md:grid md:grid-cols-[1fr_64px_1fr] md:items-center">
-        <div className="flex justify-end pr-4">
-          {isLeft ? card : null}
+      <div className="hidden md:grid md:grid-cols-[minmax(0,1fr)_110px_minmax(0,1fr)] md:items-center">
+        <div className="flex justify-end pr-8 lg:pr-12">
+          {isLeft ? imageCard : textCard}
         </div>
-        <div className="flex items-center justify-center">
-          <div className="relative z-10 flex h-[52px] w-[52px] items-center justify-center rounded-full bg-[#0C2340] shadow-[0_4px_12px_rgba(12,35,64,0.28)] ring-4 ring-white">
-            <span className="text-center text-[10px] font-extrabold leading-tight tracking-wider text-white">
-              {event.year}
-            </span>
+
+        <div className="relative flex items-center justify-center">
+          <div
+            className={`relative z-10 flex h-[76px] w-[76px] items-center justify-center rounded-full bg-[#002244] text-center text-[14px] font-extrabold tracking-[0.10em] text-white shadow-[0_14px_30px_rgba(0,34,68,0.28)] ring-8 ring-[#f8fbff] transition-all duration-500 ${
+              isVisible ? "scale-100 opacity-100" : "scale-90 opacity-0"
+            }`}
+          >
+            {event.year}
           </div>
         </div>
-        <div className="flex justify-start pl-4">
-          {!isLeft ? card : null}
+
+        <div className="flex justify-start pl-8 lg:pl-12">
+          {isLeft ? textCard : imageCard}
         </div>
       </div>
     </div>

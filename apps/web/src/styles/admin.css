@@ -1,0 +1,48 @@
+.admin-navbar {
+  background-color: #ffffff;
+  border: 1px solid #e5e7eb;
+  border-radius: 16px 16px 0 0;
+  padding: 20px 32px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 24px;
+  margin-bottom: 24px;
+}
+
+.admin-navbar-left {
+  display: flex;
+  align-items: center;
+  gap: 18px;
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+}
+
+.admin-navbar-actions {
+  flex-shrink: 0;
+}
+
+.admin-brand-group {
+  display: flex;
+  align-items: center;
+  gap: 18px;
+  flex-shrink: 0;
+  margin-bottom: 0;
+}
+
+.admin-logo-mark {
+  width: 72px;
+  height: 72px;
+  object-fit: contain;
+  flex-shrink: 0;
+  display: block;
+}
+
+.admin-brand {
+  color: #0b2a55;
+  font-size: 28px;
+  margin: 0;
+  flex-shrink: 0;
+  white-space: nowrap;
+}
