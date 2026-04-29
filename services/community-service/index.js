@@ -467,6 +467,43 @@ app.patch("/edit_comment", async (req, res) => {
     }
 });
 
+app.patch("/increment_reply_upvote", async (req, res) => {
+    try {
+        const { reply_id } = req.body;
+
+        if (!reply_id) {
+            return res.status(400).json({
+                success: false,
+                message: "reply_id is required"
+            });
+        }
+
+        const result = await pool.query(`
+            UPDATE replies
+            SET upvotes_count = upvotes_count + 1
+            WHERE reply_id = $1
+            RETURNING reply_id, upvotes_count
+        `, [reply_id]);
+
+        if (result.rows.length === 0) {
+            return res.status(404).json({
+                success: false,
+                message: "Reply not found"
+            });
+        }
+
+        res.status(200).json({
+            success: true,
+            result: result.rows[0]
+        });
+    } catch (error) {
+        res.status(500).json({
+            success: false,
+            error: error.message
+        });
+    }
+});
+
 app.get("/user_posts", async (req, res) => {
     try{
         const { user_id } = req.query;
@@ -506,6 +543,7 @@ app.get("/top_contributors", async (req, res) => {
             FROM posts
             GROUP BY user_id 
             ORDER BY post_count DESC
+            LIMIT 5
         `);
 
         res.status(200).json({

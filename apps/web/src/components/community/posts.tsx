@@ -1,4 +1,4 @@
-import { Card } from "@heroui/react";
+import { Button, Card } from "@heroui/react";
 import { Icon } from "@iconify/react";
 import { MouseEvent, useEffect, useState } from "react";
 import { Post } from "../../types/community";
@@ -8,6 +8,10 @@ import {
   incrementPostView,
 } from "../../services/communityService";
 import { getInitials, getPostTime, filteredPosts } from "../../utils/postUtils";
+import { ModalComp } from "../general/modal";
+import PostDetail from "./postDetail";
+import NewReply from "./newReply";
+import RepliesList from "./repliesList";
 
 const PostComp = ({activeFilter = "hot"}: {activeFilter?: "hot" | "new" | "top"}) => {
 
@@ -15,6 +19,8 @@ const PostComp = ({activeFilter = "hot"}: {activeFilter?: "hot" | "new" | "top"}
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState("");
   const [expandedPostId, setExpandedPostId] = useState<number | null>(null);
+  const [isDetailsOpen, setIsDetailsOpen] = useState<boolean>(false);
+  const [selectedPost, setSelectedPost] = useState<Post | null>(null);
 
   useEffect(() => {
     let isMounted = true;
@@ -158,19 +164,25 @@ const PostComp = ({activeFilter = "hot"}: {activeFilter?: "hot" | "new" | "top"}
               </div>
 
               {isExpanded && (
-                <p className="mb-4 text-sm text-gray-600">
-                  {post.content}
-                </p>
+                <>
+                  <p className="mb-4 text-sm text-gray-600">
+                    {post.content}
+                  </p>
+                  <RepliesList post_id={post.post_id} />
+                </>
               )}
 
               <div className="flex items-center gap-6 border-t border-gray-100 pt-3 text-sm text-gray-500">
-                <div className="flex items-center gap-2">
+                <button className="flex items-center gap-2 hover:cursor-pointer" onClick={() => {
+                  setIsDetailsOpen(true);
+                  setSelectedPost(post);
+                }}>
                   <Icon icon="mdi:message-outline" width={18} />
                   <span className="font-semibold text-gray-900">
                     {post.replies_count}
                   </span>
                   <span>Replies</span>
-                </div>
+                </button>
 
                 <div className="flex items-center gap-2">
                   <Icon icon="mdi:eye-outline" width={18} />
@@ -196,6 +208,22 @@ const PostComp = ({activeFilter = "hot"}: {activeFilter?: "hot" | "new" | "top"}
           </Card>
         );
       })}
+      <ModalComp 
+        isOpen={isDetailsOpen}
+        onOpenChange={setIsDetailsOpen}
+        children={
+         selectedPost && (
+          <div className="space-y-6">
+            <PostDetail post={selectedPost} />
+            <NewReply 
+              postId={selectedPost.post_id}
+              onSuccess={() => setIsDetailsOpen(false)}
+              onCancel={() => setIsDetailsOpen(false)}
+            />
+          </div>
+         )
+        }
+      />
     </div>
   );
 };
