@@ -46,11 +46,13 @@ export const AuthContextProvider = ( {children} : AuthContextProps ) => {
         try {
         const payload = buildProfilePayload(s);
         await insertNewUser(payload);
+        return true;
         } catch (err: any) {
         const msg = String(err?.message || "").toLowerCase();
         // Si ya existe por user_id o username, no rompas login
-        if (msg.includes("duplicate") || msg.includes("already exists") || msg.includes("http error 409")) return;
+        if (msg.includes("duplicate") || msg.includes("already exists") || msg.includes("http error 409")) return true;
         console.error("Error creating profile in own DB", err);
+        return false;
         }
     };
 
@@ -151,8 +153,7 @@ export const AuthContextProvider = ( {children} : AuthContextProps ) => {
         supabase.auth.getSession().then(async ({ data: {session}}) => {
             setSession(session);
             if (session && !profileSyncedRef.current) {
-                profileSyncedRef.current = true;
-                await syncProfileToOwnDb(session);
+                profileSyncedRef.current = await syncProfileToOwnDb(session);
             }
             if (session) await fetchProfile(session);
             setLoading(false);
@@ -161,8 +162,7 @@ export const AuthContextProvider = ( {children} : AuthContextProps ) => {
         const {data: {subscription}} = supabase.auth.onAuthStateChange(async (_event, session) => {
             setSession(session);
             if (session && !profileSyncedRef.current) {
-                profileSyncedRef.current = true;
-                await syncProfileToOwnDb(session);
+                profileSyncedRef.current = await syncProfileToOwnDb(session);
             }
             if (!session) {
                 profileSyncedRef.current = false;
