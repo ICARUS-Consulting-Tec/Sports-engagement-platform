@@ -11,7 +11,6 @@ export default defineConfig(({ mode }) => {
   const proxyTarget = env.VITE_PROXY_TARGET || "http://localhost:8081";
 
   return {
-    // @tailwindcss/vite resuelve @import con condición "style" y falla con el exports de @heroui/styles
     resolve: {
       alias: {
         "@heroui/styles/css": path.resolve(
@@ -24,9 +23,9 @@ export default defineConfig(({ mode }) => {
     server: {
       proxy: {
         "/api/cards": {
-          target: "http://localhost:4009",
+          target: proxyTarget, 
           changeOrigin: true,
-          rewrite: (path: string) => path.replace(/^\/api\/cards/, ""),
+          rewrite: (path: string) => path.replace(/^\/api\/cards/, "/cards"),  
         },
         "/api": {
           target: proxyTarget,

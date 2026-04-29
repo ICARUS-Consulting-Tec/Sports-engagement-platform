@@ -12,10 +12,12 @@ import NewsPage from "./pages/NewsPage";
 import ProfilePage from "./pages/ProfilePage";
 import HomePage from "./pages/HomePage";
 import CommunityPage from "./pages/CommunityPage";
+import { CartProvider } from "./context/CartContext";
+import ProductDetailPage from "./pages/ProductDetailPage";
+import AddedToCartToast from "./components/store/AddedToCartToast";
 import AdminPage from "./pages/AdminPage";
 import AdminRoute from "./components/admin/AdminRoute";
 import UserRoute from "./components/user/UserRoute";
-
 import FeedbackDrawer from "./components/feedback/FeedbackDrawer";
 import { Auth } from "./context/AuthContext";
 
@@ -23,91 +25,130 @@ function App() {
   const { session } = Auth();
 
   return (
-    <>
-    <Routes>
-      <Route path="/" element={
-        <UserRoute>
-          <HomePage />
-        </UserRoute>
-        } />
-      <Route path="/matches" element={
-        <UserRoute>
-          <MatchesPage />
-        </UserRoute>
-        } />
-      <Route path="/matches/:id" element={
-        <UserRoute>
-          <MatchRoomPage />
-        </UserRoute>
-        } />
-      <Route 
-        path="/team" 
-        element={
-          <UserRoute>
-            <PrivateRoute>
-              <TeamPage />{''}
-            </PrivateRoute>
-          </UserRoute>
-        } 
-      />
-      <Route 
-        path="/profile" 
-        element={
-          <UserRoute>
-            <PrivateRoute>
-              <ProfilePage />
-            </PrivateRoute>
-          </UserRoute>
-        } />
-      <Route path="/team" element={
-        <UserRoute>
-          <TeamPage />
-        </UserRoute>
-      } />
-      <Route path="/community" element={
-        <UserRoute>
-          <CommunityPage />
-        </UserRoute>
-      } />
-      <Route path="/history" element={
-        <UserRoute>
-          <HistoryPage />
-        </UserRoute>
-      } />
-      <Route path="/store" element={
-        <UserRoute>
-          <StorePage />
-        </UserRoute>
-      } />
-      <Route path="/paySuccess" element={
-        <UserRoute>
-          <PaySuccess />
-        </UserRoute>
-      } />
-      <Route path="/offseason" element={
-        <UserRoute>
-          <OffSeasonPage />
-        </UserRoute>
-      } />
-      <Route path="/voice-agent" element={
-        <UserRoute>
-          <VoiceAgent />
-        </UserRoute>
-      } />
-      <Route path="/news" element={
-        <UserRoute>
-          <NewsPage />
-        </UserRoute>
-      } />
-      <Route path="/admin" element={
-          <AdminRoute>
-            <AdminPage />
-          </AdminRoute>
-        }
-      />
-    </Routes>
-    {session ? <FeedbackDrawer /> : null}
-    </>
+    <CartProvider>
+      <AddedToCartToast />
+      <>
+        <Routes>
+          <Route
+            path="/"
+            element={
+              <UserRoute>
+                <HomePage />
+              </UserRoute>
+            }
+          />
+          <Route
+            path="/matches"
+            element={
+              <UserRoute>
+                <MatchesPage />
+              </UserRoute>
+            }
+          />
+          <Route
+            path="/matches/:id"
+            element={
+              <UserRoute>
+                <MatchRoomPage />
+              </UserRoute>
+            }
+          />
+          <Route
+            path="/team"
+            element={
+              <UserRoute>
+                <PrivateRoute>
+                  <TeamPage />
+                </PrivateRoute>
+              </UserRoute>
+            }
+          />
+          <Route
+            path="/profile"
+            element={
+              <UserRoute>
+                <PrivateRoute>
+                  <ProfilePage />
+                </PrivateRoute>
+              </UserRoute>
+            }
+          />
+          <Route
+            path="/community"
+            element={
+              <UserRoute>
+                <CommunityPage />
+              </UserRoute>
+            }
+          />
+          <Route
+            path="/history"
+            element={
+              <UserRoute>
+                <HistoryPage />
+              </UserRoute>
+            }
+          />
+          <Route
+            path="/store"
+            element={
+              <UserRoute>
+                <StorePage />
+              </UserRoute>
+            }
+          />
+          <Route
+            path="/store/product/:id"
+            element={
+              <UserRoute>
+                <ProductDetailPage />
+              </UserRoute>
+            }
+          />
+          <Route
+            path="/paySuccess"
+            element={
+              <UserRoute>
+                <PaySuccess />
+              </UserRoute>
+            }
+          />
+          <Route
+            path="/offseason"
+            element={
+              <UserRoute>
+                <OffSeasonPage />
+              </UserRoute>
+            }
+          />
+          <Route
+            path="/voice-agent"
+            element={
+              <UserRoute>
+                <VoiceAgent />
+              </UserRoute>
+            }
+          />
+          <Route
+            path="/news"
+            element={
+              <UserRoute>
+                <NewsPage />
+              </UserRoute>
+            }
+          />
+          <Route
+            path="/admin"
+            element={
+              <AdminRoute>
+                <AdminPage />
+              </AdminRoute>
+            }
+          />
+        </Routes>
+        {session ? <FeedbackDrawer /> : null}
+      </>
+    </CartProvider>
   );
 }
 
