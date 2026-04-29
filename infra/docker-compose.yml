@@ -16,6 +16,7 @@ services:
       - offseason-service
       - tweets-service
       - news-service
+      - community-service
       - dashboard-service
     networks:
       - supabase_net
@@ -131,6 +132,19 @@ services:
     environment:
       PORT: 4009
       CARDS_DB_URL: postgresql://cards_svc:CardsSvc_2026_dev@supabase-db-do4ksgcc0wksg4wwg4osgk0o:5432/cards_db
+    networks:
+      - supabase_net
+
+  community-service:
+    build: 
+      context: ../services/community-service
+    container_name: icarus-community
+    environment: 
+      PORT: 4001
+      PROFILE_SERVICE_URL: http://profile-service:4006
+      COMMUNITY_DB_URL: postgresql://community_svc:CommunitySvc_2026_dev@supabase-db:5432/community_db
+    ports: 
+      - "4001:4001"
     networks:
       - supabase_net
 

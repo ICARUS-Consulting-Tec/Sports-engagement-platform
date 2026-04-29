@@ -33,24 +33,23 @@ export const AuthContextProvider = ( {children} : AuthContextProps ) => {
         const last_name = rest.join(" ");
 
         return {
-        user_id: s.user.id,
-        country: "",
-        first_name: first_name || "User", // tu backend exige first_name
-        last_name: last_name || "",
-        username: s.user.email?.split("@")[0] || `user_${s.user.id.slice(0, 8)}`,
-        avatar_url: s.user.user_metadata?.avatar_url || ""
+            user_id: s.user.id,
+            country: "",
+            first_name: first_name || "User", // tu backend exige first_name
+            last_name: last_name || "",
+            username: s.user.email?.split("@")[0] || `user_${s.user.id.slice(0, 8)}`,
+            avatar_url: s.user.user_metadata?.avatar_url || ""
         };
     };
 
      const syncProfileToOwnDb = async (s: Session) => {
         try {
-        const payload = buildProfilePayload(s);
-        await insertNewUser(payload);
+            const payload = buildProfilePayload(s);
+            await insertNewUser(payload);
         } catch (err: any) {
-        const msg = String(err?.message || "").toLowerCase();
-        // Si ya existe por user_id o username, no rompas login
-        if (msg.includes("duplicate") || msg.includes("already exists") || msg.includes("http error 409")) return;
-        console.error("Error creating profile in own DB", err);
+            const msg = String(err?.message || "").toLowerCase();
+            if (msg.includes("duplicate") || msg.includes("already exists") || msg.includes("http error 409")) return;
+            console.error("Error creating profile in own DB", err);
         }
     };
 
