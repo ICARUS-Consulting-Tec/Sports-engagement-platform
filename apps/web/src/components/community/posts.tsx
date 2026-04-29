@@ -109,14 +109,13 @@ const PostComp = ({ activeFilter = "hot", activeCategory = "All Topics" }: PostC
   return (
     <div className="space-y-4">
       {categoryFilteredPosts.map((post) => {
-        const trending = isTrending(post);
-        const topContributor = isTopContributor(post);
         const isExpanded = expandedPostId === post.post_id;
 
         return (
           <Card
             key={post.post_id}
-            className="border-l-4 border-blue-500 transition-shadow hover:shadow-md"
+            className="border-l-4 border-blue-500 transition-shadow hover:shadow-md cursor-pointer"
+            onClick={() => handleTogglePostDetails(post.post_id)}
           >
             <div className="p-6">
               <div className="mb-3 flex items-center justify-between">
@@ -124,36 +123,7 @@ const PostComp = ({ activeFilter = "hot", activeCategory = "All Topics" }: PostC
                   <span className="rounded-full bg-sky-50 px-3 py-1 text-xs font-bold uppercase tracking-[0.08em] text-sky-700">
                     {post.category_name}
                   </span>
-
-                  {trending && (
-                    <span className="flex items-center gap-1 text-xs font-bold text-red-500">
-                      <Icon icon="mdi:fire" width={14} /> TRENDING
-                    </span>
-                  )}
-
-                  {topContributor && (
-                    <span className="flex items-center gap-1 text-xs font-bold text-yellow-500">
-                      <Icon icon="mdi:star" width={14} /> TOP CONTRIBUTOR
-                    </span>
-                  )}
-                </div>
-
-                <div className="flex items-center gap-3">
-                  <span className="text-xs text-gray-400">
-                    ·{getPostTime(post.created_at || "")}
-                  </span>
-
-                  <button
-                    type="button"
-                    onClick={() => void handleTogglePostDetails(post.post_id)}
-                    className="rounded-full p-1 text-gray-500 transition-colors hover:bg-gray-100 hover:text-gray-800"
-                    aria-label={isExpanded ? "Collapse post" : "Expand post"}
-                  >
-                    <Icon
-                      icon={isExpanded ? "mdi:chevron-up" : "mdi:chevron-down"}
-                      width={20}
-                    />
-                  </button>
+                  {/* ... badges de trending y top contributor */}
                 </div>
               </div>
 
@@ -173,43 +143,47 @@ const PostComp = ({ activeFilter = "hot", activeCategory = "All Topics" }: PostC
               </div>
 
               {isExpanded && (
-                <>
+                <div 
+                  className="mt-2" 
+                  onClick={(e) => e.stopPropagation()} // Evita que clicks dentro del contenido cierren el post
+                >
                   <p className="mb-4 text-sm text-gray-600">
                     {post.content}
                   </p>
                   <RepliesList post_id={post.post_id} />
-                </>
+                </div>
               )}
 
               <div className="flex items-center gap-6 border-t border-gray-100 pt-3 text-sm text-gray-500">
-                <button className="flex items-center gap-2 hover:cursor-pointer" onClick={() => {
-                  setIsDetailsOpen(true);
-                  setSelectedPost(post);
-                }}>
+                <button 
+                  className="flex items-center gap-2 hover:cursor-pointer p-1 rounded-md hover:bg-gray-100" 
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setIsDetailsOpen(true);
+                    setSelectedPost(post);
+                  }}
+                >
                   <Icon icon="mdi:message-outline" width={18} />
-                  <span className="font-semibold text-gray-900">
-                    {post.replies_count}
-                  </span>
+                  <span className="font-semibold text-gray-900">{post.replies_count}</span>
                   <span>Replies</span>
                 </button>
 
-                <div className="flex items-center gap-2">
+                <div className="flex items-center gap-2" onClick={(e) => e.stopPropagation()}>
                   <Icon icon="mdi:eye-outline" width={18} />
-                  <span className="font-semibold text-gray-900">
-                    {post.views_count}
-                  </span>
+                  <span className="font-semibold text-gray-900">{post.views_count}</span>
                   <span>Views</span>
                 </div>
 
                 <button
                   type="button"
-                  onClick={(event) => void handleLikeClick(event, post.post_id)}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    void handleLikeClick(e, post.post_id);
+                  }}
                   className="flex items-center gap-2 rounded-full px-2 py-1 transition-colors hover:bg-gray-100"
                 >
                   <Icon icon="mdi:thumb-up-outline" width={18} />
-                  <span className="font-semibold text-gray-900">
-                    {post.upvotes_count}
-                  </span>
+                  <span className="font-semibold text-gray-900">{post.upvotes_count}</span>
                   <span>Upvotes</span>
                 </button>
               </div>
