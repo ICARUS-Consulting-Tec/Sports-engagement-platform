@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { SignOutButton } from "../components/auth/Signout";
 import Dashboard from "../components/admin/Dashboard";
-import StoreManagment from "../components/admin/StoreManagment";
+import StoreManagment from "../components/admin/StoreManagement";
 import PostManagement from "../components/admin/PostManagement";
 import SidebarMenuAdmin from "../components/admin/SidebarMenuAdmin";
 import "../styles/admin.css";
