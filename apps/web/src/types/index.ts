@@ -119,6 +119,28 @@ export interface PackOpenResult {
 
 export type PackOpeningStatus = "NONE" | "OPENING" | "READY";
 
+// ─── Admin Store ─────────────────────────────────────────────
+
+export interface AdminVariant {
+  priceId: string;
+  size: string | null;
+  inventory_count: number;
+  sku: string | null;
+  unit_amount: number; // en centavos
+}
+
+export interface AdminProduct {
+  id: string;
+  name: string;
+  category: string | null;
+  product_type: "clothing" | "footwear" | "no_size" | null;
+  rarity: string | null;
+  status: "active" | "inactive";
+  image: string | null;
+  totalStock: number;
+  variants: AdminVariant[];
+}
+
 export interface PackOpeningState {
   status: PackOpeningStatus;
   /** ISO timestamp (server) when pack becomes claimable. */

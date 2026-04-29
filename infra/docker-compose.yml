@@ -16,6 +16,7 @@ services:
       - offseason-service
       - tweets-service
       - news-service
+      - admin-store-service
     networks:
       - supabase_net
 
@@ -133,6 +134,19 @@ services:
     environment:
       PORT: 4009
       CARDS_DB_URL: postgresql://cards_svc:CardsSvc_2026_dev@host.docker.internal:15432/cards_db
+    networks:
+      - supabase_net
+
+  admin-store-service:
+    build:
+      context: ../services/admin-store-service
+    container_name: icarus-admin-store
+    environment:
+      PORT: 4013
+      STRIPE_SECRET_KEY: ${STRIPE_SECRET_KEY}
+      STRIPE_WEBHOOK_SECRET: ${STRIPE_WEBHOOK_SECRET}
+      SUPABASE_URL: ${SUPABASE_URL}
+      SUPABASE_SERVICE_KEY: ${SUPABASE_SERVICE_KEY}
     networks:
       - supabase_net
 
