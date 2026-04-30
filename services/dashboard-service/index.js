@@ -176,22 +176,6 @@ app.get("/top_contributors", async (req, res) => {
   }
 });
 
-app.get("/get_products", async (req, res) => {
-  try {
-    const products = await fetchJson(`${STORE_SERVICE_URL}/get_products`);
-
-    res.json(products);
-  } catch (error) {
-    console.error("dashboard-service get_products lookup failed:", error);
-    res.status(502).json({
-      service: "dashboard-service",
-      status: "error",
-      error: "Unable to fetch products data",
-      details: error.message,
-    });
-  }
-});
-
 app.get("/stats/total-products", async (req, res) => {
   try {
     const data = await fetchJson(`${STORE_SERVICE_URL}/get_products`);
