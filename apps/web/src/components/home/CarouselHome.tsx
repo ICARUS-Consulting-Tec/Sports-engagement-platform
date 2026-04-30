@@ -24,27 +24,27 @@ const DEFAULT_SLIDES: CarouselSlide[] = [
     id: "community",
     title: "Connect with the Community",
     subtitle:
-    "Discover conversations, updates, and spaces to share your passion for the team with other fans.",
+      "Discover conversations, updates, and spaces to share your passion for the team with other fans.",
     buttonLabel: "Go to Community",
     route: "/community",
     backgroundImageUrl:
       "https://media.tegna-media.com/assets/WATN/images/70b28369-f377-4147-af47-a7a456107b26/70b28369-f377-4147-af47-a7a456107b26.jpg",
   },
-    {
+  {
     id: "cards",
     title: "Explore Your Cards",
     subtitle:
-    "Access the team's collection, review featured players, and enjoy a more immersive visual experience.",
+      "Access the team's collection, review featured players, and enjoy a more immersive visual experience.",
     buttonLabel: "View Cards",
     route: "/team",
     backgroundImageUrl:
       "https://www.tennessean.com/gcdn/presto/2021/10/24/PNAS/13507be0-f846-4984-a70f-2c4ff86eeae9-titans_chiefs_154.jpg?crop=2999,1687,x0,y0",
-    },
-    {
+  },
+  {
     id: "voice-agent",
     title: "Talk to the Voice Agent",
     subtitle:
-    "Start a conversational experience to get help, team information, and real-time answers.",
+      "Start a conversational experience to get help, team information, and real-time answers.",
     buttonLabel: "Open Agent",
     route: "/voice-agent",
     backgroundImageUrl:
@@ -97,7 +97,10 @@ function CarouselHome({
   }
 
   return (
-    <section className="carousel-home-wrapper" aria-label="Carrusel principal del inicio">
+    <section
+      className="carousel-home-wrapper"
+      aria-label="Carrusel principal del inicio"
+    >
       <Card
         className="carousel-home-card"
         style={{
@@ -105,7 +108,6 @@ function CarouselHome({
         }}
       >
         <Card.Content className="carousel-home-card-body">
-
           <div className="carousel-home-middle-row">
             <button
               type="button"

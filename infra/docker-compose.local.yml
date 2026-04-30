@@ -1,4 +1,9 @@
 services:
+  community-service:
+    environment:
+      PROFILE_SERVICE_URL: http://profile-service:4006
+      COMMUNITY_DB_URL: postgresql://community_svc:CommunitySvc_2026_dev@host.docker.internal:15432/community_db
+
   matches-service:
     environment:
       MATCHES_DB_URL: postgresql://matches_svc:MatchesSvc_2026_dev@host.docker.internal:15432/matches_db
@@ -13,6 +18,22 @@ services:
     environment:
       ANALYTICS_DB_URL: postgresql://analytics_svc:AnalyticsSvc_2026_dev@host.docker.internal:15432/analytics_db
 
+  profile-service:
+    environment:
+      PROFILE_DB_URL: postgresql://profile_svc:ProfileSvc_2026_dev@host.docker.internal:15432/profile_db
+
+  history-service:
+    environment:
+      HISTORY_DB_URL: postgresql://history_svc:postgres@host.docker.internal:15432/history_db
+
+  cards-service:
+    environment:
+      CARDS_DB_URL: postgresql://cards_svc:CardsSvc_2026_dev@host.docker.internal:15432/cards_db
+
+  offseason-service:
+    environment:
+      OFFSEASON_DB_URL: postgresql://offseason_svc:OffseasonSvc_2026_dev@host.docker.internal:15432/offseason_db
+
   news-service:
     environment:
       NEWS_API_KEY: ${NEWS_API_KEY}
@@ -23,28 +44,11 @@ services:
       NEWS_DB_URL: ${NEWS_DB_URL:-postgresql://news_svc:newsSvc_2026_dev@host.docker.internal:15432/news_cache}
       NEWS_DB_MANAGE_SCHEMA: ${NEWS_DB_MANAGE_SCHEMA:-false}
 
-  profile-service:
+  feedback-service:
     environment:
-      PROFILE_DB_URL: postgresql://profile_svc:ProfileSvc_2026_dev@host.docker.internal:15432/profile_db
-
-
-  history-service:
-    environment:
-      HISTORY_DB_URL: postgresql://history_svc:postgres@host.docker.internal:15432/history_db
-
-  offseason-service:
-    environment:
-      OFFSEASON_DB_URL: postgresql://offseason_svc:OffseasonSvc_2026_dev@host.docker.internal:15432/offseason_db
-
-  cards-service:
-    environment:
-      CARDS_DB_URL: postgresql://cards_svc:CardsSvc_2026_dev@host.docker.internal:15432/cards_db
-
-  community-service: 
-    environment: 
-      PROFILE_SERVICE_URL: http://profile-service:4006
-      COMMUNITY_DB_URL: postgresql://community_svc:CommunitySvc_2026_dev@host.docker.internal:15432/community_db
-
+      FEEDBACKMAIL_DB_URL: postgresql://feedback_svc:FeedbackSvc_2026_dev@host.docker.internal:15432/feedback_db
+      OPENAI_API_KEY: ${OPENAI_API_KEY:-}
+      OPENAI_MODERATION_MODEL: ${OPENAI_MODERATION_MODEL:-omni-moderation-latest}
 
   dashboard-service:
     environment:

@@ -1,5 +1,6 @@
 const express = require("express");
 const { Pool } = require("pg");
+const { syncMatches } = require("./syncMatches");
 
 const app = express();
 app.use(express.json());
@@ -74,6 +75,31 @@ function mergeDemoIntoRow(viewRow, demoRow) {
   };
 }
 
+app.post("/sync", async (req, res) => {
+  try {
+    const result = await syncMatches(2025);
+    res.json(result);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: "Sync failed" });
+  }
+});
+
+const ENABLE_AUTO_SYNC = process.env.ENABLE_AUTO_SYNC === "true";
+const SYNC_INTERVAL_MS = Number(process.env.SYNC_INTERVAL_MS || 15000);
+
+if (ENABLE_AUTO_SYNC) {
+  console.log(`Auto sync enabled every ${SYNC_INTERVAL_MS}ms`);
+
+  setInterval(async () => {
+    try {
+      await syncMatches(2025);
+    } catch (err) {
+      console.error("Auto sync failed:", err);
+    }
+  }, SYNC_INTERVAL_MS);
+}
+
 app.get("/health", async (req, res) => {
   try {
     const result = await pool.query("SELECT NOW() AS now");
@@ -99,7 +125,6 @@ app.get("/", async (req, res) => {
       SELECT *
       FROM match_view
       ORDER BY start_time
-      LIMIT 10
     `);
 
     res.json(result.rows);
