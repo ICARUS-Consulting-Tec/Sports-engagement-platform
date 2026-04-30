@@ -38,7 +38,7 @@ const DEFAULT_SLIDES: CarouselSlide[] = [
     buttonLabel: "View Cards",
     route: "/team",
     backgroundImageUrl:
-      "https://www.tennessean.com/gcdn/presto/2021/10/24/PNAS/13507be0-f846-4984-a70f-2c4ff86eeae9-titans_chiefs_154.jpg?crop=2999,1687,x0,y0",
+       "https://s.wsj.net/public/resources/images/BN-WD095_3eBz5_M_20171114135035.jpg",
   },
   {
     id: "voice-agent",
