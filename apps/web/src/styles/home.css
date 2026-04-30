@@ -255,8 +255,8 @@
   border-radius: 32px;
   overflow: hidden;
   border: 1px solid rgba(255, 255, 255, 0.16);
-  background-size: cover;
-  background-position: center;
+  background-size: 100% auto !important;
+  background-position: center 35% !important;
   background-repeat: no-repeat;
 }
 
@@ -547,7 +547,7 @@
   min-width: 0;
   display: flex;
   flex-direction: column;
-  gap: 3px;
+  gap: 10px;
 }
 
 .community-home-name {

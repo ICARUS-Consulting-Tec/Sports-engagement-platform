@@ -9,7 +9,14 @@ export interface CarouselSlide {
   subtitle: string;
   buttonLabel: string;
   route: string;
-  backgroundImage: string;
+  backgroundImageUrl: string;
+}
+
+const TITANS_BACKGROUND_OVERLAY =
+  "linear-gradient(90deg, rgba(0, 34, 68) 0%, rgba(0, 34, 68, 0.7) 45%, rgba(0, 34, 68, 0.22) 100%)";
+
+function getTitansBackground(imageUrl: string) {
+  return `${TITANS_BACKGROUND_OVERLAY}, url("${imageUrl}")`;
 }
 
 const DEFAULT_SLIDES: CarouselSlide[] = [
@@ -17,31 +24,31 @@ const DEFAULT_SLIDES: CarouselSlide[] = [
     id: "community",
     title: "Connect with the Community",
     subtitle:
-    "Discover conversations, updates, and spaces to share your passion for the team with other fans.",
+      "Discover conversations, updates, and spaces to share your passion for the team with other fans.",
     buttonLabel: "Go to Community",
     route: "/community",
-    backgroundImage:
-    "linear-gradient(90deg, #0B2A55 0%, #1D4E89 50%, #60A5FA 100%)",
+    backgroundImageUrl:
+      "https://media.tegna-media.com/assets/WATN/images/70b28369-f377-4147-af47-a7a456107b26/70b28369-f377-4147-af47-a7a456107b26.jpg",
   },
-    {
+  {
     id: "cards",
     title: "Explore Your Cards",
     subtitle:
-    "Access the team’s collection, review featured players, and enjoy a more immersive visual experience.",
+      "Access the team's collection, review featured players, and enjoy a more immersive visual experience.",
     buttonLabel: "View Cards",
     route: "/team",
-    backgroundImage:
-        "linear-gradient(90deg, #60A5FA 0%, #1D4E89 50%, #0B2A55 100%)",
-    },
-    {
+    backgroundImageUrl:
+      "https://www.tennessean.com/gcdn/presto/2021/10/24/PNAS/13507be0-f846-4984-a70f-2c4ff86eeae9-titans_chiefs_154.jpg?crop=2999,1687,x0,y0",
+  },
+  {
     id: "voice-agent",
     title: "Talk to the Voice Agent",
     subtitle:
-    "Start a conversational experience to get help, team information, and real-time answers.",
+      "Start a conversational experience to get help, team information, and real-time answers.",
     buttonLabel: "Open Agent",
     route: "/voice-agent",
-    backgroundImage:
-        "linear-gradient(90deg, #1D4E89 0%, #60A5FA 50%, #0B2A55 100%)",
+    backgroundImageUrl:
+      "https://static.clubs.nfl.com/image/upload/f_auto/titans/sydgcqdg3y1bfi1rg1wn",
   },
 ];
 
@@ -90,15 +97,17 @@ function CarouselHome({
   }
 
   return (
-    <section className="carousel-home-wrapper" aria-label="Carrusel principal del inicio">
+    <section
+      className="carousel-home-wrapper"
+      aria-label="Carrusel principal del inicio"
+    >
       <Card
         className="carousel-home-card"
         style={{
-          background: activeSlide.backgroundImage,
+          background: getTitansBackground(activeSlide.backgroundImageUrl),
         }}
       >
         <Card.Content className="carousel-home-card-body">
-
           <div className="carousel-home-middle-row">
             <button
               type="button"
@@ -110,9 +119,7 @@ function CarouselHome({
             </button>
 
             <div className="carousel-home-content">
-              <p className="carousel-home-kicker">Titan Experiences</p>
               <h2 className="carousel-home-title">{activeSlide.title}</h2>
-              <p className="carousel-home-subtitle">{activeSlide.subtitle}</p>
 
               <Button
                 size="lg"

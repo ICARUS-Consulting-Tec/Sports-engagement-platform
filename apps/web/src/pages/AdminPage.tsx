@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { SignOutButton } from "../components/auth/Signout";
 import Dashboard from "../components/admin/Dashboard";
+import StoreManagment from "../components/admin/StoreManagement";
 import PostManagement from "../components/admin/PostManagement";
 import SuggestionBox from "../components/admin/SuggestionBox";
 import SidebarMenuAdmin from "../components/admin/SidebarMenuAdmin";
@@ -14,7 +15,7 @@ function AdminPage() {
   return (
     <div className="home-page">
       <main className="home-container">
-        <NavBarAdmin/>
+        <NavBarAdmin />
         <section className="profile-layout">
           <SidebarMenuAdmin
             activeTab={activeTab}
@@ -26,9 +27,10 @@ function AdminPage() {
 
             {activeTab === "cReports" && <PostManagement />}
 
+            {activeTab === "storeManagement" && <StoreManagment />}
+
             {activeTab === "suggestion" && <SuggestionBox />}
           </div>
-
         </section>
       </main>
     </div>

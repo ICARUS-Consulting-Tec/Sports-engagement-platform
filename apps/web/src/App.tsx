@@ -12,12 +12,12 @@ import NewsPage from "./pages/NewsPage";
 import ProfilePage from "./pages/ProfilePage";
 import HomePage from "./pages/HomePage";
 import CommunityPage from "./pages/CommunityPage";
-import { CartProvider } from "./context/CartContext";
-import ProductDetailPage from "./pages/ProductDetailPage";
-import AddedToCartToast from "./components/store/AddedToCartToast";
 import AdminPage from "./pages/AdminPage";
 import AdminRoute from "./components/admin/AdminRoute";
 import UserRoute from "./components/user/UserRoute";
+import { CartProvider } from "./context/CartContext";
+import ProductDetailPage from "./pages/ProductDetailPage";
+import AddedToCartToast from "./components/store/AddedToCartToast";
 import FeedbackDrawer from "./components/feedback/FeedbackDrawer";
 import { Auth } from "./context/AuthContext";
 

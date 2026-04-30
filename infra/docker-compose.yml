@@ -6,17 +6,33 @@ services:
     ports:
       - "8081:8080"
     depends_on:
+      - community-service
       - matches-service
       - rooms-service
-      - profile-service
       - analytics-service
       - store-service
-      - cards-service
-      - history-service
-      - offseason-service
+      - profile-service
       - tweets-service
+      - history-service
+      - cards-service
+      - offseason-service
       - news-service
       - feedback-service
+      - admin-store-service
+      - dashboard-service
+    networks:
+      - supabase_net
+
+  community-service:
+    build:
+      context: ../services/community-service
+    container_name: icarus-community
+    environment:
+      PORT: 4001
+      PROFILE_SERVICE_URL: http://profile-service:4006
+      COMMUNITY_DB_URL: postgresql://community_svc:CommunitySvc_2026_dev@supabase-db:5432/community_db
+    ports:
+      - "4001:4001"
     networks:
       - supabase_net
 
@@ -64,6 +80,64 @@ services:
     networks:
       - supabase_net
 
+  profile-service:
+    build:
+      context: ../services/profile-service
+    container_name: icarus-profile
+    environment:
+      PORT: 4006
+      PROFILE_DB_URL: postgresql://profile_svc:ProfileSvc_2026_dev@host.docker.internal:15432/profile_db
+      SUPABASE_URL: ${SUPABASE_URL}
+      SUPABASE_ANON_KEY: ${SUPABASE_ANON_KEY}
+    ports:
+      - "4006:4006"
+    networks:
+      - supabase_net
+
+  tweets-service:
+    build:
+      context: ../services/tweets-service
+    container_name: icarus-tweets
+    environment:
+      PORT: 4007
+      GETXAPI_KEY: ${GETXAPI_KEY}
+    networks:
+      - supabase_net
+
+  history-service:
+    build:
+      context: ../services/history-service
+    container_name: icarus-history
+    environment:
+      PORT: 4008
+      HISTORY_DB_URL: postgresql://history_svc:postgres@host.docker.internal:15432/history_db
+    ports:
+      - "4008:4008"
+    networks:
+      - supabase_net
+
+  cards-service:
+    build:
+      context: ../services/cards-service
+    container_name: icarus-cards
+    environment:
+      PORT: 4009
+      CARDS_DB_URL: postgresql://cards_svc:CardsSvc_2026_dev@host.docker.internal:15432/cards_db
+    networks:
+      - supabase_net
+
+  offseason-service:
+    build:
+      context: ../services/offseason-service
+    container_name: icarus-offseason
+    environment:
+      PORT: 4010
+      OFFSEASON_DB_URL: postgresql://offseason_svc:OffseasonSvc_2026_dev@host.docker.internal:15432/offseason_db
+    ports:
+      - "4010:4010"
+    networks:
+      - supabase_net
+
   news-service:
     build:
       context: ../services/news-service
@@ -92,61 +166,30 @@ services:
     networks:
       - supabase_net
 
-  profile-service:
+  admin-store-service:
     build:
-      context: ../services/profile-service
-    container_name: icarus-profile
+      context: ../services/admin-store-service
+    container_name: icarus-admin-store
     environment:
-      PORT: 4006
-      PROFILE_DB_URL: postgresql://profile_svc:ProfileSvc_2026_dev@host.docker.internal:15432/profile_db
+      PORT: 4013
+      STRIPE_SECRET_KEY: ${STRIPE_SECRET_KEY}
+      STRIPE_WEBHOOK_SECRET: ${STRIPE_WEBHOOK_SECRET}
       SUPABASE_URL: ${SUPABASE_URL}
-      SUPABASE_ANON_KEY: ${SUPABASE_ANON_KEY}
+      SUPABASE_SERVICE_KEY: ${SUPABASE_SERVICE_KEY}
+    networks:
+      - supabase_net
+
+  dashboard-service:
+    build:
+      context: ../services/dashboard-service
+    container_name: icarus-dashboard
+    environment:
+      PORT: 4015
+      PROFILE_SERVICE_URL: http://icarus-profile:4006
+      COMMUNITY_SERVICE_URL: http://icarus-community:4001
+      STORE_SERVICE_URL: http://icarus-store:4005
     ports:
-      - "4006:4006"
-    networks:
-      - supabase_net
-
-  history-service:
-    build:
-      context: ../services/history-service
-    container_name: icarus-history
-    environment:
-      PORT: 4008
-      HISTORY_DB_URL: postgresql://history_svc:postgres@host.docker.internal:15432/history_db
-    ports:
-    - "4008:4008"
-    networks:
-      - supabase_net
-
-  offseason-service:
-    build:
-      context: ../services/offseason-service
-    container_name: icarus-offseason
-    environment:
-      PORT: 4010
-      OFFSEASON_DB_URL: postgresql://offseason_svc:OffseasonSvc_2026_dev@host.docker.internal:15432/offseason_db
-    ports:
-      - "4010:4010"
-    networks:
-      - supabase_net
-
-  tweets-service:
-    build:
-      context: ../services/tweets-service
-    container_name: icarus-tweets
-    environment:
-      PORT: 4007
-      GETXAPI_KEY: ${GETXAPI_KEY}
-    networks:
-      - supabase_net
-
-  cards-service:
-    build:
-      context: ../services/cards-service
-    container_name: icarus-cards
-    environment:
-      PORT: 4009
-      CARDS_DB_URL: postgresql://cards_svc:CardsSvc_2026_dev@host.docker.internal:15432/cards_db
+      - "4015:4015"
     networks:
       - supabase_net
 

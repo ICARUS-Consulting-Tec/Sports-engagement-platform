@@ -16,13 +16,16 @@ function resolveApiUrl(endpoint: string): string {
   return `/api${endpoint.startsWith("/") ? endpoint : `/${endpoint}`}`;
 }
 
-export async function apiFetch<T = unknown>(endpoint: string, options: RequestInit = {}): Promise<T> {
+export async function apiFetch<T = unknown>(
+  endpoint: string,
+  options: RequestInit = {},
+): Promise<T> {
   const url = resolveApiUrl(endpoint);
 
   const config: RequestInit = {
     ...options,
     headers: {
-      ...(options.headers as Record<string, string> || {}),
+      ...((options.headers as Record<string, string>) || {}),
     },
   };
 
@@ -33,12 +36,17 @@ export async function apiFetch<T = unknown>(endpoint: string, options: RequestIn
 
   if (!response.ok) {
     if (isJson) {
-      throw new Error((data as { error?: string }).error || `HTTP error ${response.status}`);
+      const body = data as { error?: string; message?: string };
+      throw new Error(
+        body.message || body.error || `HTTP error ${response.status}`,
+      );
     }
 
-    throw new Error(typeof data === "string" && data.trim()
-      ? data
-      : `HTTP error ${response.status}`);
+    throw new Error(
+      typeof data === "string" && data.trim()
+        ? data
+        : `HTTP error ${response.status}`,
+    );
   }
 
   return data as T;
