@@ -113,22 +113,35 @@ function HistoryPage() {
           </div>
         </section>
 
-        <section className="mt-2 mb-6 rounded-3xl border border-[#e6e9ef] bg-white p-6 shadow-[0_8px_20px_rgba(15,23,42,0.08)]">
-          <h2 className="mb-[18px] text-2xl font-extrabold text-[#0c2340]">
-            Historical Timeline
-          </h2>
-          <div className="grid gap-[14px]">
+        <section className="mt-2 mb-6 overflow-hidden rounded-[32px] border border-[#e6e9ef] bg-white px-5 py-8 shadow-[0_12px_30px_rgba(15,23,42,0.10)] md:px-8 md:py-10 lg:px-10 lg:py-12">
+          <div className="mb-8 max-w-[820px]">
+            <h2 className="mb-3 text-[30px] font-extrabold leading-[1.05] text-[#002244] md:text-[38px]">
+              Historical Timeline
+            </h2>
+            <p className="text-[15px] leading-[1.75] text-slate-500 md:text-[16px]">
+              Explore the defining eras, moments, and turning points that shaped the
+              Tennessee Titans legacy.
+            </p>
+          </div>
+          <div className="relative">
+            <div className="absolute bottom-0 top-0 left-[22px] w-[2px] bg-[#d7e0ea] md:left-1/2 md:-translate-x-1/2 md:w-[3px]" />
+
             {!loading && timelineEvents.length === 0 && !error ? (
               <article className="rounded-2xl border border-slate-200 bg-white px-4 py-6 text-center text-sm text-slate-500 shadow-[0_1px_2px_rgba(15,23,42,0.04)]">
                 No timeline events available.
               </article>
-            ) : timelineEvents.map((event) => (
-              <TimelineItem
-                key={event.id}
-                event={event}
-                onOpenStory={handleOpenTimelineStory}
-              />
-            ))}
+            ) : (
+              <div className="space-y-8 md:space-y-10 lg:space-y-12">
+                {timelineEvents.map((event, index) => (
+                  <TimelineItem
+                    key={event.id}
+                    event={event}
+                    index={index}
+                    onOpenStory={handleOpenTimelineStory}
+                  />
+                ))}
+              </div>
+            )}
           </div>
         </section>
 
@@ -151,8 +164,8 @@ function HistoryPage() {
           </div>
         </section>
 
-        <section className="mb-6 mt-4 rounded-[28px] border border-[#e6e9ef] bg-white px-6 py-7 shadow-[0_8px_20px_rgba(15,23,42,0.08)] md:px-8 md:py-8">
-          <h2 className="mb-5 text-[34px] font-extrabold leading-none tracking-[-0.03em] text-[#0c2340]">
+        <section className="mb-6 mt-4 rounded-[28px] border border-[#e6e9ef] bg-white px-6 py-6 shadow-[0_8px_20px_rgba(15,23,42,0.08)] md:px-8 md:py-7">
+          <h2 className="mb-3 text-2xl font-extrabold text-[#0c2340]">
             Classic Matches Archive
           </h2>
           <div className="grid gap-5 lg:grid-cols-2 lg:gap-6">

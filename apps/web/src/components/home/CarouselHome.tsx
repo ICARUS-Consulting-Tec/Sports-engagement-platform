@@ -9,7 +9,14 @@ export interface CarouselSlide {
   subtitle: string;
   buttonLabel: string;
   route: string;
-  backgroundImage: string;
+  backgroundImageUrl: string;
+}
+
+const TITANS_BACKGROUND_OVERLAY =
+  "linear-gradient(90deg, rgba(0, 34, 68) 0%, rgba(0, 34, 68, 0.7) 45%, rgba(0, 34, 68, 0.22) 100%)";
+
+function getTitansBackground(imageUrl: string) {
+  return `${TITANS_BACKGROUND_OVERLAY}, url("${imageUrl}")`;
 }
 
 const DEFAULT_SLIDES: CarouselSlide[] = [
@@ -17,31 +24,31 @@ const DEFAULT_SLIDES: CarouselSlide[] = [
     id: "community",
     title: "Connect with the Community",
     subtitle:
-    "Discover conversations, updates, and spaces to share your passion for the team with other fans.",
+      "Discover conversations, updates, and spaces to share your passion for the team with other fans.",
     buttonLabel: "Go to Community",
     route: "/community",
-    backgroundImage:
-    "https://static.clubs.nfl.com/image/private/t_editorial_landscape_12_desktop/titans/euo2byipvkx3hf764lga",
+    backgroundImageUrl:
+      "https://media.tegna-media.com/assets/WATN/images/70b28369-f377-4147-af47-a7a456107b26/70b28369-f377-4147-af47-a7a456107b26.jpg",
   },
-    {
+  {
     id: "cards",
     title: "Explore Your Cards",
     subtitle:
-        "Access the team’s collection, review featured players, and enjoy a more immersive visual experience.",
+      "Access the team's collection, review featured players, and enjoy a more immersive visual experience.",
     buttonLabel: "View Cards",
     route: "/team",
-    backgroundImage:
-        "https://www.clarksvilleonline.com/wp-content/uploads/2022/12/2022-Tennessee-Titans-21.jpg",
-    },
-    {
+    backgroundImageUrl:
+       "https://s.wsj.net/public/resources/images/BN-WD095_3eBz5_M_20171114135035.jpg",
+  },
+  {
     id: "voice-agent",
     title: "Talk to the Voice Agent",
     subtitle:
-        "Start a conversational experience to get help, team information, and real-time answers.",
+      "Start a conversational experience to get help, team information, and real-time answers.",
     buttonLabel: "Open Agent",
     route: "/voice-agent",
-    backgroundImage:
-        "https://www.whiteclouds.com/wp-content/uploads/2023/08/NFL-Mascots-T-Rac-Titans.jpg",
+    backgroundImageUrl:
+      "https://static.clubs.nfl.com/image/upload/f_auto/titans/sydgcqdg3y1bfi1rg1wn",
   },
 ];
 
@@ -90,15 +97,17 @@ function CarouselHome({
   }
 
   return (
-    <section className="carousel-home-wrapper" aria-label="Carrusel principal del inicio">
+    <section
+      className="carousel-home-wrapper"
+      aria-label="Carrusel principal del inicio"
+    >
       <Card
         className="carousel-home-card"
         style={{
-          backgroundImage: `linear-gradient(135deg, rgba(6, 16, 35, 0.88), rgba(11, 42, 85, 0.55)), url(${activeSlide.backgroundImage})`,
+          background: getTitansBackground(activeSlide.backgroundImageUrl),
         }}
       >
         <Card.Content className="carousel-home-card-body">
-
           <div className="carousel-home-middle-row">
             <button
               type="button"
@@ -110,9 +119,7 @@ function CarouselHome({
             </button>
 
             <div className="carousel-home-content">
-              <p className="carousel-home-kicker">Titan Experiences</p>
               <h2 className="carousel-home-title">{activeSlide.title}</h2>
-              <p className="carousel-home-subtitle">{activeSlide.subtitle}</p>
 
               <Button
                 size="lg"
@@ -131,24 +138,6 @@ function CarouselHome({
             >
               {">"}
             </button>
-          </div>
-          <div className="carousel-home-top-row">
-            <div className="carousel-home-dots-row" aria-label="Navegacion del carrusel">
-              {slides.map((slide, index) => {
-                const isActive = index === activeIndex;
-
-                return (
-                  <button
-                    key={slide.id}
-                    type="button"
-                    aria-label={`Ir a ${slide.title}`}
-                    aria-pressed={isActive}
-                    onClick={() => goToSlide(index)}
-                    className={`carousel-home-dot ${isActive ? "carousel-home-dot-active" : ""}`}
-                  />
-                );
-              })}
-            </div>
           </div>
         </Card.Content>
       </Card>

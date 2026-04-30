@@ -5,15 +5,20 @@ export async function getProducts() {
     return await apiFetch<{ products: StoreProduct[] }>("/get_products");
 }
 
-export async function createCheckout(priceId: string, quantity: number) {
-    console.log("createCheckout args:", { priceId, quantity });
+interface CheckoutLineItem {
+    price: string;
+    quantity: number;
+}
+
+export async function createCheckout(lineItems: CheckoutLineItem[]) {
+    console.log("createCheckout args:", { lineItems });
 
     return await apiFetch<{ url: string }>("/create_checkout", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-            price_id: priceId,
-            quantity: quantity,
+            line_items: lineItems,
+            origin: window.location.origin,
         }),
     });
 }

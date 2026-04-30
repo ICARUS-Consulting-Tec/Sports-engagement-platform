@@ -84,6 +84,7 @@ app.get("/", async (req, res) => {
         username,
         country,
         avatar_url,
+        role,
         created_at,
         updated_at
       FROM accounts
@@ -117,6 +118,7 @@ app.get("/me", requireAuth, async (req, res) => {
         username,
         country,
         avatar_url,
+        role,
         created_at,
         updated_at
       FROM accounts
@@ -158,11 +160,11 @@ app.put("/me", requireAuth, async (req, res) => {
     const result = await pool.query(`
       UPDATE accounts
       SET
-        first_name = $1,
-        last_name = $2,
-        username = $3,
-        country = $4,
-        avatar_url = $5,
+        first_name = COALESCE($1, first_name),
+        last_name = COALESCE($2, last_name),
+        username = COALESCE($3, username),
+        country = COALESCE($4, country),
+        avatar_url = COALESCE($5, avatar_url),
         updated_at = NOW()
       WHERE user_id = $6
       RETURNING
@@ -493,6 +495,7 @@ app.get("/account/:accountId", async (req, res) => {
         username,
         country,
         avatar_url,
+        role,
         created_at,
         updated_at
       FROM accounts
@@ -530,6 +533,7 @@ app.get("/:id", async (req, res) => {
         username,
         country,
         avatar_url,
+        role,
         created_at,
         updated_at
       FROM accounts
@@ -592,6 +596,7 @@ app.post("/new/user", async (req, res) => {
         last_name,
         username,
         avatar_url,
+        role,
         created_at,
         updated_at
     `, [
@@ -622,6 +627,91 @@ app.post("/new/user", async (req, res) => {
   }
 });
 
+app.get("/stats/members-per-month", async (req, res) => {
+  try {
+    const result = await pool.query(`
+      SELECT
+        DATE_TRUNC('month', created_at) AS month,
+        COUNT(*) AS new_members
+      FROM accounts
+      GROUP BY month
+      ORDER BY month;
+    `);
+
+    res.json(
+      result.rows.map((r) => ({
+        month: r.month,
+        new_members: Number(r.new_members),
+      }))
+    );
+  } catch (error) {
+    console.error("Error en /stats/members-per-month:", error);
+    res.status(500).json({ 
+      error: "Error al obtener miembros por mes",
+      details: error.message 
+    });
+  }
+});
+
+app.get("/stats/new-accounts", async (req, res) => {
+  try {
+    const result = await pool.query(`
+      SELECT
+        username,
+        CASE
+          WHEN NOW() - created_at < INTERVAL '1 minute'  THEN 'just now'
+          WHEN NOW() - created_at < INTERVAL '1 hour'    THEN EXTRACT(MINUTE FROM NOW() - created_at)::int || 'm ago'
+          WHEN NOW() - created_at < INTERVAL '1 day'     THEN EXTRACT(HOUR   FROM NOW() - created_at)::int || 'h ago'
+          WHEN NOW() - created_at < INTERVAL '1 week'    THEN EXTRACT(DAY    FROM NOW() - created_at)::int || 'd ago'
+          WHEN NOW() - created_at < INTERVAL '1 month'   THEN (EXTRACT(DAY   FROM NOW() - created_at) / 7)::int || 'w ago'
+          WHEN NOW() - created_at < INTERVAL '1 year'    THEN (EXTRACT(DAY   FROM NOW() - created_at) / 30)::int || 'mon ago'
+          ELSE                                                 EXTRACT(YEAR   FROM AGE(created_at))::int || ' años'
+        END AS joined_ago
+      FROM accounts
+      ORDER BY created_at DESC;
+    `);
+
+    res.json(
+      result.rows.map((r) => ({
+        username: r.username,
+        joined_ago: r.joined_ago,
+      }))
+    );
+  } catch (error) {
+    console.error("Error en /stats/new-accounts:", error);
+    res.status(500).json({
+      error: "Error al obtener cuentas nuevas",
+      details: error.message,
+    });
+  }
+});
+
+app.get("/stats/total-members", async (req, res) => {
+  try {
+    const result = await pool.query(`
+      SELECT
+        COUNT(*)
+        AS total_members,
+        COUNT(*) FILTER (WHERE created_at >= NOW() - INTERVAL '7 days') AS new_this_week
+      FROM accounts;
+    `);
+
+    const new_this_week = Number(result.rows[0].new_this_week);
+
+    res.json({
+      total_members: Number(result.rows[0].total_members),
+      new_this_week,
+      trend: new_this_week > 0 ? "green" : "gray",
+    });
+
+  } catch (error) {
+    console.error("Error en /stats/total-members:", error);
+    res.status(500).json({
+      error: "Error al obtener miembros totales",
+      details: error.message,
+    });
+  }
+});
 
 app.get("/debug/token", async (req, res) => {
   const { data, error } = await supabase.auth.signInWithPassword({
@@ -636,6 +726,45 @@ app.get("/debug/token", async (req, res) => {
   res.json({
     token: data.session.access_token
   });
+});
+
+app.post("/profiles/batch", async (req, res) => {
+  try {
+    const { profiles_ids } = req.body;
+
+    if (!Array.isArray(profiles_ids) || profiles_ids.length === 0) {
+      return res.status(400).json({
+        status: "error",
+        message: "profiles_ids must be a non-empty array"
+      });
+    }
+
+    const result = await pool.query(
+      `
+      SELECT
+        account_id,
+        user_id,
+        username,
+        first_name,
+        last_name,
+        avatar_url
+      FROM accounts
+      WHERE user_id = ANY($1::uuid[])
+      `,
+      [profiles_ids]
+    );
+
+    res.json({
+      status: "success",
+      profiles: result.rows
+    });
+    
+  } catch (error) {
+    res.status(500).json({
+      status: "error",
+      error: error.message
+    });
+  }
 });
 
 app.listen(PORT, () => {

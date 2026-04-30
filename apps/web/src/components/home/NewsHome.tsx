@@ -73,10 +73,14 @@ function NewsHome() {
             <div className="news-home-overlay" />
 
             <Card.Content className="news-home-content">
-              <Card.Title className="news-home-title">{article.title}</Card.Title>
-              <Card.Description className="news-home-description">
+              <div className="news-home-copy">
+                <Card.Title className="news-home-title">
+                  {article.title || article.description}
+                </Card.Title>
+                <Card.Description className="news-home-description">
                 {article.description || "No description available."}
-              </Card.Description>
+                </Card.Description>
+              </div>
             </Card.Content>
           </Card>
         </a>

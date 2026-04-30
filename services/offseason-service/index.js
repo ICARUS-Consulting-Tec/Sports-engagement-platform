@@ -65,14 +65,14 @@ function parsePositiveInteger(value, fieldName, { allowZero = false, fallback } 
   return parsedValue;
 }
 
-function getAuthUserIdFromRequest(req) {
-  const headerValue = req.headers["x-user-id"];
+function getAuthorizationHeader(req) {
+  const authHeader = req.headers.authorization;
 
-  if (Array.isArray(headerValue)) {
-    return headerValue[0] || null;
+  if (Array.isArray(authHeader)) {
+    return authHeader[0] || null;
   }
 
-  return headerValue || null;
+  return authHeader || null;
 }
 
 function serializeSession(row) {
@@ -102,10 +102,10 @@ function serializeLeaderboardEntry(row) {
   };
 }
 
-async function getProfileByAuthUserId(authUserId) {
+async function getProfileByAuthToken(authorizationHeader) {
   const response = await fetch(`${PROFILE_SERVICE_URL}/me`, {
     headers: {
-      "x-user-id": authUserId,
+      Authorization: authorizationHeader,
     },
   });
 
@@ -333,9 +333,9 @@ async function rebuildWordleLeaderboard(client, puzzleDateInput) {
   );
 }
 
-async function resolveWordleUserId(payload, authUserId) {
-  if (authUserId) {
-    const profile = await getProfileByAuthUserId(authUserId);
+async function resolveWordleUserId(payload, authorizationHeader) {
+  if (authorizationHeader) {
+    const profile = await getProfileByAuthToken(authorizationHeader);
 
     return parsePositiveInteger(profile.account_id, "account_id");
   }
@@ -347,8 +347,8 @@ async function resolveWordleUserId(payload, authUserId) {
   throw new Error("Authentication is required to save a Wordle session.");
 }
 
-async function saveWordleSession(payload, authUserId) {
-  const userId = await resolveWordleUserId(payload, authUserId);
+async function saveWordleSession(payload, authorizationHeader) {
+  const userId = await resolveWordleUserId(payload, authorizationHeader);
   const attemptCount = parsePositiveInteger(payload.attempt_count, "attempt_count");
   const playtimeSeconds = parsePositiveInteger(payload.playtime_seconds, "playtime_seconds", {
     allowZero: true,
@@ -504,9 +504,9 @@ app.get("/wordle/history", asyncHandler(async (req, res) => {
     return;
   }
 
-  const authUserId = getAuthUserIdFromRequest(req);
+  const authorizationHeader = getAuthorizationHeader(req);
 
-  if (!authUserId) {
+  if (!authorizationHeader) {
     res.status(400).json({
       status: "error",
       error: "Authentication is required to load personal Wordle history.",
@@ -514,7 +514,7 @@ app.get("/wordle/history", asyncHandler(async (req, res) => {
     return;
   }
 
-  const profile = await getProfileByAuthUserId(authUserId);
+  const profile = await getProfileByAuthToken(authorizationHeader);
   const history = await getWordleHistoryByUser(profile.account_id);
   res.json(history);
 }));
@@ -533,7 +533,7 @@ app.post("/wordle/session", asyncHandler(async (req, res) => {
     puzzle_date: req.body.puzzle_date,
   };
 
-  const savedSession = await saveWordleSession(payload, getAuthUserIdFromRequest(req));
+  const savedSession = await saveWordleSession(payload, getAuthorizationHeader(req));
   res.status(201).json(savedSession);
 }));
 
