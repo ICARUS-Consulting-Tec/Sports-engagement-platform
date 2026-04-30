@@ -186,7 +186,7 @@ const PostComp = ({ activeFilter = "hot", activeCategory = "All Topics", refresh
                   className="mt-2" 
                   onClick={(e) => e.stopPropagation()} // Evita que clicks dentro del contenido cierren el post
                 >
-                  <p className="mb-4 text-sm text-gray-600">
+                  <p className="mb-4 text-sm text-black">
                     {post.content}
                   </p>
                   <RepliesList post_id={post.post_id} />
@@ -234,6 +234,7 @@ const PostComp = ({ activeFilter = "hot", activeCategory = "All Topics", refresh
       <ModalComp 
         isOpen={isDetailsOpen}
         onOpenChange={setIsDetailsOpen}
+        dialogClassName="w-[min(45vw,72rem)] max-w-none"
         children={
          selectedPost && (
           <div className="space-y-6">

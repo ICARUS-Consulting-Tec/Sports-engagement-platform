@@ -24,7 +24,7 @@ const PostDetail = ({ post }: Props) => {
         <div className="text-sm font-semibold text-[#0B2A55]">{post.user_name}</div>
       </div>
 
-      <div className="text-sm text-slate-600">{post.content}</div>
+      <div className="text-sm text-black bg-gray-200 border rounded-lg p-3">{post.content}</div>
 
       <div className="flex items-center gap-6 text-xs text-slate-500">
         <span><Icon icon="mdi:message-outline" width={14} /> {post.replies_count} replies</span>
