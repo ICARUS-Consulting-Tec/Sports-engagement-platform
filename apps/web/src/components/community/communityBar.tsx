@@ -1,14 +1,16 @@
 import { Icon } from "@iconify/react";
 import { Button } from "@heroui/react";
+import { Auth } from "../../context/AuthContext";
         
 interface CommunityBarProps {
-    onSwitchOpenModal: (isOpen: boolean) => void;
+  onCreatePost: () => void;
     activeFilter: "hot" | "new";
     setActiveFilter: (filter: "hot" | "new") => void;
 }
 
 const CommunityBar = (props: CommunityBarProps) => {
-    const { onSwitchOpenModal, activeFilter, setActiveFilter } = props;
+  const { onCreatePost, activeFilter, setActiveFilter } = props;
+    const { session } = Auth();
 
     return(
         <>
@@ -39,13 +41,24 @@ const CommunityBar = (props: CommunityBarProps) => {
                 </button>
               </div>
 
-              <Button
-                onClick={() => onSwitchOpenModal(true)}
-                className="bg-[#0B2A55] text-white font-bold px-6 py-2 rounded-lg hover:bg-[#1D4E89] transition-colors flex items-center gap-2"
-              >
-                <Icon icon="mdi:plus" width={20} />
-                Create Post
-              </Button>
+              {session?.user.id !== null ? (
+                <Button
+                  onClick={onCreatePost}
+                  className="bg-[#0B2A55] text-white font-bold px-6 py-2 rounded-lg hover:bg-[#1D4E89] transition-colors flex items-center gap-2"
+                >
+                  <Icon icon="mdi:plus" width={20} />
+                  Create Post
+                </Button>
+              ) : (
+                <Button
+                  onClick={onCreatePost}
+                  className="bg-[#0B2A55] text-white font-bold px-6 py-2 rounded-lg hover:bg-[#1D4E89] transition-colors flex items-center gap-2"
+                >
+                  <Icon icon="mdi:plus" width={20} />
+                  Create Post
+                </Button>
+              )
+            } 
             </div>
         </>
     )
