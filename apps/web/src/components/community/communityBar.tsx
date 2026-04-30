@@ -3,8 +3,8 @@ import { Button } from "@heroui/react";
         
 interface CommunityBarProps {
     onSwitchOpenModal: (isOpen: boolean) => void;
-    activeFilter: "hot" | "new" | "top";
-    setActiveFilter: (filter: "hot" | "new" | "top") => void;
+    activeFilter: "hot" | "new";
+    setActiveFilter: (filter: "hot" | "new") => void;
 }
 
 const CommunityBar = (props: CommunityBarProps) => {
@@ -36,18 +36,6 @@ const CommunityBar = (props: CommunityBarProps) => {
                 >
                   <Icon icon="mdi:star-circle-outline" width={18} />
                   New
-                </button>
-
-                <button
-                  onClick={() => setActiveFilter("top")}
-                  className={`flex items-center gap-2 px-4 py-2 rounded-lg font-semibold transition-all ${
-                    activeFilter === "top"
-                      ? "bg-green-50 text-green-600 border-b-2 border-green-600"
-                      : "text-gray-600 hover:bg-gray-50"
-                  }`}
-                >
-                  <Icon icon="mdi:trending-up" width={18} />
-                  Top
                 </button>
               </div>
 

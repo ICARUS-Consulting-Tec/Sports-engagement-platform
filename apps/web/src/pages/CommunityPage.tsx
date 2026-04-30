@@ -11,7 +11,7 @@ import TopContributor from "../components/community/topContributor";
 
 function CommunityPage() {
   const [isOpen, setIsOpen] = useState<boolean>(false);
-  const [activeFilter, setActiveFilter] = useState<"hot" | "new" | "top">("hot");
+  const [activeFilter, setActiveFilter] = useState<"hot" | "new">("hot");
   const [activeCategory, setActiveCategory] = useState<string>("All Topics");
   const [refreshKey, setRefreshKey] = useState<number>(0);
 
