@@ -3,6 +3,7 @@ import type { Comment } from "../../types/community";
 import { getPostTime, getInitials } from "../../utils/postUtils";
 import { useEffect, useState } from "react";
 import { getPostComments, incrementReplyUpvote } from "../../services/communityService";
+import { Auth } from "../../context/AuthContext";
 
 interface RepliesListProps {
   post_id: number;
@@ -11,6 +12,8 @@ interface RepliesListProps {
 const RepliesList = ({ post_id }: RepliesListProps) => {
   const [replies, setReplies] = useState<Comment[]>([]);
   const [loading, setLoading] = useState(false);
+  const { session } = Auth();
+  const [upvotedReplies, setUpvotedReplies] = useState<Set<number>>(new Set());
 
   if (post_id == null) {
     return (
@@ -40,6 +43,18 @@ const RepliesList = ({ post_id }: RepliesListProps) => {
 
     void loadPostReplies();
 
+    // init upvoted replies from localStorage per user
+    try {
+      const userKey = session?.user?.id ? `upvoted_replies_${session.user.id}` : "upvoted_replies_guest";
+      const raw = localStorage.getItem(userKey);
+      if (raw) {
+        const arr: number[] = JSON.parse(raw);
+        if (isMounted) setUpvotedReplies(new Set(arr));
+      }
+    } catch (e) {
+      // ignore
+    }
+
     return () => {
       isMounted = false;
     };
@@ -48,6 +63,9 @@ const RepliesList = ({ post_id }: RepliesListProps) => {
   const visibleReplies = replies;
 
   const handleReplyLikeClick = async (replyId: number) => {
+    // prevent duplicate like client-side
+    if (upvotedReplies.has(replyId)) return;
+
     try {
       const updatedUpvotes = await incrementReplyUpvote(replyId);
       setReplies((currentReplies) =>
@@ -57,6 +75,18 @@ const RepliesList = ({ post_id }: RepliesListProps) => {
             : reply
         )
       );
+
+      setUpvotedReplies((prev) => {
+        const next = new Set(prev);
+        next.add(replyId);
+        try {
+          const userKey = session?.user?.id ? `upvoted_replies_${session.user.id}` : "upvoted_replies_guest";
+          localStorage.setItem(userKey, JSON.stringify(Array.from(next)));
+        } catch (e) {
+          // ignore
+        }
+        return next;
+      });
     } catch (error) {
       console.error("Error incrementing reply upvote:", error);
     }
@@ -81,8 +111,9 @@ const RepliesList = ({ post_id }: RepliesListProps) => {
                 </div>
                 <button
                   type="button"
-                  className="flex items-center gap-1 text-xs text-slate-400 hover: cursor-pointer"
+                  className={`flex items-center gap-1 text-xs ${upvotedReplies.has(reply.reply_id) ? 'text-gray-400 cursor-default' : 'text-slate-400 hover:cursor-pointer'}`}
                   onClick={() => void handleReplyLikeClick(reply.reply_id)}
+                  disabled={upvotedReplies.has(reply.reply_id)}
                 >
                   <Icon icon="mdi:thumb-up-outline" width={14} />
                   {reply.upvotes_count ?? 0}

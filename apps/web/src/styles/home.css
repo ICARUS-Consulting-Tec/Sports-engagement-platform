@@ -563,7 +563,6 @@
   font-size: clamp(0.74rem, 0.88vw, 0.86rem);
   line-height: 1.18;
   color: #475569;
-  max-width: 56ch;
 }
 
 .community-home-actions {

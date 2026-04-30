@@ -1,14 +1,16 @@
 import { Icon } from "@iconify/react";
 import { Button } from "@heroui/react";
+import { Auth } from "../../context/AuthContext";
         
 interface CommunityBarProps {
-    onSwitchOpenModal: (isOpen: boolean) => void;
-    activeFilter: "hot" | "new" | "top";
-    setActiveFilter: (filter: "hot" | "new" | "top") => void;
+  onCreatePost: () => void;
+    activeFilter: "hot" | "new";
+    setActiveFilter: (filter: "hot" | "new") => void;
 }
 
 const CommunityBar = (props: CommunityBarProps) => {
-    const { onSwitchOpenModal, activeFilter, setActiveFilter } = props;
+  const { onCreatePost, activeFilter, setActiveFilter } = props;
+    const { session } = Auth();
 
     return(
         <>
@@ -37,27 +39,26 @@ const CommunityBar = (props: CommunityBarProps) => {
                   <Icon icon="mdi:star-circle-outline" width={18} />
                   New
                 </button>
-
-                <button
-                  onClick={() => setActiveFilter("top")}
-                  className={`flex items-center gap-2 px-4 py-2 rounded-lg font-semibold transition-all ${
-                    activeFilter === "top"
-                      ? "bg-green-50 text-green-600 border-b-2 border-green-600"
-                      : "text-gray-600 hover:bg-gray-50"
-                  }`}
-                >
-                  <Icon icon="mdi:trending-up" width={18} />
-                  Top
-                </button>
               </div>
 
-              <Button
-                onClick={() => onSwitchOpenModal(true)}
-                className="bg-[#0B2A55] text-white font-bold px-6 py-2 rounded-lg hover:bg-[#1D4E89] transition-colors flex items-center gap-2"
-              >
-                <Icon icon="mdi:plus" width={20} />
-                Create Post
-              </Button>
+              {session?.user.id !== null ? (
+                <Button
+                  onClick={onCreatePost}
+                  className="bg-[#0B2A55] text-white font-bold px-6 py-2 rounded-lg hover:bg-[#1D4E89] transition-colors flex items-center gap-2"
+                >
+                  <Icon icon="mdi:plus" width={20} />
+                  Create Post
+                </Button>
+              ) : (
+                <Button
+                  onClick={onCreatePost}
+                  className="bg-[#0B2A55] text-white font-bold px-6 py-2 rounded-lg hover:bg-[#1D4E89] transition-colors flex items-center gap-2"
+                >
+                  <Icon icon="mdi:plus" width={20} />
+                  Create Post
+                </Button>
+              )
+            } 
             </div>
         </>
     )

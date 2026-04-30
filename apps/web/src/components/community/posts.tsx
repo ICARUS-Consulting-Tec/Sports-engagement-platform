@@ -1,6 +1,7 @@
-import { Button, Card } from "@heroui/react";
+import { Card } from "@heroui/react";
 import { Icon } from "@iconify/react";
 import { MouseEvent, useEffect, useState } from "react";
+import { Auth } from "../../context/AuthContext";
 import { Post } from "../../types/community";
 import {
   getPosts,
@@ -12,9 +13,10 @@ import { ModalComp } from "../general/modal";
 import PostDetail from "./postDetail";
 import NewReply from "./newReply";
 import RepliesList from "./repliesList";
+import { getPostTime } from "../../utils/postUtils";
 
 type PostCompProps = {
-  activeFilter?: "hot" | "new" | "top";
+  activeFilter?: "hot" | "new";
   activeCategory?: string;
   refreshKey?: number;
 };
@@ -22,11 +24,13 @@ type PostCompProps = {
 const PostComp = ({ activeFilter = "hot", activeCategory = "All Topics", refreshKey }: PostCompProps) => {
 
   const [posts, setPosts] = useState<Post[]>([]);
+  const { session } = Auth();
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState("");
   const [expandedPostId, setExpandedPostId] = useState<number | null>(null);
   const [isDetailsOpen, setIsDetailsOpen] = useState<boolean>(false);
   const [selectedPost, setSelectedPost] = useState<Post | null>(null);
+  const [upvotedPosts, setUpvotedPosts] = useState<Set<number>>(new Set());
 
   useEffect(() => {
     let isMounted = true;
@@ -46,6 +50,18 @@ const PostComp = ({ activeFilter = "hot", activeCategory = "All Topics", refresh
     }
 
     void loadPosts();
+
+    // initialize upvoted posts from localStorage per user
+    try {
+      const userKey = session?.user?.id ? `upvoted_${session.user.id}` : "upvoted_guest";
+      const raw = localStorage.getItem(userKey);
+      if (raw) {
+        const arr: number[] = JSON.parse(raw);
+        if (isMounted) setUpvotedPosts(new Set(arr));
+      }
+    } catch (e) {
+      // ignore
+    }
 
     return () => {
       isMounted = false;
@@ -80,6 +96,12 @@ const PostComp = ({ activeFilter = "hot", activeCategory = "All Topics", refresh
   ) => {
     event.stopPropagation();
 
+    // prevent double-like client-side
+    if (upvotedPosts.has(postId)) {
+      // already liked by this user on client
+      return;
+    }
+
     try {
       const updatedUpvotes = await incrementPostUpvote(postId);
 
@@ -90,6 +112,19 @@ const PostComp = ({ activeFilter = "hot", activeCategory = "All Topics", refresh
             : post
         )
       );
+
+      // persist client-side that this user has upvoted this post
+      setUpvotedPosts((prev) => {
+        const next = new Set(prev);
+        next.add(postId);
+        try {
+          const userKey = session?.user?.id ? `upvoted_${session.user.id}` : "upvoted_guest";
+          localStorage.setItem(userKey, JSON.stringify(Array.from(next)));
+        } catch (e) {
+          // ignore
+        }
+        return next;
+      });
     } catch (err) {
       console.error("Error incrementing post upvote:", err);
     }
@@ -124,6 +159,9 @@ const PostComp = ({ activeFilter = "hot", activeCategory = "All Topics", refresh
                   <span className="rounded-full bg-sky-50 px-3 py-1 text-xs font-bold uppercase tracking-[0.08em] text-sky-700">
                     {post.category_name}
                   </span>
+                   <span className="text-xs text-gray-500">
+                      {getPostTime(post.created_at || "")}
+                  </span>
                   {/* ... badges de trending y top contributor */}
                 </div>
               </div>
@@ -148,7 +186,7 @@ const PostComp = ({ activeFilter = "hot", activeCategory = "All Topics", refresh
                   className="mt-2" 
                   onClick={(e) => e.stopPropagation()} // Evita que clicks dentro del contenido cierren el post
                 >
-                  <p className="mb-4 text-sm text-gray-600">
+                  <p className="mb-4 text-sm text-black">
                     {post.content}
                   </p>
                   <RepliesList post_id={post.post_id} />
@@ -181,7 +219,8 @@ const PostComp = ({ activeFilter = "hot", activeCategory = "All Topics", refresh
                     e.stopPropagation();
                     void handleLikeClick(e, post.post_id);
                   }}
-                  className="flex items-center gap-2 rounded-full px-2 py-1 transition-colors hover:bg-gray-100"
+                  className={`flex items-center gap-2 rounded-full px-2 py-1 transition-colors ${upvotedPosts.has(post.post_id) ? 'bg-gray-100 text-gray-500 cursor-default' : 'hover:bg-gray-100'}`}
+                  disabled={upvotedPosts.has(post.post_id)}
                 >
                   <Icon icon="mdi:thumb-up-outline" width={18} />
                   <span className="font-semibold text-gray-900">{post.upvotes_count}</span>
@@ -195,6 +234,7 @@ const PostComp = ({ activeFilter = "hot", activeCategory = "All Topics", refresh
       <ModalComp 
         isOpen={isDetailsOpen}
         onOpenChange={setIsDetailsOpen}
+        dialogClassName="w-[min(45vw,72rem)] max-w-none"
         children={
          selectedPost && (
           <div className="space-y-6">

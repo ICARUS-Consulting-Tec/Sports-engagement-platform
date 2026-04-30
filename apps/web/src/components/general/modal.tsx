@@ -7,17 +7,18 @@ interface ModalProps {
     title?: React.ReactNode;
     footer?: React.ReactNode;
     children: React.ReactNode;
+    dialogClassName?: string;
 }
 
 export const ModalComp = (props: ModalProps) => {
-    const { isOpen, onOpenChange, title, footer, children } = props;
+    const { isOpen, onOpenChange, title, footer, children, dialogClassName } = props;
 
     return (
     <>
         <Modal isOpen={isOpen} onOpenChange={onOpenChange}>
             <Modal.Backdrop>
             <Modal.Container>
-                <Modal.Dialog>
+                <Modal.Dialog className={dialogClassName}>
                 <Modal.CloseTrigger /> 
                 {title && (
                     <Modal.Header>

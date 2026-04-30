@@ -46,7 +46,7 @@ const NewReply = ({ postId, onSuccess, onCancel }: NewReplyProps) => {
 	};
 
 	return (
-		<Form className="flex w-full flex-col gap-4" onSubmit={handleSubmit}>
+		<Form className="flex w-full max-w-none flex-col gap-4 p-0.5" onSubmit={handleSubmit}>
 			<Label className="font-bold text-[#0B2A4A]">Reply</Label>
 			<TextArea
 				name="content"

@@ -1,4 +1,4 @@
-import { Button, FieldError, Form, Input, Label, TextArea, TextField } from "@heroui/react";
+import { Button, FieldError, Form, Input, Label, TextArea, TextField, Select } from "@heroui/react";
 import React, { useState } from "react"
 import { Auth } from "../../context/AuthContext";
 import { createPost } from "../../services/communityService";
@@ -7,6 +7,15 @@ interface NewPostFormProps {
     onSuccess: () => void;
     onSwitchOpenModal: (isOpen: boolean) => void;
 }
+
+const categories = [
+  "All Topics",
+  "Game Day",
+  "Team Talk",
+  "Cards",
+  "Draft",
+  "Tailgate & Events",
+];
 
 export const NewPostForm = (props: NewPostFormProps) => {
     const { session } = Auth();
@@ -48,15 +57,21 @@ export const NewPostForm = (props: NewPostFormProps) => {
                 </div>
             </div>
             <Form className="flex w-full max-w-md flex-col gap-4 p-2" onSubmit={handleNewPost}>
-                <TextField
-                    name="category"
-                    type="category"
-                    onChange={setCategory}
-                    >
+                <div className="flex flex-col gap-2">
                     <Label className="font-bold text-[#0B2A4A]">Category</Label>
-                    <Input />
-                    <FieldError />
-                </TextField>
+                    <select
+                        value={category}
+                        onChange={(e) => setCategory(e.target.value)}
+                        className="h-10 rounded-xl border border-gray-300 px-3 py-2 text-sm"
+                    >
+                        <option value="">Select a category</option>
+                        {categories.map((cat) => (
+                            <option key={cat} value={cat}>
+                                {cat}
+                            </option>
+                        ))}
+                    </select>
+                </div>
                 <TextField
                     name="title"
                     type="title"
