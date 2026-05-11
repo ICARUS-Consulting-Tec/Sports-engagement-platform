@@ -27,7 +27,7 @@ function WordleGame() {
   const [loadingMessage, setLoadingMessage] = useState<string | null>(null);
   const [saveError, setSaveError] = useState<string | null>(null);
   const [isSaving, setIsSaving] = useState(false);
-  const sessionStartedAtRef = useRef<number>(Date.now());
+  const sessionStartedAtRef = useRef<number | null>(null);
 
   const loadWordleData = useCallback(async () => {
     setLoadingData(true);
@@ -40,7 +40,7 @@ function WordleGame() {
       ]);
 
       if (!wordleDictionary.answerWords.length) {
-        throw new Error("Error: Wordle database not found.");
+        throw new Error("A database error occurred while loading Wordle.");
       }
 
       const wordleLeaderboard = await getWordleLeaderboard(wordleConfig.puzzleDate);
@@ -50,7 +50,11 @@ function WordleGame() {
       setLeaderboard(wordleLeaderboard);
     } catch (error) {
       console.error("Error loading Wordle data:", error);
-      setLoadingMessage("Error: Wordle database not found.");
+      setLoadingMessage(
+        error instanceof Error
+          ? error.message
+          : "A database error occurred while loading Wordle.",
+      );
     } finally {
       setLoadingData(false);
     }
@@ -83,7 +87,7 @@ function WordleGame() {
     try {
       const playtimeSeconds = Math.max(
         1,
-        Math.round((Date.now() - sessionStartedAtRef.current) / 1000),
+        Math.ceil((Date.now() - (sessionStartedAtRef.current ?? Date.now())) / 1000),
       );
       const response = await saveWordleSession({
         attempt_count: attemptCount,
@@ -118,6 +122,14 @@ function WordleGame() {
 
   const isWordleReady = Boolean(config && dictionary?.answerWords.length);
 
+  const handleWordleInput = useCallback((key: string) => {
+    if (/^[A-Z]$/.test(key) && sessionStartedAtRef.current === null) {
+      sessionStartedAtRef.current = Date.now();
+    }
+
+    handleInput(key);
+  }, [handleInput]);
+
   useEffect(() => {
     loadWordleData();
   }, [loadWordleData]);
@@ -132,7 +144,7 @@ function WordleGame() {
             return currentConfig;
           }
 
-          sessionStartedAtRef.current = Date.now();
+          sessionStartedAtRef.current = null;
           setLeaderboard(null);
           setSaveError(null);
           setLoadingMessage(null);
@@ -143,7 +155,9 @@ function WordleGame() {
             .catch((error) => {
               console.error("Error refreshing daily Wordle leaderboard:", error);
               setLoadingMessage(
-                error instanceof Error ? error.message : "Could not refresh the daily puzzle.",
+                error instanceof Error
+                  ? error.message
+                  : "A database error occurred while loading Wordle.",
               );
             });
 
@@ -160,23 +174,23 @@ function WordleGame() {
   useEffect(() => {
     function onKeyDown(event: KeyboardEvent) {
       if (event.key === "Backspace") {
-        handleInput("BACKSPACE");
+        handleWordleInput("BACKSPACE");
         return;
       }
 
       if (event.key === "Enter") {
-        handleInput("ENTER");
+        handleWordleInput("ENTER");
         return;
       }
 
       if (/^[a-zA-Z]$/.test(event.key)) {
-        handleInput(event.key.toUpperCase());
+        handleWordleInput(event.key.toUpperCase());
       }
     }
 
     window.addEventListener("keydown", onKeyDown);
     return () => window.removeEventListener("keydown", onKeyDown);
-  }, [handleInput]);
+  }, [handleWordleInput]);
 
   return (
     <section className="rounded-2xl border border-[#d8dee5] bg-white p-6">
@@ -209,7 +223,7 @@ function WordleGame() {
               </p>
 
               <div className="rounded-xl border border-[#d8dee5] bg-[#f5f8fb] p-4 shadow-none">
-                <WordleKeyboard keyboardStatus={keyboardStatus} onKeyPress={handleInput} />
+                <WordleKeyboard keyboardStatus={keyboardStatus} onKeyPress={handleWordleInput} />
               </div>
 
               {gameStatus !== "playing" ? (
@@ -219,7 +233,9 @@ function WordleGame() {
           ) : (
             <div className="flex min-h-[420px] items-center justify-center rounded-xl border border-[#d8dee5] bg-[#f5f8fb] p-6 text-center">
               <p className={MESSAGE_CLASS}>
-                {loadingData ? "Loading Wordle..." : "Error: Wordle database not found."}
+                {loadingData
+                  ? "Loading Wordle..."
+                  : "A database error occurred while loading Wordle."}
               </p>
             </div>
           )}
