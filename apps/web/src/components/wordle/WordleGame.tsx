@@ -3,11 +3,13 @@ import { Auth } from "../../context/AuthContext";
 import { useWordle } from "../../hooks/useWordle";
 import {
   getWordleConfig,
+  getWordleDictionary,
   getWordleLeaderboard,
   saveWordleSession,
 } from "../../services/wordleService";
 import type {
   WordleConfig,
+  WordleDictionaryResponse,
   WordleLeaderboardResponse,
 } from "../../types/wordle";
 import WordleGrid from "./WordleGrid";
@@ -19,6 +21,7 @@ const MESSAGE_CLASS = "m-0 min-h-6 text-center font-semibold text-[#4f6173]";
 function WordleGame() {
   const { session } = Auth();
   const [config, setConfig] = useState<WordleConfig | null>(null);
+  const [dictionary, setDictionary] = useState<WordleDictionaryResponse | null>(null);
   const [leaderboard, setLeaderboard] = useState<WordleLeaderboardResponse | null>(null);
   const [loadingData, setLoadingData] = useState(true);
   const [loadingMessage, setLoadingMessage] = useState<string | null>(null);
@@ -31,14 +34,23 @@ function WordleGame() {
     setLoadingMessage(null);
 
     try {
-      const wordleConfig = await getWordleConfig();
+      const [wordleConfig, wordleDictionary] = await Promise.all([
+        getWordleConfig(),
+        getWordleDictionary(),
+      ]);
+
+      if (!wordleDictionary.answerWords.length) {
+        throw new Error("Error: Wordle database not found.");
+      }
+
       const wordleLeaderboard = await getWordleLeaderboard(wordleConfig.puzzleDate);
 
       setConfig(wordleConfig);
+      setDictionary(wordleDictionary);
       setLeaderboard(wordleLeaderboard);
     } catch (error) {
       console.error("Error loading Wordle data:", error);
-      setLoadingMessage(error instanceof Error ? error.message : "Could not load Wordle.");
+      setLoadingMessage("Error: Wordle database not found.");
     } finally {
       setLoadingData(false);
     }
@@ -99,9 +111,12 @@ function WordleGame() {
     puzzleDate,
     targetWord,
   } = useWordle({
+    answerWords: dictionary?.answerWords ?? [],
     onGameFinished: handleGameFinished,
     puzzleDate: config?.puzzleDate,
   });
+
+  const isWordleReady = Boolean(config && dictionary?.answerWords.length);
 
   useEffect(() => {
     loadWordleData();
@@ -185,19 +200,29 @@ function WordleGame() {
 
       <div className="grid grid-cols-[minmax(0,1.4fr)_minmax(280px,0.8fr)] items-start gap-5 max-[900px]:grid-cols-1">
         <div className="grid gap-4 rounded-[14px] border border-[#d8dee5] bg-[#f8fafc] p-5">
-          <WordleGrid board={board} />
-          <p className={MESSAGE_CLASS}>{message}</p>
-          <p className={MESSAGE_CLASS}>
-            Daily puzzle: {puzzleDate} · Attempt {Math.min(attempt + 1, maxAttempts)} of {maxAttempts}
-          </p>
+          {isWordleReady ? (
+            <>
+              <WordleGrid board={board} />
+              <p className={MESSAGE_CLASS}>{message}</p>
+              <p className={MESSAGE_CLASS}>
+                Daily puzzle: {puzzleDate} · Attempt {Math.min(attempt + 1, maxAttempts)} of {maxAttempts}
+              </p>
 
-          <div className="rounded-xl border border-[#d8dee5] bg-[#f5f8fb] p-4 shadow-none">
-            <WordleKeyboard keyboardStatus={keyboardStatus} onKeyPress={handleInput} />
-          </div>
+              <div className="rounded-xl border border-[#d8dee5] bg-[#f5f8fb] p-4 shadow-none">
+                <WordleKeyboard keyboardStatus={keyboardStatus} onKeyPress={handleInput} />
+              </div>
 
-          {gameStatus !== "playing" ? (
-            <p className="m-0 text-center font-bold text-[#0b2a55]">Word: {targetWord}</p>
-          ) : null}
+              {gameStatus !== "playing" ? (
+                <p className="m-0 text-center font-bold text-[#0b2a55]">Word: {targetWord}</p>
+              ) : null}
+            </>
+          ) : (
+            <div className="flex min-h-[420px] items-center justify-center rounded-xl border border-[#d8dee5] bg-[#f5f8fb] p-6 text-center">
+              <p className={MESSAGE_CLASS}>
+                {loadingData ? "Loading Wordle..." : "Error: Wordle database not found."}
+              </p>
+            </div>
+          )}
         </div>
 
         <aside className="grid gap-4">

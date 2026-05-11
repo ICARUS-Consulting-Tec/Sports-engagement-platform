@@ -3,6 +3,7 @@ import type {
   SaveWordleSessionPayload,
   SaveWordleSessionResponse,
   WordleConfig,
+  WordleDictionaryResponse,
   WordleHistoryResponse,
   WordleLeaderboardResponse,
 } from "../types/wordle";
@@ -17,6 +18,10 @@ function buildAuthHeaders(accessToken?: string) {
 
 export async function getWordleConfig(): Promise<WordleConfig> {
   return await apiFetch<WordleConfig>("/offseason/wordle/config");
+}
+
+export async function getWordleDictionary(): Promise<WordleDictionaryResponse> {
+  return await apiFetch<WordleDictionaryResponse>("/offseason/wordle/dictionary");
 }
 
 export async function getWordleLeaderboard(date?: string): Promise<WordleLeaderboardResponse> {
