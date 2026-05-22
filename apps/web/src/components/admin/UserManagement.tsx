@@ -249,7 +249,7 @@ function UserManagement() {
         <h2 className="m-0 text-[2.15rem] font-extrabold leading-[1.05] text-[#0b2e63]">
           REPORTED USERS
         </h2>
-        <p className="mt-[10px] text-[0.95rem] text-[#9aa3af]">
+        <p className="mt-2.5 text-[0.95rem] text-[#9aa3af]">
           Review and moderation of users reported by the community
         </p>
       </div>
@@ -347,14 +347,14 @@ function UserManagement() {
               <button
                 type="button"
                 onClick={() => handleResolveGroup(selectedGroup, "Banned")}
-                className="rounded-[12px] border-2 border-[#d7dce6] bg-white px-5 py-2.5 text-[15px] font-extrabold leading-none text-[#344363] transition hover:border-[#c6ccd9] hover:bg-[#fbfcff]"
+                className="rounded-3xl border-2 border-[#d7dce6] bg-white px-5 py-2.5 text-[15px] font-extrabold leading-none text-[#344363] transition hover:border-[#c6ccd9] hover:bg-[#fbfcff]"
               >
                 Ban user
               </button>
               <button
                 type="button"
                 onClick={() => handleResolveGroup(selectedGroup, "Dismissed")}
-                className="rounded-[12px] border-2 border-[#d7dce6] bg-white px-5 py-2.5 text-[15px] font-extrabold leading-none text-[#344363] transition hover:border-[#c6ccd9] hover:bg-[#fbfcff]"
+                className="rounded-3xl border-2 border-[#d7dce6] bg-white px-5 py-2.5 text-[15px] font-extrabold leading-none text-[#344363] transition hover:border-[#c6ccd9] hover:bg-[#fbfcff]"
               >
                 Dismiss
               </button>
@@ -363,7 +363,7 @@ function UserManagement() {
           dialogClassName="max-w-[720px]"
         >
           <div className="flex flex-col gap-4">
-            <div className="rounded-[16px] bg-[#f7f8fc] p-4">
+            <div className="rounded-4xl bg-[#f7f8fc] p-4">
               <p className="m-0 text-[14px] font-semibold text-[#8a94ab]">
                 User id
               </p>
@@ -398,7 +398,7 @@ function UserManagement() {
               <p className="m-0 text-[14px] font-semibold text-[#8a94ab]">
                 Reports detail
               </p>
-              <div className="mt-3 max-h-[320px] space-y-3 overflow-y-auto">
+              <div className="mt-3 max-h-80 space-y-3 overflow-y-auto">
                 {selectedGroup.reports.map((report) => (
                   <div
                     key={report.report_id}
