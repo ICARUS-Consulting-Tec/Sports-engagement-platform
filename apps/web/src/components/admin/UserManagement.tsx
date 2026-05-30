@@ -312,6 +312,7 @@ function UserManagement() {
                   reportedByCount={group.reporterIds.length}
                   primaryActionLabel="Ban user"
                   secondaryActionLabel="Dismiss"
+                  isDisabled={group.status === "resolved"}
                   onRemovePost={() => handleResolveGroup(group, "Banned")}
                   onDismiss={() => handleResolveGroup(group, "Dismissed")}
                   onOpenDetails={() => setSelectedGroup(group)}
@@ -346,6 +347,7 @@ function UserManagement() {
             <div className="flex flex-wrap gap-3">
               <button
                 type="button"
+                disabled={selectedGroup.status === "resolved"}
                 onClick={() => handleResolveGroup(selectedGroup, "Banned")}
                 className="rounded-3xl border-2 border-[#d7dce6] bg-white px-5 py-2.5 text-[15px] font-extrabold leading-none text-[#344363] transition hover:border-[#c6ccd9] hover:bg-[#fbfcff]"
               >
@@ -353,6 +355,7 @@ function UserManagement() {
               </button>
               <button
                 type="button"
+                disabled={selectedGroup.status === "resolved"}
                 onClick={() => handleResolveGroup(selectedGroup, "Dismissed")}
                 className="rounded-3xl border-2 border-[#d7dce6] bg-white px-5 py-2.5 text-[15px] font-extrabold leading-none text-[#344363] transition hover:border-[#c6ccd9] hover:bg-[#fbfcff]"
               >
