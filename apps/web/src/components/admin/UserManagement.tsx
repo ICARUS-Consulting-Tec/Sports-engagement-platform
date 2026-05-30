@@ -12,6 +12,17 @@ import {
   updateUserReport,
   type UserReport,
 } from "../../services/userReportsService";
+import { 
+  normalizeStatus,
+  statusToSeverity,
+  isStatusHigher,
+  statusRank,
+  formatReasons,
+  formatDateTime,
+  formatTimeAgo,
+  isAfter,
+  compareDatesDesc
+ } from "../../utils/userReports";
 
 type ReportFilterKey = "all" | "pending" | "critical" | "resolved";
 
@@ -302,19 +313,10 @@ function UserManagement() {
                   }
                   severity={statusToSeverity(group.status)}
                   timeAgo={formatTimeAgo(group.latestCreatedAt)}
-                  meta={
-                    group.userId
-                      ? `User id: ${group.userId}`
-                      : "User id: unknown"
-                  }
                   content={group.contentPreview || "No report content available."}
                   reportReason={formatReasons(group.reasons)}
                   reportedByCount={group.reporterIds.length}
-                  primaryActionLabel="Ban user"
-                  secondaryActionLabel="Dismiss"
-                  isDisabled={group.status === "resolved"}
-                  onRemovePost={() => handleResolveGroup(group, "Banned")}
-                  onDismiss={() => handleResolveGroup(group, "Dismissed")}
+                    showActions={false}
                   onOpenDetails={() => setSelectedGroup(group)}
                 />
               ))
@@ -349,7 +351,7 @@ function UserManagement() {
                 type="button"
                 disabled={selectedGroup.status === "resolved"}
                 onClick={() => handleResolveGroup(selectedGroup, "Banned")}
-                className="rounded-3xl border-2 border-[#d7dce6] bg-white px-5 py-2.5 text-[15px] font-extrabold leading-none text-[#344363] transition hover:border-[#c6ccd9] hover:bg-[#fbfcff]"
+                className="rounded-3xl border-2 border-[#d7dce6] bg-white px-5 py-2.5 text-[15px] font-extrabold leading-none text-[#344363] transition hover:border-[#c6ccd9] hover:bg-[#fbfcff] disabled:cursor-not-allowed disabled:border-[#e6e9ee] disabled:bg-[#f5f6f8] disabled:text-[#9aa3af] disabled:shadow-none"
               >
                 Ban user
               </button>
@@ -357,22 +359,15 @@ function UserManagement() {
                 type="button"
                 disabled={selectedGroup.status === "resolved"}
                 onClick={() => handleResolveGroup(selectedGroup, "Dismissed")}
-                className="rounded-3xl border-2 border-[#d7dce6] bg-white px-5 py-2.5 text-[15px] font-extrabold leading-none text-[#344363] transition hover:border-[#c6ccd9] hover:bg-[#fbfcff]"
+                className="rounded-3xl border-2 border-[#d7dce6] bg-white px-5 py-2.5 text-[15px] font-extrabold leading-none text-[#344363] transition hover:border-[#c6ccd9] hover:bg-[#fbfcff] disabled:cursor-not-allowed disabled:border-[#e6e9ee] disabled:bg-[#f5f6f8] disabled:text-[#9aa3af] disabled:shadow-none"
               >
                 Dismiss
               </button>
             </div>
           }
-          dialogClassName="max-w-[720px]"
         >
           <div className="flex flex-col gap-4">
             <div className="rounded-4xl bg-[#f7f8fc] p-4">
-              <p className="m-0 text-[14px] font-semibold text-[#8a94ab]">
-                User id
-              </p>
-              <p className="m-0 mt-1 break-all text-[15px] font-extrabold text-[#15233d]">
-                {selectedGroup.userId || "Unknown"}
-              </p>
               <div className="mt-3 flex flex-wrap gap-4 text-[14px] font-semibold text-[#596175]">
                 <span>Total reports: {selectedGroup.reports.length}</span>
                 <span>Unique reporters: {selectedGroup.reporterIds.length}</span>
@@ -439,72 +434,4 @@ function UserManagement() {
 }
 
 export default UserManagement;
-
-function normalizeStatus(status?: string | null): ReportFilterKey {
-  const normalized = (status || "").toLowerCase();
-  if (normalized === "critical") return "critical";
-  if (normalized === "resolved") return "resolved";
-  if (normalized === "pending") return "pending";
-  return "pending";
-}
-
-function statusToSeverity(status?: string | null) {
-  const normalized = normalizeStatus(status);
-  if (normalized === "critical") return "critical" as const;
-  if (normalized === "resolved") return "resolved" as const;
-  return "pending" as const;
-}
-
-function isStatusHigher(next: ReportFilterKey, current: ReportFilterKey) {
-  return statusRank(next) > statusRank(current);
-}
-
-function statusRank(status: ReportFilterKey) {
-  if (status === "critical") return 3;
-  if (status === "pending") return 2;
-  return 1;
-}
-
-function formatReasons(reasons: string[]) {
-  if (reasons.length === 0) return "No report reason";
-  if (reasons.length <= 2) return reasons.join(", ");
-  return `${reasons.slice(0, 2).join(", ")} +${reasons.length - 2} more`;
-}
-
-function formatTimeAgo(isoDate?: string | null) {
-  if (!isoDate) return "";
-  const now = Date.now();
-  const timestamp = new Date(isoDate).getTime();
-  if (Number.isNaN(timestamp)) return "";
-  const diffSeconds = Math.max(0, Math.floor((now - timestamp) / 1000));
-
-  if (diffSeconds < 60) return "just now";
-  const diffMinutes = Math.floor(diffSeconds / 60);
-  if (diffMinutes < 60) return `${diffMinutes}m ago`;
-  const diffHours = Math.floor(diffMinutes / 60);
-  if (diffHours < 24) return `${diffHours}h ago`;
-  const diffDays = Math.floor(diffHours / 24);
-  if (diffDays < 7) return `${diffDays}d ago`;
-  const diffWeeks = Math.floor(diffDays / 7);
-  return `${diffWeeks}w ago`;
-}
-
-function formatDateTime(isoDate?: string | null) {
-  if (!isoDate) return "";
-  const date = new Date(isoDate);
-  if (Number.isNaN(date.getTime())) return "";
-  return date.toLocaleString();
-}
-
-function isAfter(next?: string | null, current?: string | null) {
-  if (!next) return false;
-  if (!current) return true;
-  return new Date(next).getTime() > new Date(current).getTime();
-}
-
-function compareDatesDesc(a?: string | null, b?: string | null) {
-  const aTime = a ? new Date(a).getTime() : 0;
-  const bTime = b ? new Date(b).getTime() : 0;
-  return bTime - aTime;
-}
 
