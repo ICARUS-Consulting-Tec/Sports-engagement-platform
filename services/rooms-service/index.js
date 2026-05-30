@@ -5,6 +5,8 @@ const app = express();
 app.use(express.json());
 
 const PORT = process.env.PORT || 4003;
+const PROFILE_SERVICE_URL =
+  process.env.PROFILE_SERVICE_URL || "http://icarus-profile:4006";
 
 /** Antigüedad mínima de un mensaje antes de borrarlo (ms). Por defecto 30 minutos. */
 const CHAT_MESSAGE_MAX_AGE_MS = Math.max(
@@ -42,6 +44,70 @@ function parseDisplayName(value) {
 const pool = new Pool({
   connectionString: process.env.ROOMS_DB_URL,
 });
+
+function getAuthorizationHeader(req) {
+  const authHeader = req.headers.authorization;
+
+  if (Array.isArray(authHeader)) {
+    return authHeader[0] || null;
+  }
+
+  return authHeader || null;
+}
+
+async function getProfileByAuthToken(authorizationHeader) {
+  const response = await fetch(`${PROFILE_SERVICE_URL}/me`, {
+    headers: {
+      ...(authorizationHeader ? { Authorization: authorizationHeader } : {}),
+    },
+  });
+
+  if (!response.ok) {
+    throw Object.assign(new Error("Profile lookup failed"), {
+      status: response.status,
+    });
+  }
+
+  const data = await response.json();
+
+  if (!data?.profile) {
+    throw Object.assign(new Error("Profile response missing profile payload"), {
+      status: 502,
+    });
+  }
+
+  return data.profile;
+}
+
+function isBannedProfile(profile) {
+  const status = typeof profile?.report_status === "string"
+    ? profile.report_status.trim().toLowerCase()
+    : "";
+  return status === "banned";
+}
+
+async function requireNotBanned(req, res, next) {
+  const authorizationHeader = getAuthorizationHeader(req);
+
+  if (!authorizationHeader) {
+    return res.status(401).json({ error: "Authorization required" });
+  }
+
+  try {
+    const profile = await getProfileByAuthToken(authorizationHeader);
+    if (isBannedProfile(profile)) {
+      return res.status(403).json({ error: "User is banned" });
+    }
+  } catch (error) {
+    const status =
+      error?.status >= 400 && error?.status < 600 ? error.status : 500;
+    return res
+      .status(status)
+      .json({ error: error?.message || "Authorization failed" });
+  }
+
+  return next();
+}
 
 function parseAvatarUrl(value) {
   if (value == null) return null;
@@ -171,7 +237,7 @@ app.get("/health", async (req, res) => {
   }
 });
 
-app.post("/match/:matchId/bootstrap", async (req, res) => {
+app.post("/match/:matchId/bootstrap", requireNotBanned, async (req, res) => {
   const matchId = parseInt(req.params.matchId, 10);
   const userId = parseUuidUserId(req.body?.user_id);
   if (!Number.isFinite(matchId) || userId == null) {
@@ -195,7 +261,7 @@ app.post("/match/:matchId/bootstrap", async (req, res) => {
   }
 });
 
-app.get("/match/:matchId/messages", async (req, res) => {
+app.get("/match/:matchId/messages", requireNotBanned, async (req, res) => {
   const matchId = parseInt(req.params.matchId, 10);
   if (!Number.isFinite(matchId)) {
     return res.status(400).json({ error: "match_id inválido" });
@@ -218,7 +284,7 @@ app.get("/match/:matchId/messages", async (req, res) => {
   }
 });
 
-app.post("/match/:matchId/messages", async (req, res) => {
+app.post("/match/:matchId/messages", requireNotBanned, async (req, res) => {
   const matchId = parseInt(req.params.matchId, 10);
   const userId = parseUuidUserId(req.body?.user_id);
   const content = (req.body?.content || "").trim().slice(0, 500);
@@ -256,7 +322,7 @@ app.post("/match/:matchId/messages", async (req, res) => {
   }
 });
 
-app.get("/match/:matchId/participants", async (req, res) => {
+app.get("/match/:matchId/participants", requireNotBanned, async (req, res) => {
   const matchId = parseInt(req.params.matchId, 10);
   if (!Number.isFinite(matchId)) {
     return res.status(400).json({ error: "match_id inválido" });

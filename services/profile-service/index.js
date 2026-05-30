@@ -186,18 +186,20 @@ app.get("/me", requireAuth, async (req, res) => {
 
     const result = await pool.query(`
       SELECT
-        account_id,
-        user_id,
-        first_name,
-        last_name,
-        username,
-        country,
-        avatar_url,
-        role,
-        created_at,
-        updated_at
-      FROM accounts
-      WHERE user_id = $1
+        a.account_id,
+        a.user_id,
+        a.first_name,
+        a.last_name,
+        a.username,
+        a.country,
+        a.avatar_url,
+        a.role,
+        rs.name AS report_status,
+        a.created_at,
+        a.updated_at
+      FROM accounts a
+      LEFT JOIN report_status rs ON rs.id = a.report_status_id
+      WHERE a.user_id = $1
     `, [userId]);
 
     if (result.rows.length === 0) {
