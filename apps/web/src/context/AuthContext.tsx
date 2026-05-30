@@ -7,6 +7,7 @@ import { insertNewUser, getMyProfile } from "../services/profileService";
 interface AuthContextType {
   session: Session | null;
   role: string | null;
+  reportStatus: string | null;
   loading: boolean;
   signUpNewUser: (email: string, password: string, fullName: string) => Promise<any>;
   SignInUser: (email: string, password: string) => Promise<any>;
@@ -23,6 +24,7 @@ interface AuthContextProps extends React.PropsWithChildren {
 export const AuthContextProvider = ({ children }: AuthContextProps) => {
   const [session, setSession] = useState<Session | null>(null);
   const [role, setRole] = useState<string | null>(null);
+  const [reportStatus, setReportStatus] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const profileSyncedRef = useRef(false);
 
@@ -66,11 +68,13 @@ export const AuthContextProvider = ({ children }: AuthContextProps) => {
       const data = await getMyProfile(s.access_token);
       if (data.status === "success") {
         setRole(data.profile.role);
+        setReportStatus(data.profile.report_status ?? null);
       }
       return data.profile;
     } catch (err: any) {
       console.error("Error fetching profile:", err);
       setRole(null);
+      setReportStatus(null);
       return null;
     }
   };
@@ -186,6 +190,7 @@ export const AuthContextProvider = ({ children }: AuthContextProps) => {
       if (!session) {
         profileSyncedRef.current = false;
         setRole(null);
+        setReportStatus(null);
       }
       if (session) {
         await fetchProfile(session);
@@ -211,6 +216,7 @@ export const AuthContextProvider = ({ children }: AuthContextProps) => {
       value={{
         session,
         role,
+        reportStatus,
         loading,
         signUpNewUser,
         SignInUser,
