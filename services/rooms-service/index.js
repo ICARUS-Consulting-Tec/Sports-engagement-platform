@@ -45,6 +45,19 @@ const pool = new Pool({
   connectionString: process.env.ROOMS_DB_URL,
 });
 
+let chatMessagesHasAvatarUrl = false;
+
+async function tableColumnExists(tableName, columnName) {
+  const result = await pool.query(
+    `SELECT 1
+     FROM information_schema.columns
+     WHERE table_name = $1 AND column_name = $2
+     LIMIT 1`,
+    [tableName, columnName],
+  );
+  return result.rowCount > 0;
+}
+
 function getAuthorizationHeader(req) {
   const authHeader = req.headers.authorization;
 
@@ -118,6 +131,37 @@ function parseAvatarUrl(value) {
 
 async function ensureChatSchema() {
   await pool.query(`
+    CREATE TABLE IF NOT EXISTS chatrooms (
+      room_id SERIAL PRIMARY KEY,
+      match_id INTEGER NOT NULL UNIQUE,
+      created_by TEXT,
+      active_users_count INTEGER NOT NULL DEFAULT 0,
+      created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+    )
+  `);
+
+  await pool.query(`
+    CREATE TABLE IF NOT EXISTS chat_messages (
+      id SERIAL PRIMARY KEY,
+      room_id INTEGER NOT NULL,
+      user_id TEXT NOT NULL,
+      content TEXT NOT NULL,
+      sent_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+      display_name VARCHAR(80)
+    )
+  `);
+
+  await pool.query(`
+    CREATE TABLE IF NOT EXISTS chatroom_members (
+      room_id INTEGER NOT NULL,
+      user_id TEXT NOT NULL,
+      status TEXT NOT NULL DEFAULT 'active',
+      joined_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+      PRIMARY KEY (room_id, user_id)
+    )
+  `);
+
+  await pool.query(`
     CREATE TABLE IF NOT EXISTS chat_participants (
       room_id INTEGER NOT NULL,
       user_id TEXT NOT NULL,
@@ -148,10 +192,7 @@ async function ensureChatSchema() {
     ON CONFLICT (room_id, user_id) DO NOTHING
   `);
 
-  await pool.query(`
-    ALTER TABLE chat_messages
-    ADD COLUMN IF NOT EXISTS avatar_url VARCHAR(500)
-  `);
+  chatMessagesHasAvatarUrl = await tableColumnExists("chat_messages", "avatar_url");
 }
 
 async function upsertChatParticipant(roomId, userId, displayName) {
@@ -195,6 +236,32 @@ async function getRoomIdByMatch(matchId) {
     [matchId]
   );
   return r.rows[0]?.room_id ?? null;
+}
+
+function buildChatMessagesSelectSql() {
+  return chatMessagesHasAvatarUrl
+    ? `SELECT m.id, m.room_id, m.user_id, m.content, m.sent_at, m.display_name, m.avatar_url
+       FROM chat_messages m
+       INNER JOIN chatrooms c ON c.room_id = m.room_id
+       WHERE c.match_id = $1
+       ORDER BY m.sent_at ASC, m.id ASC
+       LIMIT $2`
+    : `SELECT m.id, m.room_id, m.user_id, m.content, m.sent_at, m.display_name, NULL::varchar(500) AS avatar_url
+       FROM chat_messages m
+       INNER JOIN chatrooms c ON c.room_id = m.room_id
+       WHERE c.match_id = $1
+       ORDER BY m.sent_at ASC, m.id ASC
+       LIMIT $2`;
+}
+
+function buildChatMessageInsertSql() {
+  return chatMessagesHasAvatarUrl
+    ? `INSERT INTO chat_messages (room_id, user_id, content, display_name, avatar_url)
+       VALUES ($1, $2, $3, $4, $5)
+       RETURNING id, room_id, user_id, content, sent_at, display_name, avatar_url`
+    : `INSERT INTO chat_messages (room_id, user_id, content, display_name)
+       VALUES ($1, $2, $3, $4)
+       RETURNING id, room_id, user_id, content, sent_at, display_name, NULL::varchar(500) AS avatar_url`;
 }
 
 async function ensureRoom(matchId, userId) {
@@ -269,12 +336,7 @@ app.get("/match/:matchId/messages", requireNotBanned, async (req, res) => {
   const limit = Math.min(parseInt(req.query.limit, 10) || 100, 500);
   try {
     const result = await pool.query(
-      `SELECT m.id, m.room_id, m.user_id, m.content, m.sent_at, m.display_name, m.avatar_url
-       FROM chat_messages m
-       INNER JOIN chatrooms c ON c.room_id = m.room_id
-       WHERE c.match_id = $1
-       ORDER BY m.sent_at ASC, m.id ASC
-       LIMIT $2`,
+      buildChatMessagesSelectSql(),
       [matchId, limit]
     );
     res.json({ messages: result.rows });
@@ -309,10 +371,10 @@ app.post("/match/:matchId/messages", requireNotBanned, async (req, res) => {
     }
 
     const ins = await pool.query(
-      `INSERT INTO chat_messages (room_id, user_id, content, display_name, avatar_url)
-       VALUES ($1, $2, $3, $4, $5)
-       RETURNING id, room_id, user_id, content, sent_at, display_name, avatar_url`,
-      [roomId, userId, content, displayName, avatarUrl]
+      buildChatMessageInsertSql(),
+      chatMessagesHasAvatarUrl
+        ? [roomId, userId, content, displayName, avatarUrl]
+        : [roomId, userId, content, displayName]
     );
     await upsertChatParticipant(roomId, userId, displayName);
     res.status(201).json({ message: ins.rows[0] });

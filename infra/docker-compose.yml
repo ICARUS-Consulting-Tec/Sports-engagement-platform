@@ -55,6 +55,7 @@ services:
     environment:
       PORT: 4003
       ROOMS_DB_URL: ${ROOMS_DB_URL}
+      PROFILE_SERVICE_URL: http://profile-service:4006
       ROOMS_CHAT_MESSAGE_MAX_AGE_MS: "1800000"
       ROOMS_CHAT_PRUNE_INTERVAL_MS: "1800000"
       ROOMS_CHAT_PRUNE_CHECK_INTERVAL_MS: "120000"

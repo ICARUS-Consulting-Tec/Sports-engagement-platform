@@ -113,7 +113,7 @@ app.patch("/reports/ban-user", requireAuth, async (req, res) => {
           WHERE name='banned'
         ),
         updated_at = NOW()
-      WHERE user_id = $1;
+      WHERE user_id = $1
       RETURNING
         account_id,
         user_id,

@@ -12,6 +12,7 @@ services:
   rooms-service:
     environment:
       ROOMS_DB_URL: ${ROOMS_DB_URL:-postgresql://rooms_svc:RoomsSvc_2026_dev@host.docker.internal:15432/rooms_db}
+      PROFILE_SERVICE_URL: http://profile-service:4006
       ROOMS_CHAT_PRUNE_INTERVAL_MS: "120000"
 
   analytics-service:
