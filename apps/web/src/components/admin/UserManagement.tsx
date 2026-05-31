@@ -23,6 +23,8 @@ import {
   isAfter,
   compareDatesDesc
  } from "../../utils/userReports";
+import { getInitials } from "../../utils/postUtils";
+import { getProfilesBatch } from "../../services/profileService";
 
 type ReportFilterKey = "all" | "pending" | "critical" | "resolved";
 
@@ -79,6 +81,7 @@ function UserManagement() {
   });
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [reporterNameMap, setReporterNameMap] = useState<Record<string,string>>({});
 
   useEffect(() => {
     let isMounted = true;
@@ -183,6 +186,39 @@ function UserManagement() {
 
     return groupedReports.filter((group) => group.status === filter);
   }, [filter, groupedReports]);
+
+  // when a group is selected, fetch reporter usernames for the reports if needed
+  useEffect(() => {
+    let isMounted = true;
+    async function fetchReporterNames() {
+      if (!selectedGroup) return;
+
+      const ids = Array.from(new Set(selectedGroup.reports.map((r) => r.reported_by).filter(Boolean) as string[]));
+      const missing = ids.filter((id) => !reporterNameMap[id]);
+      if (missing.length === 0) return;
+
+      try {
+        const profiles = await getProfilesBatch(missing);
+        if (!isMounted) return;
+        const map: Record<string,string> = {};
+        for (const p of profiles) {
+          if (p.user_id) {
+            map[p.user_id] = p.username || `${p.first_name || ""} ${p.last_name || ""}`.trim() || p.user_id;
+          }
+        }
+        setReporterNameMap((prev) => ({ ...prev, ...map }));
+      } catch (e) {
+        // ignore profile resolution errors; UI will fallback to id
+        console.error("Error fetching reporter profiles:", e);
+      }
+    }
+
+    void fetchReporterNames();
+
+    return () => {
+      isMounted = false;
+    };
+  }, [selectedGroup]);
 
   async function handleResolveGroup(group: ReportGroup, resolvedType: string) {
     try {
@@ -309,7 +345,7 @@ function UserManagement() {
                   key={group.key}
                   username={
                     group.userName ||
-                    (group.userId ? `user_${group.userId}` : "anonymous")
+                    (group.userId ? `user` : "anonymous")
                   }
                   severity={statusToSeverity(group.status)}
                   timeAgo={formatTimeAgo(group.latestCreatedAt)}
@@ -397,33 +433,45 @@ function UserManagement() {
                 Reports detail
               </p>
               <div className="mt-3 max-h-80 space-y-3 overflow-y-auto">
-                {selectedGroup.reports.map((report) => (
-                  <div
-                    key={report.report_id}
-                    className="rounded-[14px] border border-[#e1e6f0] bg-white p-3"
-                  >
-                    <div className="flex flex-wrap items-center justify-between gap-2 text-[13px] font-semibold text-[#8a94ab]">
-                      <span>
-                        Reporter: {report.reported_by || "Unknown"}
-                      </span>
-                      <span>{formatDateTime(report.createdat)}</span>
+                {selectedGroup.reports.map((report) => {
+                  const reporterId = report.reported_by || "";
+                  const reporterName = report.reporter_name || reporterNameMap[reporterId] || (report as any).reported_by_name || (report as any).reported_by_user_name || (report as any).reporter_user_name || reporterId || "Unknown";
+
+                  return (
+                    <div
+                      key={report.report_id}
+                      className="rounded-[14px] border border-[#e1e6f0] bg-white p-3"
+                    >
+                      <div className="flex items-start gap-3">
+                        <div className="h-8 w-8 rounded-full bg-[#eef2f8] text-[12px] font-bold text-[#0B2A55] flex items-center justify-center">
+                          {getInitials(reporterName)}
+                        </div>
+
+                        <div className="flex-1">
+                          <div className="flex items-center justify-between">
+                            <p className="m-0 text-[14px] font-semibold text-[#0B2A55]">
+                              {reporterName}
+                            </p>
+                            <span className="text-[13px] font-semibold text-[#8a94ab]">{formatDateTime(report.createdat)}</span>
+                          </div>
+
+                          <p className="m-0 mt-2 text-[15px] font-semibold text-[#15233d]">
+                            Reason: {report.reason}
+                          </p>
+                          {report.content ? (
+                            <p className="m-0 mt-1 text-[14px] text-[#596175]">
+                              {report.content}
+                            </p>
+                          ) : null}
+                          <div className="mt-2 text-[13px] font-semibold text-[#596175]">
+                            Status: {report.status || "Pending"}
+                            {report.resolved_type ? ` (${report.resolved_type})` : ""}
+                          </div>
+                        </div>
+                      </div>
                     </div>
-                    <p className="m-0 mt-2 text-[15px] font-semibold text-[#15233d]">
-                      Reason: {report.reason}
-                    </p>
-                    {report.content ? (
-                      <p className="m-0 mt-1 text-[14px] text-[#596175]">
-                        {report.content}
-                      </p>
-                    ) : null}
-                    <div className="mt-2 text-[13px] font-semibold text-[#596175]">
-                      Status: {report.status || "Pending"}
-                      {report.resolved_type
-                        ? ` (${report.resolved_type})`
-                        : ""}
-                    </div>
-                  </div>
-                ))}
+                  );
+                })}
               </div>
             </div>
           </div>

@@ -12,6 +12,7 @@ export type UserReport = {
   reviewed_at?: string | null;
   resolved_type?: string | null;
   user_name?: string | null;
+  reporter_name?: string | null;
 };
 
 type ListReportsResponse = {

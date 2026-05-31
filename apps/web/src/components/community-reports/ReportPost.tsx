@@ -76,7 +76,7 @@ function ReportPost({
           <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-[#0b2e63] text-[14px] font-extrabold text-white">
             {initials}
           </div>
-          <div className="flex min-w-0 flex-wrap items-center gap-x-3 gap-y-2">
+          <div className="flex min-w-0 flex-wrap items-center gap-x-3 gap-y-2 pt-3">
             {username ? (
               <h3 className="m-0 text-[18px] font-extrabold leading-none text-[#15233d]">
                 @{username}
