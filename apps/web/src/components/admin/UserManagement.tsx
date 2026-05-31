@@ -387,15 +387,15 @@ function UserManagement() {
                 type="button"
                 disabled={selectedGroup.status === "resolved"}
                 onClick={() => handleResolveGroup(selectedGroup, "Banned")}
-                className="rounded-3xl border-2 border-[#d7dce6] bg-white px-5 py-2.5 text-[15px] font-extrabold leading-none text-[#344363] transition hover:border-[#c6ccd9] hover:bg-[#fbfcff] disabled:cursor-not-allowed disabled:border-[#e6e9ee] disabled:bg-[#f5f6f8] disabled:text-[#9aa3af] disabled:shadow-none"
+                className="cursor-pointer rounded-3xl border-2 border-[#d7dce6] bg-white px-5 py-2.5 text-[15px] font-extrabold leading-none text-[#344363] transition hover:border-[#c61d1d] hover:bg-[#c61d1d] hover:text-white disabled:cursor-not-allowed disabled:border-[#e6e9ee] disabled:bg-[#f5f6f8] disabled:text-[#9aa3af] disabled:shadow-none"
               >
                 Ban user
-              </button>
+              </button> 
               <button
                 type="button"
                 disabled={selectedGroup.status === "resolved"}
                 onClick={() => handleResolveGroup(selectedGroup, "Dismissed")}
-                className="rounded-3xl border-2 border-[#d7dce6] bg-white px-5 py-2.5 text-[15px] font-extrabold leading-none text-[#344363] transition hover:border-[#c6ccd9] hover:bg-[#fbfcff] disabled:cursor-not-allowed disabled:border-[#e6e9ee] disabled:bg-[#f5f6f8] disabled:text-[#9aa3af] disabled:shadow-none"
+                className="cursor-pointer rounded-3xl border-2 border-[#d7dce6] bg-white px-5 py-2.5 text-[15px] font-extrabold leading-none text-[#344363] transition hover:border-[#c6ccd9] hover:bg-[#fbfcff] disabled:cursor-not-allowed disabled:border-[#e6e9ee] disabled:bg-[#f5f6f8] disabled:text-[#9aa3af] disabled:shadow-none"
               >
                 Dismiss
               </button>
