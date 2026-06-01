@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { Link } from "react-router-dom";
 import Navbar from "../components/layout/Navbar";
-import UnityGameCard from "../components/unity/UnityGameCard";
+import TitansTossPanel from "../components/titansToss/TitansTossPanel";
 import WordleGame from "../components/wordle/WordleGame";
 
 const UNITY_BUILD_REVISION = "2026-03-12-bridge-fix-2";
@@ -63,7 +63,7 @@ function OffSeasonPage() {
 
           <div role="tabpanel">
             {activeTab === "unity" ? (
-              <UnityGameCard
+              <TitansTossPanel
                 unityConfig={{
                   loaderUrl: `/Build/BuildPrototipo3.loader.js?v=${UNITY_BUILD_REVISION}`,
                   dataUrl: `/Build/BuildPrototipo3.data?v=${UNITY_BUILD_REVISION}`,
