@@ -76,8 +76,9 @@ app.get("/reports/count-banned-users", async (req, res) => {
   try {
     const result = await pool.query(`
       SELECT COUNT(*)::INTEGER AS total
-      FROM accounts
-      WHERE report_status = 'Banned'
+      FROM accounts a
+      JOIN report_status rs ON a.report_status_id = rs.id
+      WHERE rs.name = 'banned'
     `);
 
     res.json({
@@ -104,8 +105,14 @@ app.patch("/reports/ban-user", requireAuth, async (req, res) => {
     }
 
     const result = await pool.query(`
-      UPDATE accounts
-      SET report_status = 'Banned', updated_at = NOW()
+      UPDATE accounts                                                         
+      SET 
+        report_status_id = (
+          SELECT id 
+          FROM report_status 
+          WHERE name='banned'
+        ),
+        updated_at = NOW()
       WHERE user_id = $1
       RETURNING
         account_id,
@@ -116,7 +123,7 @@ app.patch("/reports/ban-user", requireAuth, async (req, res) => {
         country,
         avatar_url,
         role,
-        report_status,
+        report_status_id,
         created_at,
         updated_at
     `, [user_id]);
@@ -179,18 +186,20 @@ app.get("/me", requireAuth, async (req, res) => {
 
     const result = await pool.query(`
       SELECT
-        account_id,
-        user_id,
-        first_name,
-        last_name,
-        username,
-        country,
-        avatar_url,
-        role,
-        created_at,
-        updated_at
-      FROM accounts
-      WHERE user_id = $1
+        a.account_id,
+        a.user_id,
+        a.first_name,
+        a.last_name,
+        a.username,
+        a.country,
+        a.avatar_url,
+        a.role,
+        rs.name AS report_status,
+        a.created_at,
+        a.updated_at
+      FROM accounts a
+      LEFT JOIN report_status rs ON rs.id = a.report_status_id
+      WHERE a.user_id = $1
     `, [userId]);
 
     if (result.rows.length === 0) {
@@ -647,6 +656,35 @@ app.post("/new/user", async (req, res) => {
     }
 
     const result = await pool.query(`
+      WITH input AS (
+        SELECT
+          $1::uuid AS user_id,
+          $2::text AS country,
+          $3::text AS first_name,
+          $4::text AS last_name,
+          NULLIF($5::text, '') AS requested_username,
+          $6::text AS avatar_url
+      ),
+      normalized AS (
+        SELECT
+          user_id,
+          country,
+          first_name,
+          last_name,
+          CASE
+            WHEN requested_username IS NULL THEN 'user_' || SUBSTRING(REPLACE(user_id::text, '-', ''), 1, 8)
+            WHEN EXISTS (
+              SELECT 1
+              FROM accounts
+              WHERE username = requested_username
+                AND user_id <> input.user_id
+            )
+              THEN requested_username || '_' || SUBSTRING(REPLACE(user_id::text, '-', ''), 1, 8)
+            ELSE requested_username
+          END AS username,
+          avatar_url
+        FROM input
+      )
       INSERT INTO accounts (
         user_id,
         country,
@@ -655,7 +693,21 @@ app.post("/new/user", async (req, res) => {
         username,
         avatar_url
       )
-      VALUES ($1, $2, $3, $4, $5, $6)
+      SELECT
+        user_id,
+        country,
+        first_name,
+        last_name,
+        username,
+        avatar_url
+      FROM normalized
+      ON CONFLICT (user_id) DO UPDATE
+      SET
+        country = COALESCE(accounts.country, EXCLUDED.country),
+        first_name = COALESCE(accounts.first_name, EXCLUDED.first_name),
+        last_name = COALESCE(accounts.last_name, EXCLUDED.last_name),
+        avatar_url = COALESCE(NULLIF(accounts.avatar_url, ''), EXCLUDED.avatar_url),
+        updated_at = NOW()
       RETURNING
         account_id,
         user_id,
@@ -676,7 +728,7 @@ app.post("/new/user", async (req, res) => {
       avatar_url ?? null
     ]);
 
-    res.status(201).json({
+    res.status(200).json({
       status: "success",
       new_user: result.rows[0]
     });

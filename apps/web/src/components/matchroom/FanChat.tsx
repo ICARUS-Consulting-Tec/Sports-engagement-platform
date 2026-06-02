@@ -11,7 +11,7 @@ import {
   type ChatParticipantRow,
 } from "../../services/roomsChatService";
 import { createUserReport } from "../../services/userReportsService";
-import { getProfilesBatch } from "../../services/profileService";
+import { getMyProfile, getProfilesBatch } from "../../services/profileService";
 import type { ApiMatch } from "../../types/match";
 import {
   isLiveMatch,
@@ -213,7 +213,7 @@ function FanChatEmptyState({ match }: { match: ApiMatch | null }) {
 }
 
 function FanChat({ matchId, match }: FanChatProps) {
-  const { session } = Auth();
+  const { session, reportStatus } = Auth();
   const [messages, setMessages] = useState<ChatMessageRow[]>([]);
   const [input, setInput] = useState("");
   const [error, setError] = useState<string | null>(null);
@@ -230,14 +230,17 @@ function FanChat({ matchId, match }: FanChatProps) {
   const [reportError, setReportError] = useState<string | null>(null);
   const [reportMessage, setReportMessage] = useState<string | null>(null);
   const [avatarByUserId, setAvatarByUserId] = useState<Record<string, string>>({});
+  const [senderProfileAvatarUrl, setSenderProfileAvatarUrl] = useState<string | null>(null);
   const fetchedAvatarIdsRef = useRef(new Set<string>());
 
   const userId = session?.user ? chatUserIdFromSession(session.user) : null;
   const senderDisplayName =
     session?.user != null ? displayNameFromSession(session.user) : null;
-  const senderAvatarUrl =
+  const senderSessionAvatarUrl =
     session?.user != null ? avatarFromSession(session.user) : null;
+  const senderAvatarUrl = senderProfileAvatarUrl || senderSessionAvatarUrl;
   const live = match != null && isLiveMatch(match);
+  const isBanned = reportStatus?.toLowerCase() === "banned";
 
   const refresh = useCallback(async () => {
     if (!Number.isFinite(matchId)) return;
@@ -274,7 +277,7 @@ function FanChat({ matchId, match }: FanChatProps) {
   }, [matchId, userId]);
 
   useEffect(() => {
-    if (!session?.user || userId == null) {
+    if (!session?.user || userId == null || isBanned) {
       setReady(false);
       return;
     }
@@ -300,7 +303,7 @@ function FanChat({ matchId, match }: FanChatProps) {
       if (interval) clearInterval(interval);
       bootstrapped.current = false;
     };
-  }, [session?.user, userId, matchId, refresh]);
+  }, [session?.user, userId, matchId, refresh, isBanned]);
 
   useEffect(() => {
     const missingIds = [
@@ -347,6 +350,41 @@ function FanChat({ matchId, match }: FanChatProps) {
     };
   }, [messages]);
 
+  useEffect(() => {
+    if (!session?.access_token || userId == null) {
+      setSenderProfileAvatarUrl(null);
+      return;
+    }
+
+    let cancelled = false;
+
+    (async () => {
+      try {
+        const data = await getMyProfile(session.access_token);
+        if (cancelled) return;
+
+        const avatar = data.profile?.avatar_url?.trim();
+        if (avatar && avatar.startsWith("http")) {
+          setSenderProfileAvatarUrl(avatar);
+          setAvatarByUserId((prev) => ({
+            ...prev,
+            [userId.toLowerCase()]: avatar,
+          }));
+        } else {
+          setSenderProfileAvatarUrl(null);
+        }
+      } catch {
+        if (!cancelled) {
+          setSenderProfileAvatarUrl(null);
+        }
+      }
+    })();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [session?.access_token, userId]);
+
   function resolveMessageAvatar(msg: ChatMessageRow, mine: boolean): string | null {
     const fromMsg = msg.avatar_url?.trim();
     if (fromMsg) return fromMsg;
@@ -361,7 +399,7 @@ function FanChat({ matchId, match }: FanChatProps) {
 
   async function sendMessage() {
     const text = input.trim();
-    if (!text || userId == null || !ready) return;
+    if (!text || userId == null || !ready || isBanned) return;
     setInput("");
     try {
       await postMatchMessage(
@@ -463,6 +501,15 @@ function FanChat({ matchId, match }: FanChatProps) {
           No valid user id (Supabase UUID). Sign out and sign back in. In development you can set{" "}
           <code>VITE_CHAT_DEV_USER_ID</code> to a valid UUID.
         </p>
+      </div>
+    );
+  }
+
+  if (isBanned) {
+    return (
+      <div className="fan-chat fan-chat--placeholder">
+        <h3>Fan Chat</h3>
+        <p>Your account is banned, so live match chat is disabled.</p>
       </div>
     );
   }
