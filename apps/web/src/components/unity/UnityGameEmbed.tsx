@@ -150,10 +150,10 @@ function isMotionReport(event: HIDInputReportEvent): boolean {
 }
 
 function UnityGameEmbed({
-  loaderUrl = "/Build/BuildPrototipo3.loader.js",
-  dataUrl = "/Build/BuildPrototipo3.data",
-  frameworkUrl = "/Build/BuildPrototipo3.framework.js",
-  codeUrl = "/Build/BuildPrototipo3.wasm",
+  loaderUrl = "/Build/TestWebGL.loader.js",
+  dataUrl = "/Build/TestWebGL.data",
+  frameworkUrl = "/Build/TestWebGL.framework.js",
+  codeUrl = "/Build/TestWebGL.wasm",
 }: UnityGameEmbedProps) {
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
   const unityInstanceRef = useRef<UnityInstance | null>(null);
@@ -467,9 +467,9 @@ function UnityGameEmbed({
             frameworkUrl,
             codeUrl,
             streamingAssetsUrl: "StreamingAssets",
-            companyName: "DefaultCompany",
-            productName: "Prototipo",
-            productVersion: "0.1.0-web-bridge-fix-1",
+            companyName: "Unity",
+            productName: "WebGL Player",
+            productVersion: "1.0",
             showBanner: unityShowBanner,
           },
           (progress) => {
@@ -503,7 +503,7 @@ function UnityGameEmbed({
       updateState(setUnityStatus, "Could not load the Unity loader");
       updateState(
         setUnityError,
-        "Make sure the BuildPrototipo3.* files exist under apps/web/public/Build.",
+        "Make sure the TestWebGL.* files exist under apps/web/public/Build.",
       );
     };
 
