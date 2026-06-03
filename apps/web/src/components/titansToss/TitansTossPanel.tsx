@@ -113,7 +113,7 @@ function TitansTossPanel({ unityConfig }: TitansTossPanelProps) {
   }, [handleTossComplete]);
 
   return (
-    <div className="grid grid-cols-[minmax(320px,1.4fr)_minmax(280px,0.85fr)] items-start gap-5 max-[900px]:grid-cols-1">
+    <div className="grid grid-cols-[minmax(0,2.4fr)_minmax(240px,0.7fr)] items-start gap-4 max-[1100px]:grid-cols-1">
       <UnityGameCard unityConfig={unityConfig} />
 
       <TitansTossLeaderboard

@@ -39,7 +39,7 @@ function TitansTossLeaderboard({
   }, [entries]);
 
   return (
-    <section className="flex min-h-[360px] h-full flex-col justify-start gap-5 rounded-[14px] border border-[#d8dee5] bg-[#f5f8fb] p-6 text-[#0b2a55]">
+    <section className="flex flex-col justify-start gap-3 rounded-[14px] border border-[#d8dee5] bg-[#f5f8fb] p-4 text-[#0b2a55] max-[1100px]:min-h-0">
       <div className="flex flex-col gap-1.5">
         <h3 className="m-0 font-extrabold text-[32px]">Leaderboard</h3>
         <p className="m-0 leading-[1.5] text-[#49617f] text-[20px]">
