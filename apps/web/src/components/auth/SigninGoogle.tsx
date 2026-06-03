@@ -14,7 +14,7 @@ export const SigninWithGoogle = () => {
 
     return (
         <>
-            <button className="gsi-material-button" onClick={handleSignIn}>
+            <button type="button" className="gsi-material-button" onClick={handleSignIn}>
                 <div className="gsi-material-button-state"></div>
                 <div className="gsi-material-button-content-wrapper">
                     <div className="gsi-material-button-icon">

@@ -196,7 +196,7 @@ function PostManagement() {
         <h2 className="m-0 text-[2.15rem] font-extrabold leading-[1.05] text-[#0b2e63]">
           COMMUNITY REPORTS
         </h2>
-        <p className="mt-[10px] text-[0.95rem] text-[#9aa3af]">
+        <p className="mt-2.5 text-[0.95rem] text-[#9aa3af]">
           General overview of activity and community management
         </p>
       </div>
@@ -224,15 +224,15 @@ function PostManagement() {
             )}
           </div>
           {isLoading ? (
-            <p className="m-0 rounded-[16px] bg-[#f7f8fc] px-6 py-5 text-[16px] font-semibold text-[#596175]">
+            <p className="m-0 rounded-4xl bg-[#f7f8fc] px-6 py-5 text-[16px] font-semibold text-[#596175]">
               Loading community reports...
             </p>
           ) : error ? (
-            <p className="m-0 rounded-[16px] bg-[#fff3f3] px-6 py-5 text-[16px] font-semibold text-[#9f2f2f]">
+            <p className="m-0 rounded-4xl bg-[#fff3f3] px-6 py-5 text-[16px] font-semibold text-[#9f2f2f]">
               {error}
             </p>
           ) : filteredReports.length === 0 ? (
-            <p className="m-0 rounded-[16px] bg-[#f7f8fc] px-6 py-5 text-[16px] font-semibold text-[#596175]">
+            <p className="m-0 rounded-4xl bg-[#f7f8fc] px-6 py-5 text-[16px] font-semibold text-[#596175]">
               No reports found.
             </p>
           ) : (

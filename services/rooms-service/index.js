@@ -5,6 +5,8 @@ const app = express();
 app.use(express.json());
 
 const PORT = process.env.PORT || 4003;
+const PROFILE_SERVICE_URL =
+  process.env.PROFILE_SERVICE_URL || "http://icarus-profile:4006";
 
 /** Antigüedad mínima de un mensaje antes de borrarlo (ms). Por defecto 30 minutos. */
 const CHAT_MESSAGE_MAX_AGE_MS = Math.max(
@@ -43,6 +45,83 @@ const pool = new Pool({
   connectionString: process.env.ROOMS_DB_URL,
 });
 
+let chatMessagesHasAvatarUrl = false;
+
+async function tableColumnExists(tableName, columnName) {
+  const result = await pool.query(
+    `SELECT 1
+     FROM information_schema.columns
+     WHERE table_name = $1 AND column_name = $2
+     LIMIT 1`,
+    [tableName, columnName],
+  );
+  return result.rowCount > 0;
+}
+
+function getAuthorizationHeader(req) {
+  const authHeader = req.headers.authorization;
+
+  if (Array.isArray(authHeader)) {
+    return authHeader[0] || null;
+  }
+
+  return authHeader || null;
+}
+
+async function getProfileByAuthToken(authorizationHeader) {
+  const response = await fetch(`${PROFILE_SERVICE_URL}/me`, {
+    headers: {
+      ...(authorizationHeader ? { Authorization: authorizationHeader } : {}),
+    },
+  });
+
+  if (!response.ok) {
+    throw Object.assign(new Error("Profile lookup failed"), {
+      status: response.status,
+    });
+  }
+
+  const data = await response.json();
+
+  if (!data?.profile) {
+    throw Object.assign(new Error("Profile response missing profile payload"), {
+      status: 502,
+    });
+  }
+
+  return data.profile;
+}
+
+function isBannedProfile(profile) {
+  const status = typeof profile?.report_status === "string"
+    ? profile.report_status.trim().toLowerCase()
+    : "";
+  return status === "banned";
+}
+
+async function requireNotBanned(req, res, next) {
+  const authorizationHeader = getAuthorizationHeader(req);
+
+  if (!authorizationHeader) {
+    return res.status(401).json({ error: "Authorization required" });
+  }
+
+  try {
+    const profile = await getProfileByAuthToken(authorizationHeader);
+    if (isBannedProfile(profile)) {
+      return res.status(403).json({ error: "User is banned" });
+    }
+  } catch (error) {
+    const status =
+      error?.status >= 400 && error?.status < 600 ? error.status : 500;
+    return res
+      .status(status)
+      .json({ error: error?.message || "Authorization failed" });
+  }
+
+  return next();
+}
+
 function parseAvatarUrl(value) {
   if (value == null) return null;
   const s = String(value).trim().slice(0, 500);
@@ -51,6 +130,37 @@ function parseAvatarUrl(value) {
 }
 
 async function ensureChatSchema() {
+  await pool.query(`
+    CREATE TABLE IF NOT EXISTS chatrooms (
+      room_id SERIAL PRIMARY KEY,
+      match_id INTEGER NOT NULL UNIQUE,
+      created_by TEXT,
+      active_users_count INTEGER NOT NULL DEFAULT 0,
+      created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+    )
+  `);
+
+  await pool.query(`
+    CREATE TABLE IF NOT EXISTS chat_messages (
+      id SERIAL PRIMARY KEY,
+      room_id INTEGER NOT NULL,
+      user_id TEXT NOT NULL,
+      content TEXT NOT NULL,
+      sent_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+      display_name VARCHAR(80)
+    )
+  `);
+
+  await pool.query(`
+    CREATE TABLE IF NOT EXISTS chatroom_members (
+      room_id INTEGER NOT NULL,
+      user_id TEXT NOT NULL,
+      status TEXT NOT NULL DEFAULT 'active',
+      joined_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+      PRIMARY KEY (room_id, user_id)
+    )
+  `);
+
   await pool.query(`
     CREATE TABLE IF NOT EXISTS chat_participants (
       room_id INTEGER NOT NULL,
@@ -82,10 +192,7 @@ async function ensureChatSchema() {
     ON CONFLICT (room_id, user_id) DO NOTHING
   `);
 
-  await pool.query(`
-    ALTER TABLE chat_messages
-    ADD COLUMN IF NOT EXISTS avatar_url VARCHAR(500)
-  `);
+  chatMessagesHasAvatarUrl = await tableColumnExists("chat_messages", "avatar_url");
 }
 
 async function upsertChatParticipant(roomId, userId, displayName) {
@@ -131,6 +238,32 @@ async function getRoomIdByMatch(matchId) {
   return r.rows[0]?.room_id ?? null;
 }
 
+function buildChatMessagesSelectSql() {
+  return chatMessagesHasAvatarUrl
+    ? `SELECT m.id, m.room_id, m.user_id, m.content, m.sent_at, m.display_name, m.avatar_url
+       FROM chat_messages m
+       INNER JOIN chatrooms c ON c.room_id = m.room_id
+       WHERE c.match_id = $1
+       ORDER BY m.sent_at ASC, m.id ASC
+       LIMIT $2`
+    : `SELECT m.id, m.room_id, m.user_id, m.content, m.sent_at, m.display_name, NULL::varchar(500) AS avatar_url
+       FROM chat_messages m
+       INNER JOIN chatrooms c ON c.room_id = m.room_id
+       WHERE c.match_id = $1
+       ORDER BY m.sent_at ASC, m.id ASC
+       LIMIT $2`;
+}
+
+function buildChatMessageInsertSql() {
+  return chatMessagesHasAvatarUrl
+    ? `INSERT INTO chat_messages (room_id, user_id, content, display_name, avatar_url)
+       VALUES ($1, $2, $3, $4, $5)
+       RETURNING id, room_id, user_id, content, sent_at, display_name, avatar_url`
+    : `INSERT INTO chat_messages (room_id, user_id, content, display_name)
+       VALUES ($1, $2, $3, $4)
+       RETURNING id, room_id, user_id, content, sent_at, display_name, NULL::varchar(500) AS avatar_url`;
+}
+
 async function ensureRoom(matchId, userId) {
   const existing = await getRoomIdByMatch(matchId);
   if (existing != null) return existing;
@@ -171,7 +304,7 @@ app.get("/health", async (req, res) => {
   }
 });
 
-app.post("/match/:matchId/bootstrap", async (req, res) => {
+app.post("/match/:matchId/bootstrap", requireNotBanned, async (req, res) => {
   const matchId = parseInt(req.params.matchId, 10);
   const userId = parseUuidUserId(req.body?.user_id);
   if (!Number.isFinite(matchId) || userId == null) {
@@ -195,7 +328,7 @@ app.post("/match/:matchId/bootstrap", async (req, res) => {
   }
 });
 
-app.get("/match/:matchId/messages", async (req, res) => {
+app.get("/match/:matchId/messages", requireNotBanned, async (req, res) => {
   const matchId = parseInt(req.params.matchId, 10);
   if (!Number.isFinite(matchId)) {
     return res.status(400).json({ error: "match_id inválido" });
@@ -203,12 +336,7 @@ app.get("/match/:matchId/messages", async (req, res) => {
   const limit = Math.min(parseInt(req.query.limit, 10) || 100, 500);
   try {
     const result = await pool.query(
-      `SELECT m.id, m.room_id, m.user_id, m.content, m.sent_at, m.display_name, m.avatar_url
-       FROM chat_messages m
-       INNER JOIN chatrooms c ON c.room_id = m.room_id
-       WHERE c.match_id = $1
-       ORDER BY m.sent_at ASC, m.id ASC
-       LIMIT $2`,
+      buildChatMessagesSelectSql(),
       [matchId, limit]
     );
     res.json({ messages: result.rows });
@@ -218,7 +346,7 @@ app.get("/match/:matchId/messages", async (req, res) => {
   }
 });
 
-app.post("/match/:matchId/messages", async (req, res) => {
+app.post("/match/:matchId/messages", requireNotBanned, async (req, res) => {
   const matchId = parseInt(req.params.matchId, 10);
   const userId = parseUuidUserId(req.body?.user_id);
   const content = (req.body?.content || "").trim().slice(0, 500);
@@ -243,10 +371,10 @@ app.post("/match/:matchId/messages", async (req, res) => {
     }
 
     const ins = await pool.query(
-      `INSERT INTO chat_messages (room_id, user_id, content, display_name, avatar_url)
-       VALUES ($1, $2, $3, $4, $5)
-       RETURNING id, room_id, user_id, content, sent_at, display_name, avatar_url`,
-      [roomId, userId, content, displayName, avatarUrl]
+      buildChatMessageInsertSql(),
+      chatMessagesHasAvatarUrl
+        ? [roomId, userId, content, displayName, avatarUrl]
+        : [roomId, userId, content, displayName]
     );
     await upsertChatParticipant(roomId, userId, displayName);
     res.status(201).json({ message: ins.rows[0] });
@@ -256,7 +384,7 @@ app.post("/match/:matchId/messages", async (req, res) => {
   }
 });
 
-app.get("/match/:matchId/participants", async (req, res) => {
+app.get("/match/:matchId/participants", requireNotBanned, async (req, res) => {
   const matchId = parseInt(req.params.matchId, 10);
   if (!Number.isFinite(matchId)) {
     return res.status(400).json({ error: "match_id inválido" });
