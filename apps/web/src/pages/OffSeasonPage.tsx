@@ -3,6 +3,7 @@ import { Link } from "react-router-dom";
 import Navbar from "../components/layout/Navbar";
 import UnityGameCard from "../components/unity/UnityGameCard";
 import WordleGame from "../components/wordle/WordleGame";
+import TetrisComp from "../components/tetris/coreTetris";
 
 const UNITY_BUILD_REVISION = "2026-03-12-bridge-fix-2";
 const TAB_BUTTON_BASE_CLASS =
@@ -11,14 +12,14 @@ const TAB_BUTTON_INACTIVE_CLASS = "border border-[#b7c4d1] bg-white text-[#28415
 const TAB_BUTTON_ACTIVE_CLASS = "border border-[#0f3d78] bg-[#0f3d78] text-white";
 
 function OffSeasonPage() {
-  const [activeTab, setActiveTab] = useState<"unity" | "wordle" | "warroom">("unity");
+  const [activeTab, setActiveTab] = useState<"unity" | "wordle" | "warroom" | "tetris">("unity");
 
   return (
     <div className="min-h-screen bg-[#F4F5F7]">
-      <main className="mx-auto w-full max-w-[1400px] p-6">
+      <main className="mx-auto w-full max-w-350 p-6">
         <Navbar />
 
-        <section className="mb-9 flex flex-wrap items-start justify-between gap-6 rounded-[28px] bg-[linear-gradient(90deg,#0B2A55_0%,#1D4E89_50%,#60A5FA_100%)] px-10 py-[42px] text-white shadow-[0_10px_24px_rgba(0,0,0,0.12)]">
+        <section className="mb-9 flex flex-wrap items-start justify-between gap-6 rounded-[28px] bg-[linear-gradient(90deg,#0B2A55_0%,#1D4E89_50%,#60A5FA_100%)] px-10 py-10.5 text-white shadow-[0_10px_24px_rgba(0,0,0,0.12)]">
           <h1 className="m-0 text-[58px] leading-[1.05] font-black">OFF-SEASON</h1>
         </section>
 
@@ -57,6 +58,17 @@ function OffSeasonPage() {
               onClick={() => setActiveTab("warroom")}
             >
               War Room
+            </button>
+            <button
+              type="button"
+              role="tab"
+              aria-selected={activeTab === "tetris"}
+              className={`${TAB_BUTTON_BASE_CLASS} ${
+                activeTab === "tetris" ? TAB_BUTTON_ACTIVE_CLASS : TAB_BUTTON_INACTIVE_CLASS
+              }`}
+              onClick={() => setActiveTab("tetris")}
+            >
+              Tetris
             </button>
 
           </div>
@@ -124,6 +136,12 @@ function OffSeasonPage() {
                     </ul>
                   </aside>
                 </div>
+              </section>
+            ) : null}
+
+            {activeTab === "tetris" ? (
+              <section className="overflow-hidden rounded-2xl border border-[#d8dee5] bg-white shadow-[0_24px_50px_rgba(15,39,70,0.08)]">
+                <TetrisComp />
               </section>
             ) : null}
 
