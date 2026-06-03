@@ -42,6 +42,7 @@ function VoiceAgent() {
     },
   });
 
+  //main ref connection
   useEffect(() => {
     if (isSpeakingInput) {
       isSpeakingInput.value = conversation.isSpeaking;
@@ -83,12 +84,15 @@ function VoiceAgent() {
       <main className="mx-auto flex w-full max-w-[1400px] flex-1 flex-col p-6">
         <Navbar />
 
+        {/* two col */}
         <div className="flex min-h-0 flex-1 flex-row overflow-hidden rounded-2xl border border-gray-200 bg-[#EEF0F4]">
+          {/* left */}
           <div className="flex w-[42%] flex-col items-center justify-start gap-4 border-r border-gray-200 bg-[#EEF0F4] px-6 pb-8 pt-14">
             <h1 className="mb-6 text-4xl font-bold tracking-tight text-[#0C2340]">
               TitanBot
             </h1>
 
+            {/* pets circle */}
             <div className="relative flex h-[280px] w-[280px] items-center justify-center rounded-full border border-gray-200 bg-white">
               {currentStatus === "speaking" && (
                 <>
@@ -102,6 +106,7 @@ function VoiceAgent() {
                   />
                 </>
               )}
+              {/* pets montage */}
               <div className="absolute inset-0 overflow-hidden rounded-full">
                 <div className="flex h-full w-full items-center justify-center">
                   <RiveComponent
@@ -111,8 +116,8 @@ function VoiceAgent() {
               </div>
             </div>
 
-            <StatusIndicator status={currentStatus} />
 
+            <StatusIndicator status={currentStatus} />
             <div className="mt-8">
               <MicButton
                 isActive={conversation.status === "connected"}
@@ -121,6 +126,8 @@ function VoiceAgent() {
             </div>
           </div>
 
+
+          {/* right col */}
           <div className="flex min-h-0 flex-1 flex-col bg-white">
             <header className="flex items-center justify-between border-b border-gray-100 px-5 py-4">
               <div className="flex items-center gap-2 text-[14px] font-medium text-gray-800">
