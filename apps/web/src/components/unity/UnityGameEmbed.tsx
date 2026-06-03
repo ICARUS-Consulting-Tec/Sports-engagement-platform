@@ -2,6 +2,8 @@ import { useEffect, useRef, useState } from "react";
 
 const NINTENDO_VENDOR_ID = 0x057e;
 const UNITY_BRIDGE_OBJECT = "JoyConWebBridge";
+const UNITY_LOADER_SCRIPT_ID = "unity-webgl-loader-script";
+const UNITY_ASPECT_RATIO = 600 / 960;
 const JOYCON_OUTPUT_REPORT_ID = 0x01;
 const JOYCON_STANDARD_FULL_MODE = 0x30;
 const JOYCON_STANDARD_FULL_MODE_ALT = 0x31;
@@ -189,6 +191,20 @@ function UnityGameEmbed({
     if (mountedRef.current) {
       setter(value);
     }
+  }
+
+  function resizeUnityCanvas(): void {
+    const canvas = canvasRef.current;
+    const container = canvas?.parentElement;
+    if (!canvas || !container) {
+      return;
+    }
+
+    const width = Math.max(320, Math.floor(container.clientWidth));
+    const height = Math.max(420, Math.round(width * UNITY_ASPECT_RATIO));
+    canvas.style.width = `${width}px`;
+    canvas.style.height = `${height}px`;
+    container.style.minHeight = `${height}px`;
   }
 
   function getControlStatusLabel(): string {
@@ -448,16 +464,24 @@ function UnityGameEmbed({
 
   useEffect(() => {
     mountedRef.current = true;
+    updateState(setIsUnityLoaded, false);
+    updateState(setLoadingProgress, 0);
+    updateState(setUnityStatus, "Loading Unity build...");
+    updateState(setUnityError, "");
 
-    const script = document.createElement("script");
-    script.src = loaderUrl;
-    script.async = true;
+    const handleResize = () => {
+      resizeUnityCanvas();
+    };
 
-    script.onload = async () => {
+    window.addEventListener("resize", handleResize);
+
+    const startUnity = async () => {
       try {
         if (!window.createUnityInstance || !canvasRef.current) {
           throw new Error("createUnityInstance was not found in the Unity loader.");
         }
+
+        resizeUnityCanvas();
 
         const unityInstance = await window.createUnityInstance(
           canvasRef.current,
@@ -470,6 +494,7 @@ function UnityGameEmbed({
             companyName: "Unity",
             productName: "WebGL Player",
             productVersion: "1.0",
+            matchWebGLToCanvasSize: true,
             showBanner: unityShowBanner,
           },
           (progress) => {
@@ -481,8 +506,16 @@ function UnityGameEmbed({
           },
         );
 
+        if (!mountedRef.current) {
+          if (unityInstance.Quit) {
+            void unityInstance.Quit();
+          }
+          return;
+        }
+
         unityInstanceRef.current = unityInstance;
         isUnityLoadedRef.current = true;
+        resizeUnityCanvas();
         updateState(setIsUnityLoaded, true);
         updateState(setUnityStatus, "Unity ready");
         updateState(setUnityError, "");
@@ -494,12 +527,14 @@ function UnityGameEmbed({
         }
       } catch (error) {
         const message = error instanceof Error ? error.message : String(error);
+        updateState(setIsUnityLoaded, false);
         updateState(setUnityStatus, "Could not load Unity");
         updateState(setUnityError, message);
       }
     };
 
-    script.onerror = () => {
+    const handleLoaderError = () => {
+      updateState(setIsUnityLoaded, false);
       updateState(setUnityStatus, "Could not load the Unity loader");
       updateState(
         setUnityError,
@@ -507,6 +542,17 @@ function UnityGameEmbed({
       );
     };
 
+    const existingScript = document.getElementById(UNITY_LOADER_SCRIPT_ID);
+    if (existingScript) {
+      existingScript.remove();
+    }
+
+    const script = document.createElement("script");
+    script.id = UNITY_LOADER_SCRIPT_ID;
+    script.src = loaderUrl;
+    script.async = true;
+    script.onload = () => void startUnity();
+    script.onerror = handleLoaderError;
     document.body.appendChild(script);
 
     return () => {
@@ -514,6 +560,7 @@ function UnityGameEmbed({
       isUnityLoadedRef.current = false;
       clearBridgeSyncLoop();
       clearZrSyncLoop();
+      window.removeEventListener("resize", handleResize);
 
       void disconnectJoyCon();
 
@@ -523,6 +570,8 @@ function UnityGameEmbed({
       }
 
       unityInstanceRef.current = null;
+      updateState(setIsUnityLoaded, false);
+
       if (script.parentNode) {
         script.parentNode.removeChild(script);
       }
@@ -555,29 +604,34 @@ function UnityGameEmbed({
         </div>
       </div>
 
-      <div className="relative min-h-[560px] overflow-hidden rounded-[22px] bg-[radial-gradient(circle_at_top,rgba(214,40,57,0.2),transparent_24%),linear-gradient(180deg,#07162d_0%,#050b15_100%)] max-[900px]:min-h-[420px]">
-        {!isUnityLoaded ? (
-          <div className="absolute inset-0 z-[2] flex items-center justify-center bg-[rgba(5,11,21,0.78)] backdrop-blur-[6px]">
-            <div className="w-[min(360px,calc(100%-40px))] text-white">
-              <p className="mb-3 text-center font-bold">{unityStatus}</p>
-              <div className="h-3 w-full overflow-hidden rounded-full bg-[rgba(255,255,255,0.15)]">
-                <div
-                  className="h-full rounded-full bg-[linear-gradient(90deg,#d62839_0%,#ff9e5e_100%)] transition-[width] duration-180 ease-in-out"
-                  style={{ width: `${Math.round(loadingProgress * 100)}%` }}
-                />
-              </div>
-            </div>
-          </div>
-        ) : null}
-
+      <div className="relative min-h-[420px] w-full overflow-hidden rounded-[22px] bg-[#050b15] max-[900px]:min-h-[360px]">
         <canvas
           ref={canvasRef}
           id="unity-canvas"
-          className="block min-h-[560px] w-full border-0 max-[900px]:min-h-[420px]"
+          className="mx-auto block w-full max-w-full border-0 bg-[#050b15]"
           width="960"
           height="600"
           tabIndex={-1}
         />
+
+        {!isUnityLoaded || unityError ? (
+          <div className="absolute inset-0 z-[2] flex items-center justify-center bg-[rgba(5,11,21,0.92)] backdrop-blur-[6px]">
+            <div className="w-[min(360px,calc(100%-40px))] text-white">
+              <p className="mb-3 text-center font-bold">{unityStatus}</p>
+              {unityError ? (
+                <p className="mb-3 text-center text-sm text-[#ffb4b4]">{unityError}</p>
+              ) : null}
+              {!unityError ? (
+                <div className="h-3 w-full overflow-hidden rounded-full bg-[rgba(255,255,255,0.15)]">
+                  <div
+                    className="h-full rounded-full bg-[linear-gradient(90deg,#d62839_0%,#ff9e5e_100%)] transition-[width] duration-180 ease-in-out"
+                    style={{ width: `${Math.round(loadingProgress * 100)}%` }}
+                  />
+                </div>
+              ) : null}
+            </div>
+          </div>
+        ) : null}
       </div>
 
     </div>
