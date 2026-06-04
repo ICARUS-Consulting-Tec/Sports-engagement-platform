@@ -92,9 +92,7 @@ services:
     ports:
       - "4006:4006"
     networks:
-      supabase_net:
-        aliases:
-            - icarus-profile
+      - supabase_net
 
   tweets-service:
     build:
