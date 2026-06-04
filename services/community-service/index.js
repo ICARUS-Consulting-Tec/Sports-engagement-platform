@@ -988,7 +988,9 @@ app.get("/reports/list-community-reports", async (req, res) => {
                 p.user_id,
                 p.title,
                 p.content,
-                p.report_status,
+
+                rs.name AS report_status,
+
                 p.resolved_type,
                 p.reviewed_at,
 
@@ -1023,21 +1025,24 @@ app.get("/reports/list-community-reports", async (req, res) => {
 
             FROM posts p
 
+            INNER JOIN report_statuses rs
+                ON rs.status_id = p.report_type_id
+
             INNER JOIN post_reports pr
                 ON pr.post_id = p.post_id
 
-            WHERE p.report_status IS NOT NULL
+            WHERE p.report_type_id IS NOT NULL
 
             GROUP BY
                 p.post_id,
                 p.user_id,
                 p.title,
                 p.content,
-                p.report_status,
+                rs.name,
                 p.resolved_type,
                 p.reviewed_at
 
-            ORDER BY MAX(pr.created_at) DESC
+            ORDER BY MAX(pr.created_at) DESC;
         `);
 
         const reports = result.rows;
@@ -1078,6 +1083,7 @@ app.get("/reports/list-community-reports", async (req, res) => {
         });
 
     } catch (error) {
+        console.error("list-community-reports error:", error);
 
         res.status(500).json({
             success: false,
@@ -1092,22 +1098,24 @@ app.get("/reports/count-critical-reports", async (req, res) => {
     try {
         const result = await pool.query(`
             SELECT COUNT(*)::INTEGER AS total
-            FROM (
-                SELECT
-                    p.post_id,
-                    p.report_status,
-                    COUNT(pr.id_report)::INTEGER AS reports_count
-                FROM posts p
-                INNER JOIN post_reports pr
-                    ON pr.post_id = p.post_id
-                WHERE p.report_status IS NOT NULL
-                  AND p.is_deleted = FALSE
-                GROUP BY
-                    p.post_id,
-                    p.report_status
-            ) reported_posts
-            WHERE report_status = 'Critical'
-               OR reports_count >= 5
+                FROM (
+                    SELECT
+                        p.post_id
+                    FROM posts p
+
+                    INNER JOIN post_reports pr
+                        ON pr.post_id = p.post_id
+
+                    WHERE p.report_type_id IS NOT NULL
+                    AND p.is_deleted = FALSE
+
+                    GROUP BY
+                        p.post_id,
+                        p.report_type_id
+
+                    HAVING p.report_type_id = 2
+                        OR COUNT(pr.id_report) >= 5
+                ) reported_posts;
         `);
 
         res.status(200).json({
@@ -1132,8 +1140,8 @@ app.get("/reports/count-pending-reports", async (req, res) => {
             FROM posts p
             INNER JOIN post_reports pr
                 ON pr.post_id = p.post_id
-            WHERE p.report_status = 'Pending'
-              AND p.is_deleted = FALSE
+            WHERE p.report_type_id = 1
+            AND p.is_deleted = FALSE;
         `);
 
         res.status(200).json({
@@ -1156,9 +1164,9 @@ app.get("/reports/count-resolved-this-month", async (req, res) => {
         const result = await pool.query(`
             SELECT COUNT(*)::INTEGER AS total
             FROM posts
-            WHERE report_status = 'Resolved'
-              AND reviewed_at >= DATE_TRUNC('month', NOW())
-              AND reviewed_at < DATE_TRUNC('month', NOW()) + INTERVAL '1 month'
+            WHERE report_type_id = 3
+            AND reviewed_at >= DATE_TRUNC('month', NOW())
+            AND reviewed_at < DATE_TRUNC('month', NOW()) + INTERVAL '1 month';
         `);
 
         res.status(200).json({
@@ -1285,7 +1293,7 @@ app.patch("/reports/moderate-report", async (req, res) => {
                 await pool.query(`
                     UPDATE posts
                     SET
-                        report_status = 'Resolved',
+                        report_type_id = 3,
                         resolved_type = 'Dismiss',
                         reviewed_at = NOW()
                     WHERE post_id = $1
@@ -1300,7 +1308,7 @@ app.patch("/reports/moderate-report", async (req, res) => {
                     UPDATE posts
                     SET
                         is_deleted = TRUE,
-                        report_status = 'Resolved',
+                        report_type_id = 3,
                         resolved_type = 'Delete',
                         reviewed_at = NOW()
                     WHERE post_id = $1
