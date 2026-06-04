@@ -5,6 +5,7 @@ import {
 } from "../../services/warRoomService";
 import { WarRoomCardVisual } from "./WarRoomCardVisual";
 import { TRADE_RESPONSE_SECONDS, type NegotiateStep } from "./warRoomTypes";
+import { warRoomSeatLabel } from "./warRoomPlayerLabel";
 
 interface Props {
   step: NegotiateStep;
@@ -61,8 +62,8 @@ export function WarRoomNegotiateModal({
             Negotiate Trade
           </p>
           <h2 className="text-xl font-black text-white">
-            {step === "target" && "Choose a GM to negotiate with"}
-            {step === "cards" && `Trading with GM ${target}`}
+            {step === "target" && "Choose a Game Managers to negotiate with"}
+            {step === "cards" && `Trading with Game Managers ${target}`}
             {step === "confirm" && "Confirm your offer"}
           </h2>
         </div>
@@ -78,13 +79,13 @@ export function WarRoomNegotiateModal({
           {step === "target" && (
             <div className="space-y-3">
               <p className="text-sm text-gray-500 mb-4">
-                Select which GM you want to propose a trade to.
+                Select which Game Managers you want to propose a trade to.
               </p>
               {loading ? (
                 <p className="text-center text-gray-400 animate-pulse">Loading...</p>
               ) : availableSeats.length === 0 ? (
                 <p className="text-sm text-gray-500 text-center py-4">
-                  You have already proposed to all available GMs this turn.
+                  You have already proposed to all available Game Managerss this turn.
                 </p>
               ) : (
                 availableSeats.map((seat) => (
@@ -94,7 +95,9 @@ export function WarRoomNegotiateModal({
                     onClick={() => onSelectTarget(seat)}
                     className="w-full rounded-xl border-2 border-gray-200 p-4 text-left hover:border-[#0f3d78] hover:bg-[#0f3d78]/5 transition-all"
                   >
-                    <p className="font-black text-[#0B2A55]">GM {seat}</p>
+                    <p className="font-black text-[#0B2A55]">
+                      {warRoomSeatLabel(seat, players)}
+                    </p>
                     <p className="text-xs text-gray-500 mt-0.5">
                       {players.find((p) => p.seat === seat)?.titansCash ?? 0} TitanCash
                     </p>
@@ -159,7 +162,7 @@ export function WarRoomNegotiateModal({
                   </p>
                   <p className="text-[10px] text-gray-400 mb-2">Select one card</p>
                   {rivalHand.length === 0 ? (
-                    <p className="text-xs text-gray-400 italic">GM {target} has no cards.</p>
+                    <p className="text-xs text-gray-400 italic">Game Managers {target} has no cards.</p>
                   ) : (
                     <div className="space-y-2 max-h-60 overflow-y-auto pr-1">
                       {rivalHand.map((card) => {
@@ -245,7 +248,7 @@ export function WarRoomNegotiateModal({
           {step === "confirm" && myCard && theirCard && (
             <div className="space-y-4">
               <p className="text-sm text-gray-500">
-                Review your offer before sending it to GM {target}. They have{" "}
+                Review your offer before sending it to Game Managers {target}. They have{" "}
                 {TRADE_RESPONSE_SECONDS}s to respond.
               </p>
 
@@ -275,7 +278,7 @@ export function WarRoomNegotiateModal({
                 </div>
                 <div className="border-t pt-2 flex justify-between text-sm">
                   <span className="text-gray-400">Sending to</span>
-                  <span className="font-black text-[#0B2A55]">GM {target}</span>
+                  <span className="font-black text-[#0B2A55]">Game Managers {target}</span>
                 </div>
               </div>
 

@@ -1,4 +1,5 @@
 import { type WarRoomAgenda, type WarRoomMatch } from "../../services/warRoomService";
+import { warRoomPlayerLabel } from "./warRoomPlayerLabel";
 
 interface PickProps {
   agendas: WarRoomAgenda[];
@@ -77,16 +78,17 @@ export function WarRoomAgendaPickPhase({
 
 interface WaitProps {
   match: WarRoomMatch;
+  syncError?: string | null;
 }
 
-export function WarRoomAgendaWaitPhase({ match }: WaitProps) {
+export function WarRoomAgendaWaitPhase({ match, syncError }: WaitProps) {
   const readyCount = match.players.filter((p) => p.agendaReady).length;
   const totalCount = match.players.length;
   return (
     <div className="rounded-2xl bg-white p-10 shadow text-center">
       <p className="text-2xl font-black text-[#0B2A55] mb-2">Agendas Locked In</p>
       <p className="text-sm text-gray-500 mb-6">
-        Waiting for all GMs to select their agendas...
+        Waiting for all Game Managers to select their agendas...
       </p>
       <div className="mb-6 flex justify-center gap-4">
         {match.players.map((p) => (
@@ -98,7 +100,7 @@ export function WarRoomAgendaWaitPhase({ match }: WaitProps) {
                 : "border-gray-200 bg-gray-50 text-gray-400"
             }`}
           >
-            GM {p.seat}{p.seat === match.you.seat ? " (You)" : ""}
+            {warRoomPlayerLabel(p, match.you.seat)}
             <br />
             <span className="text-xs font-normal">
               {p.agendaReady ? "Ready" : "Selecting..."}
@@ -109,6 +111,16 @@ export function WarRoomAgendaWaitPhase({ match }: WaitProps) {
       <p className="animate-pulse text-xs text-gray-400">
         {readyCount} / {totalCount} ready — checking every 3 seconds...
       </p>
+      {syncError && (
+        <p className="mt-4 text-sm font-semibold text-red-600">{syncError}</p>
+      )}
+      {readyCount === totalCount && totalCount > 0 && !syncError && (
+        <p className="mt-3 text-xs text-gray-500">
+          Starting the game… If this takes more than 10s, check{" "}
+          <code className="rounded bg-gray-100 px-1">docker logs icarus-war-room</code> for
+          initializeGame errors.
+        </p>
+      )}
     </div>
   );
 }

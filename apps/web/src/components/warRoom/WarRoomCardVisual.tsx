@@ -14,7 +14,7 @@ export interface WarRoomCardVisualProps {
   headshotUrl: string | null;
   tier: number;
   /** hand = grid in your hand; scout = buy modal; row = negotiate/trade list; mini = small discard */
-  size?: "hand" | "scout" | "row" | "mini";
+  size?: "hand" | "compact" | "scout" | "row" | "mini";
   showRarityBadge?: boolean;
   className?: string;
 }
@@ -121,6 +121,7 @@ export function WarRoomCardVisual({
   }
 
   const isScout = size === "scout";
+  const isCompact = size === "compact";
 
   return (
     <div
@@ -130,11 +131,27 @@ export function WarRoomCardVisual({
         headshotUrl={headshotUrl}
         displayName={displayName}
         tier={tier}
-        heightClass={isScout ? "h-28 w-full" : "h-28 w-full"}
+        heightClass={
+          isScout ? "h-28 w-full" : isCompact ? "h-[4.5rem] w-full" : "h-28 w-full"
+        }
       />
-      <div className="p-2 flex flex-col gap-1">
-        <p className="text-xs font-black text-white leading-tight truncate">{displayName}</p>
-        <p className="text-[10px] text-gray-400 uppercase tracking-wide">{position}</p>
+      <div
+        className={`flex flex-col gap-0.5 ${isCompact ? "p-1.5" : "p-2 gap-1"}`}
+      >
+        <p
+          className={`font-black text-white leading-tight truncate ${
+            isCompact ? "text-[10px]" : "text-xs"
+          }`}
+        >
+          {displayName}
+        </p>
+        <p
+          className={`text-gray-400 uppercase tracking-wide ${
+            isCompact ? "text-[9px]" : "text-[10px]"
+          }`}
+        >
+          {position}
+        </p>
         {showRarityBadge ? (
           <RarityBadge rarity={rarity} size="sm" />
         ) : (

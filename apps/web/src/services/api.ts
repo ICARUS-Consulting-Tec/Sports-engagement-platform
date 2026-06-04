@@ -16,6 +16,22 @@ function resolveApiUrl(endpoint: string): string {
   return `/api${endpoint.startsWith("/") ? endpoint : `/${endpoint}`}`;
 }
 
+function formatHttpErrorBody(data: unknown, status: number): string {
+  if (typeof data === "string") {
+    const trimmed = data.trim();
+    if (!trimmed) return `HTTP error ${status}`;
+    if (trimmed.includes("<html") || trimmed.includes("Bad Gateway")) {
+      if (status === 502) {
+        return "Backend unavailable (502). Start gateway and war-room/profile services.";
+      }
+      return `Server error (${status}). Check Docker services.`;
+    }
+    if (trimmed.length > 240) return `HTTP error ${status}`;
+    return trimmed;
+  }
+  return `HTTP error ${status}`;
+}
+
 export async function apiFetch<T = unknown>(
   endpoint: string,
   options: RequestInit = {},
@@ -42,11 +58,7 @@ export async function apiFetch<T = unknown>(
       );
     }
 
-    throw new Error(
-      typeof data === "string" && data.trim()
-        ? data
-        : `HTTP error ${response.status}`,
-    );
+    throw new Error(formatHttpErrorBody(data, response.status));
   }
 
   return data as T;

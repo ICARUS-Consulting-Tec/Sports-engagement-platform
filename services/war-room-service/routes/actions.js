@@ -7,6 +7,25 @@ module.exports = function registerActionRoutes(app, deps) {
     advanceTurn,
   } = deps;
 
+  /** Block turn actions while a trade proposal from this seat is still PENDING. */
+  async function rejectIfPendingOutboundTrade(res, matchId, fromSeat) {
+    const pending = await pool.query(
+      `SELECT 1 FROM match_trade_proposals
+       WHERE match_id = $1::uuid AND from_seat = $2
+         AND status = 'PENDING' AND expires_at > NOW()
+       LIMIT 1;`,
+      [matchId, fromSeat],
+    );
+    if (pending.rowCount > 0) {
+      res.status(409).json({
+        status: "error",
+        error: "Waiting for trade response before taking another action",
+      });
+      return true;
+    }
+    return false;
+  }
+
 app.post(
   "/matches/:matchId/action/news",
   asyncRoute(async (req, res) => {
@@ -56,6 +75,8 @@ app.post(
       res.status(409).json({ status: "error", error: "Not your turn" });
       return;
     }
+
+    if (await rejectIfPendingOutboundTrade(res, matchId, player.seat)) return;
 
     const cardResult = await pool.query(
       `SELECT card_id    AS "cardId",
@@ -186,6 +207,8 @@ app.post(
         res.status(409).json({ status: "error", error: "Not your turn" });
         return;
       }
+
+      if (await rejectIfPendingOutboundTrade(res, matchId, player.seat)) return;
   
       if (player.titansCash < 5) {
         res.status(400).json({ status: "error", error: "Not enough TitanCash (need 5)" });
@@ -267,6 +290,8 @@ app.post(
         res.status(409).json({ status: "error", error: "Not your turn" });
         return;
         }
+
+        if (await rejectIfPendingOutboundTrade(res, matchId, player.seat)) return;
 
         if (player.titansCash < 5) {
         res.status(400).json({ status: "error", error: "Not enough TitanCash" });
@@ -425,6 +450,8 @@ app.post(
         return;
         }
 
+        if (await rejectIfPendingOutboundTrade(res, matchId, player.seat)) return;
+
         const client = await pool.connect();
         try {
         await client.query("BEGIN");
@@ -525,6 +552,8 @@ app.post(
         res.status(409).json({ status: "error", error: "Not your turn" });
         return;
       }
+
+      if (await rejectIfPendingOutboundTrade(res, matchId, player.seat)) return;
   
       const client = await pool.connect();
       try {
@@ -650,6 +679,8 @@ app.post(
         res.status(409).json({ status: "error", error: "Not your turn" });
         return;
       }
+
+      if (await rejectIfPendingOutboundTrade(res, matchId, player.seat)) return;
 
       if (cashOffer > 0 && player.titansCash < cashOffer) {
         res.status(400).json({ status: "error", error: "Not enough TitanCash for this offer" });

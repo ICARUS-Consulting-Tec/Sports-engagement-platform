@@ -20,7 +20,7 @@ services:
 
   profile-service:
     environment:
-      PROFILE_DB_URL: postgresql://profile_svc:ProfileSvc_2026_dev@host.docker.internal:15432/profile_db
+      PROFILE_DB_URL: ${PROFILE_DB_URL:-postgresql://profile_svc:ProfileSvc_2026_dev@host.docker.internal:15432/profile_db}
 
   history-service:
     environment:
@@ -58,4 +58,5 @@ services:
 
   war-room-service:
     environment:
-      WAR_ROOM_DB_URL: postgresql://war_room_svc:WarRoomSvc_2026_dev@host.docker.internal:15432/war_room_db
+      WAR_ROOM_DB_URL: ${WAR_ROOM_DB_URL:-postgresql://war_room_svc:WarRoomSvc_2026_dev@host.docker.internal:15432/war_room_db}
+      PROFILE_SERVICE_URL: http://profile-service:4006

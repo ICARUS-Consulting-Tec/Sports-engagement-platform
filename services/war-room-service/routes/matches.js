@@ -1,3 +1,4 @@
+const { getProfileDisplayName } = require("../profile");
 module.exports = function registerMatchRoutes(app, deps) {
   const {
     pool,
@@ -6,6 +7,7 @@ module.exports = function registerMatchRoutes(app, deps) {
     generateInviteCode,
     broadcastMatch,
     initializeGame,
+    evaluateAgendas,
   } = deps;
 
 app.get(
@@ -216,6 +218,7 @@ app.get(
 
     const players = await pool.query(
       `SELECT seat,
+              account_id AS "accountId",
               titans_cash AS "titansCash",
               (agenda_pick_1 IS NOT NULL) AS "agendaReady",
               COALESCE(is_ready, FALSE) AS "isReady"
@@ -223,6 +226,19 @@ app.get(
        WHERE match_id = $1::uuid
        ORDER BY seat ASC;`,
       [matchId],
+    );
+
+    const playersWithNames = await Promise.all(
+      players.rows.map(async (row) => {
+        const username = await getProfileDisplayName(row.accountId);
+        return {
+          seat: row.seat,
+          titansCash: row.titansCash,
+          agendaReady: row.agendaReady,
+          isReady: row.isReady,
+          username: username || null,
+        };
+      }),
     );
 
     const p = participant.rows[0];
@@ -270,6 +286,24 @@ app.get(
       pendingTradeForYou = pendingTrade.rows[0];
     }
 
+    // Outbound trade proposal this player is waiting on (proposer's turn is paused)
+    let pendingTradeFromYou = null;
+    const outboundTrade = await pool.query(
+      `SELECT proposal_id AS "proposalId",
+              to_seat     AS "toSeat",
+              expires_at  AS "expiresAt"
+       FROM match_trade_proposals
+       WHERE match_id = $1::uuid
+         AND from_seat = $2
+         AND status = 'PENDING'
+         AND expires_at > NOW()
+       LIMIT 1;`,
+      [matchId, p.seat],
+    );
+    if (outboundTrade.rowCount > 0) {
+      pendingTradeFromYou = outboundTrade.rows[0];
+    }
+
     // Negotiate attempts left for the active player this turn
     let negotiateAttemptsLeft = 2;
     if (m.status === "PLAYING" && p.seat === m.activeSeat) {
@@ -300,6 +334,41 @@ app.get(
       });
     }
 
+    if (m.status === "PLAYING" && myAgendas.length > 0) {
+      const handResult = await pool.query(
+        `SELECT mcp.tier
+         FROM player_hand_cards phc
+         JOIN match_card_pool mcp ON mcp.id = phc.pool_id
+         WHERE phc.match_id = $1::uuid AND phc.seat = $2;`,
+        [matchId, p.seat],
+      );
+      const tiers = handResult.rows.map((r) => r.tier);
+      const handTotal = tiers.reduce((s, t) => s + t, 0);
+      const logsResult = await pool.query(
+        `SELECT action_type AS "actionType"
+         FROM match_turns_log
+         WHERE match_id = $1::uuid AND seat = $2;`,
+        [matchId, p.seat],
+      );
+      const actions = logsResult.rows.map((r) => r.actionType);
+      const { agendaDetails } = await evaluateAgendas(
+        {
+          agendaPick1: p.agendaPick1,
+          agendaPick2: p.agendaPick2,
+          titansCash: p.titansCash,
+        },
+        tiers,
+        handTotal,
+        actions,
+      );
+      for (const agenda of myAgendas) {
+        const evaluated = agendaDetails.find((d) => d.name === agenda.name);
+        if (evaluated) {
+          agenda.achieved = evaluated.achieved;
+        }
+      }
+    }
+
     res.json({
       ...m,
       you: {
@@ -309,8 +378,9 @@ app.get(
         agendaSelected: p.agendaPick1 !== null,
         agendas: myAgendas,
       },
-      players: players.rows,
+      players: playersWithNames,
       pendingTradeForYou,
+      pendingTradeFromYou,
       negotiateAttemptsLeft,
     });
   }),

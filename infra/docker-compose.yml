@@ -89,7 +89,7 @@ services:
     container_name: icarus-profile
     environment:
       PORT: 4006
-      PROFILE_DB_URL: postgresql://profile_svc:ProfileSvc_2026_dev@host.docker.internal:15432/profile_db
+      PROFILE_DB_URL: ${PROFILE_DB_URL:-postgresql://profile_svc:ProfileSvc_2026_dev@host.docker.internal:15432/profile_db}
       SUPABASE_URL: ${SUPABASE_URL}
       SUPABASE_ANON_KEY: ${SUPABASE_ANON_KEY}
     ports:
