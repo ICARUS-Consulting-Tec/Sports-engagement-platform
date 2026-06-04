@@ -14,9 +14,9 @@ function UnityGameCard({ unityConfig }: UnityGameCardProps) {
         <h2 className="mb-2 text-[32px] font-bold text-[#0b2a55] max-[900px]:text-[26px]">
           Off-Season Challenge
         </h2>
-        {/* <p className="m-0 leading-[1.6] text-[#516173]">
-          Embedded game with a TypeScript bridge for Joy-Con via WebHID
-        </p> */}
+        <p className="m-0 leading-[1.6] text-[#516173]">
+          Practice your skills throwing the ball and become a Titan.
+        </p>
       </header>
 
       <UnityGameEmbed {...unityConfig} />
