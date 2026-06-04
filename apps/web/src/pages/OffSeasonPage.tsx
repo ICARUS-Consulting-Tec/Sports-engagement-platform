@@ -3,7 +3,8 @@ import { Link } from "react-router-dom";
 import Navbar from "../components/layout/Navbar";
 import UnityGameCard from "../components/unity/UnityGameCard";
 import WordleGame from "../components/wordle/WordleGame";
-import TetrisComp from "../components/tetris/coreTetris";
+import StartPage from "../components/tetris/startPage";
+import Tetris from "../components/tetris/coreTetris";
 
 const UNITY_BUILD_REVISION = "2026-03-12-bridge-fix-2";
 const TAB_BUTTON_BASE_CLASS =
@@ -140,8 +141,28 @@ function OffSeasonPage() {
             ) : null}
 
             {activeTab === "tetris" ? (
-              <section className="overflow-hidden rounded-2xl border border-[#d8dee5] bg-white shadow-[0_24px_50px_rgba(15,39,70,0.08)]">
-                <TetrisComp />
+              <section className="rounded-2xl border border-[#d8dee5] bg-white p-6 shadow-[0_24px_50px_rgba(15,39,70,0.08)]">
+                <header className="mb-5">
+                  <p className="mb-2 text-[12px] font-extrabold tracking-[0.18em] text-[#d62839]">TETRIS</p>
+                  <h2 className="mb-2 text-[32px] font-bold text-[#0b2a55] max-[900px]:text-[26px]">Titans Cubic adventure</h2>
+                  <p className="m-0 max-w-3xl leading-[1.6] text-[#516173]">Stack, rotate, and clear lines as long as you can. Test your reflexes, strategy, and speed in this Tetris challenge only true Titans can survive!</p>
+                </header>
+
+                <div className="grid grid-cols-[minmax(0,1.4fr)_minmax(280px,0.85fr)] items-start gap-5 max-[900px]:grid-cols-1">
+                  <div className="flex flex-col items-center justify-center gap-5 rounded-[14px] border border-[#d8dee5] bg-[#f8fafc] overflow-hidden">
+                    <Tetris />
+                  </div>
+
+                  <aside className="flex flex-col gap-4 rounded-[14px] border border-[#d8dee5] bg-[#f8fafc] p-5">
+                    <p className="m-0 text-[12px] font-extrabold tracking-[0.18em] text-[#d62839]">QUICK START</p>
+                    <h3 className="m-0 text-lg font-bold text-[#0b2a55]">How to play</h3>
+                    <ul className="m-0 list-none space-y-3 p-0 text-sm leading-snug text-[#516173]">
+                      <li className="border-l-2 border-[#0f3d78]/35 pl-4">Use arrow keys to move and rotate pieces.</li>
+                      <li className="border-l-2 border-[#0f3d78]/35 pl-4">Press space to drop the piece instantly.</li>
+                      <li className="border-l-2 border-[#0f3d78]/35 pl-4">Clear lines to score points and level up.</li>
+                    </ul>
+                  </aside>
+                </div>
               </section>
             ) : null}
 

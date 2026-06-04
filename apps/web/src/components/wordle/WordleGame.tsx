@@ -212,7 +212,7 @@ function WordleGame() {
       </header>
 
       <div className="grid grid-cols-[minmax(0,1.4fr)_minmax(280px,0.8fr)] items-start gap-5 max-[900px]:grid-cols-1">
-        <div className="grid gap-4 rounded-[14px] border border-[#d8dee5] bg-[#f8fafc]">
+        <div className="grid gap-4 rounded-[14px] border border-[#d8dee5] ">
           {isWordleReady ? (
             <>
               <div className="flex items-center justify-between gap-4 rounded-t-[14px] bg-[#103d78] p-5 text-white">

@@ -1,6 +1,7 @@
 // @ts-nocheck
 import React from "react";
 import styled from "styled-components";
+
 const StartButton = styled.button`
   position: absolute;
   top: 50%;
@@ -37,21 +38,11 @@ const StartButton = styled.button`
   }
 `;
 
-const StartPage = ({ startClick }) => {
-	return (
-		<div className="relative w-full h-full min-h-[640px] overflow-hidden bg-white p-6 text-white shadow-[0_10px_24px_rgba(0,0,0,0.12)]">
-			<header >
-				<p className="mb-2 text-[12px] font-extrabold tracking-[0.18em] text-[#d62839]">
-				TETRIS
-				</p>
-				<h2 className="mb-2 text-[32px] font-bold text-[#0b2a55] max-[900px]:text-[26px]">
-				Titans Cubic adventure!
-				</h2>
-				<p className="m-0 max-w-3xl leading-[1.6] text-[#516173]">
-				Stack, rotate, and clear lines as long as you can. Test your reflexes, strategy, and speed in this Tetris challenge only true Titans can survive!.</p>
-			</header>
-			<StartButton onClick={startClick}>Start</StartButton>
-		</div >
-	);
+const StartPage = ({ startClick }: { startClick: any }) => {
+  return (
+      <div className="relative w-full flex items-center justify-center border border-[#d8dee5] p-6" style={{ minHeight: 280 }}>
+        <StartButton onClick={startClick}>Start</StartButton>
+      </div>
+  );
 };
 export default StartPage;
