@@ -216,12 +216,12 @@ function UnityGameEmbed({
         !s.includes("disconnected") &&
         !s.includes("could not connect"));
     if (looksConnected) {
-      return "IOT CONTROL: CONNECTED";
+      return "JOY-CON: CONNECTED";
     }
     if (s.includes("connecting")) {
-      return "IOT CONTROL: CONNECTING";
+      return "JOY-CON: CONNECTING";
     }
-    return "IOT CONTROL: NOT CONNECTED";
+    return "JOY-CON: NOT CONNECTED";
   }
 
   function safeSendToUnity(method: string, payload = ""): boolean {
