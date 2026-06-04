@@ -186,7 +186,7 @@ const Stage = ({ lose, restartClick, map, player, hint, status, paused, ...other
 	const stageRef = useRef(null);
 
 	useEffect(() => {
-		let pixelSizeHeight = height / 20;
+		let pixelSizeHeight = height / 28;
 		let pixelSizeWidth = width / 32;
 		if (portrait) {
 			pixelSizeHeight = height / 26;

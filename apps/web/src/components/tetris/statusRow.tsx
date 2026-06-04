@@ -8,22 +8,25 @@ const Container = styled.div`
 	transition: background-color 0.5s;
 	border: ${props => (props.borderSize ? props.borderSize : "3")}px solid white;
 	${props => !props.portrait && `width: 100%;`}
-	font-family: "ZCOOL QingKe HuangYou", cursive;
 	padding: ${props => (props.padding ? props.padding : "15")}px
 		${props => (props.portrait ? props.padding / 2 : 0)}px; /*15*/
 	margin-bottom: ${props => (props.margin ? props.margin : "10")}px; /*10*/
 `;
 
 const Title = styled.div`
-	width: 100%;
-	text-align: center;
-	color: white;
+  width: 100%;
+  text-align: center;
+  color: white;
+  line-height: 1.05;
+  font-weight: 800;
 `;
 
 const Value = styled.div`
-	width: 100%;
-	text-align: center;
-	color: white;
+  width: 100%;
+  text-align: center;
+  color: white;
+  line-height: 1.05;
+  font-weight: 800;
 `;
 
 const StatusRow = ({
