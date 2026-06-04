@@ -18,6 +18,12 @@ export interface TotalPostsStat {
   trend: "green" | "red" | "gray";
 }
 
+export interface ActiveReportsStat {
+  active_reports: number;
+  new_today: number;
+  trend: "green" | "red" | "gray";
+}
+
 export interface StoreProductsResponse {
   status: string;
   products: unknown[];
@@ -43,6 +49,10 @@ export const dashboardService = {
 
   async getTotalPosts() {
     return apiFetch<TotalPostsStat>('/api/dashboard/stats/total-posts');
+  },
+
+  async getActiveReports() {
+    return apiFetch<ActiveReportsStat>('/api/dashboard/stats/active-reports');
   },
 
   async getTotalProducts() {

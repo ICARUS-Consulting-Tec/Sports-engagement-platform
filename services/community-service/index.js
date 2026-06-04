@@ -759,6 +759,37 @@ app.get("/stats/total-posts", async (req, res) => {
   }
 });
 
+app.get("/stats/active-reports", async (req, res) => {
+  try {
+    const result = await pool.query(`
+      SELECT
+        COUNT(*)::INTEGER AS active_reports,
+        COUNT(*) FILTER (
+          WHERE pr.created_at >= CURRENT_DATE
+        )::INTEGER AS new_today
+      FROM posts p
+      INNER JOIN post_reports pr
+        ON pr.post_id = p.post_id
+      WHERE p.report_type_id = 1
+      AND p.is_deleted = FALSE;
+    `);
+
+    const new_today = result.rows[0].new_today;
+
+    res.json({
+      active_reports: result.rows[0].active_reports,
+      new_today,
+      trend: new_today > 0 ? "red" : "gray",
+    });
+  } catch (error) {
+    console.error("Error en /stats/active-reports:", error);
+    res.status(500).json({
+      error: "Error al obtener reportes activos",
+      details: error.message,
+    });
+  }
+});
+
 //User reports CRUD
 app.post("/reports/create-user-report", async (req, res) => {
     try {

@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { Card } from "@heroui/react";
+import { Icon } from "@iconify/react";
 import MembersPerWeekChart from "../reportsC/ChartCard";
 import StatsCard, { type StatsTrend } from "../reportsC/StatsCard";
 import SectionCard from "../reportsC/SectionCard";
@@ -8,6 +9,7 @@ import PostsByCategoryChart from "../reportsC/PostsByCatChart";
 import TopContributorsCard from "../reportsC/TopContributorsCard";
 import {
   dashboardService,
+  type ActiveReportsStat,
   type TotalMembersStat,
   type TotalPostsStat,
   type TotalProductsStat,
@@ -29,6 +31,9 @@ export default function Dashboard() {
     null,
   );
   const [totalPosts, setTotalPosts] = useState<TotalPostsStat | null>(null);
+  const [activeReports, setActiveReports] = useState<ActiveReportsStat | null>(
+    null,
+  );
   const [totalProducts, setTotalProducts] = useState<TotalProductsStat | null>(
     null,
   );
@@ -40,10 +45,11 @@ export default function Dashboard() {
     async function loadStatsCards() {
       try {
         setStatsLoading(true);
-        const [membersResult, postsResult, productsResult] =
+        const [membersResult, postsResult, activeReportsResult, productsResult] =
           await Promise.allSettled([
             dashboardService.getTotalMembers(),
             dashboardService.getTotalPosts(),
+            dashboardService.getActiveReports(),
             dashboardService.getTotalProducts(),
           ]);
 
@@ -57,6 +63,10 @@ export default function Dashboard() {
           setTotalPosts(postsResult.value);
         }
 
+        if (activeReportsResult.status === "fulfilled") {
+          setActiveReports(activeReportsResult.value);
+        }
+
         if (productsResult.status === "fulfilled") {
           setTotalProducts(productsResult.value);
         }
@@ -64,6 +74,7 @@ export default function Dashboard() {
         if (
           membersResult.status === "rejected" ||
           postsResult.status === "rejected" ||
+          activeReportsResult.status === "rejected" ||
           productsResult.status === "rejected"
         ) {
           console.error("Error loading one or more dashboard stats cards:", {
@@ -71,6 +82,10 @@ export default function Dashboard() {
               membersResult.status === "rejected" ? membersResult.reason : null,
             posts:
               postsResult.status === "rejected" ? postsResult.reason : null,
+            activeReports:
+              activeReportsResult.status === "rejected"
+                ? activeReportsResult.reason
+                : null,
             products:
               productsResult.status === "rejected"
                 ? productsResult.reason
@@ -95,13 +110,22 @@ export default function Dashboard() {
 
   return (
     <div className="w-full">
-      <div className="mb-7">
-        <h2 className="m-0 text-[2.15rem] font-extrabold leading-[1.05] text-[#0b2e63]">
-          DASHBOARD
-        </h2>
-        <p className="mt-[10px] text-[0.95rem] text-[#9aa3af]">
-          Admin overview and management tools will appear here
-        </p>
+      <div className="mb-7 flex items-start justify-between gap-4">
+        <div>
+          <h2 className="m-0 text-[2.15rem] font-extrabold leading-[1.05] text-[#0b2e63]">
+            DASHBOARD
+          </h2>
+          <p className="mt-[10px] text-[0.95rem] text-[#9aa3af]">
+            Admin overview and management tools will appear here
+          </p>
+        </div>
+        <button
+          type="button"
+          className="mr-10 mt-5 flex h-9 shrink-0 cursor-pointer items-center gap-2 rounded-lg bg-[#4B92DB] px-4 text-sm font-semibold text-white transition-colors hover:bg-[#3A7FC5]"
+        >
+          <Icon icon="mdi:download" className="text-lg" />
+          Download Report
+        </button>
       </div>
 
       <Card className="rounded-[24px] shadow-[0_10px_30px_rgba(0,0,0,0.08)]">
@@ -130,7 +154,19 @@ export default function Dashboard() {
               changeLabel={`+${totalPosts?.new_today ?? 0} today`}
               trend={resolveStatsTrend(totalPosts?.trend, totalPosts?.new_today)}
             />
-            <StatsCard />
+            <StatsCard
+              title="ACTIVE REPORTS"
+              value={
+                statsLoading
+                  ? "..."
+                  : (activeReports?.active_reports ?? 0).toLocaleString()
+              }
+              changeLabel={`+${activeReports?.new_today ?? 0} today`}
+              trend={resolveStatsTrend(
+                activeReports?.trend,
+                activeReports?.new_today,
+              )}
+            />
             <StatsCard
               title="TOTAL PRODUCTS"
               value={

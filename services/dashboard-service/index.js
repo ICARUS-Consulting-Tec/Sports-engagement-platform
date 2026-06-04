@@ -33,6 +33,7 @@ app.get("/", (req, res) => {
       "/stats/posts-per-day",
       "/stats/posts-by-category",
       "/stats/total-posts",
+      "/stats/active-reports",
       "/stats/total-products",
       "/top_contributors",
       "/get_products",
@@ -153,6 +154,24 @@ app.get("/stats/total-posts", async (req, res) => {
       service: "dashboard-service",
       status: "error",
       error: "Unable to fetch total-posts data",
+      details: error.message,
+    });
+  }
+});
+
+app.get("/stats/active-reports", async (req, res) => {
+  try {
+    const activeReports = await fetchJson(
+      `${COMMUNITY_SERVICE_URL}/stats/active-reports`,
+    );
+
+    res.json(activeReports);
+  } catch (error) {
+    console.error("dashboard-service active-reports lookup failed:", error);
+    res.status(502).json({
+      service: "dashboard-service",
+      status: "error",
+      error: "Unable to fetch active-reports data",
       details: error.message,
     });
   }
