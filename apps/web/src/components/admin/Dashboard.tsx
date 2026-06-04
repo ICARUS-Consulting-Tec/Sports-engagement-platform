@@ -3,7 +3,6 @@ import { Icon } from "@iconify/react";
 import MembersPerWeekChart from "../reportsC/ChartCard";
 import StatsCard, { type StatsTrend } from "../reportsC/StatsCard";
 import SectionCard from "../reportsC/SectionCard";
-import PostsPerDayChart from "../reportsC/PostPerDayChart";
 import PostsByCategoryChart from "../reportsC/PostsByCatChart";
 import TopContributorsCard from "../reportsC/TopContributorsCard";
 import { MOCK_POSTS_PER_DAY } from "../reportsC/mockReportData";
