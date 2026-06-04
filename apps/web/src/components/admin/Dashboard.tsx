@@ -1,13 +1,12 @@
 import { useEffect, useState } from "react";
-import { Card } from "@heroui/react";
 import { Icon } from "@iconify/react";
 import MembersPerWeekChart from "../reportsC/ChartCard";
 import StatsCard, { type StatsTrend } from "../reportsC/StatsCard";
 import SectionCard from "../reportsC/SectionCard";
-import PostsPerDayChart from "../reportsC/PostPerDayChart";
 import PostsByCategoryChart from "../reportsC/PostsByCatChart";
 import TopContributorsCard from "../reportsC/TopContributorsCard";
 import { MOCK_POSTS_PER_DAY } from "../reportsC/mockReportData";
+import React from "react";
 import {
   dashboardService,
   type ActiveReportsStat,
@@ -15,6 +14,10 @@ import {
   type TotalPostsStat,
   type TotalProductsStat,
 } from "../../services/dashboardService";
+import html2canvas from "html2canvas-pro";
+import jsPDF from "jspdf";
+import titanLogo from "../../assets/home/TitanCrewLogo.png";
+
 
 function formatPostDayLabel(value: string | number): string {
   return new Date(value).toLocaleDateString("es", {
@@ -35,6 +38,108 @@ function resolveStatsTrend(
 }
 
 export default function Dashboard() {
+
+  const printRef = React.useRef(null);
+
+  const handleDownloadPdf = async () => {
+  const element = printRef.current;
+
+  if (!element) {
+    return;
+  }
+
+  const canvas = await html2canvas(element, {
+    scale: 2,
+  });
+
+  const data = canvas.toDataURL("image/png");
+
+  const pdf = new jsPDF({
+    orientation: "portrait",
+    unit: "px",
+    format: "a4",
+  });
+
+  const pageWidth = pdf.internal.pageSize.getWidth();
+  const pageHeight = pdf.internal.pageSize.getHeight();
+
+  // =========================
+  // HEADER
+  // =========================
+
+    // Logo
+    pdf.addImage(
+      titanLogo,
+      "PNG",
+      20, 15, 40, 40
+    );
+
+    // Nombre de la aplicación
+    pdf.setFont("helvetica", "bold");
+    pdf.setFontSize(22);
+    pdf.text("Titan Crew", 70, 32);
+
+    // Título del reporte
+    pdf.setFont("helvetica", "normal");
+    pdf.setFontSize(14);
+    pdf.text("Administrative Dashboard", 70, 52);
+
+    // Fecha (esquina superior derecha)
+    pdf.setFontSize(10);
+
+    pdf.text(
+      `Generated: ${new Date().toLocaleDateString("en-US", {
+        year: "numeric",
+        month: "long",
+        day: "numeric",
+      })}`,
+      pageWidth - 150,
+      25
+    );
+
+    // Línea divisoria
+    pdf.line(20, 70, pageWidth - 20, 70);
+
+  // =========================
+  // DASHBOARD IMAGE
+  // =========================
+
+  const imgProperties = pdf.getImageProperties(data);
+  
+
+  const imageWidth = pageWidth - 50;
+  const xPosition = (pageWidth - imageWidth) / 2;
+
+  const imageHeight =
+    (imgProperties.height * imageWidth) /
+    imgProperties.width;
+
+  const headerHeight = 95;
+
+  pdf.addImage(
+    data,
+    "PNG",
+    xPosition,
+    headerHeight,
+    imageWidth,
+    imageHeight
+  );
+
+  // =========================
+  // FOOTER
+  // =========================
+
+  pdf.setFontSize(9);
+
+  pdf.text(
+    "Titan Crew - Administrative Dashboard Report",
+    20,
+    pageHeight - 15
+  );
+
+  pdf.save("ADMIN_Report.pdf");
+};
+
   const [totalMembers, setTotalMembers] = useState<TotalMembersStat | null>(
     null,
   );
@@ -129,6 +234,7 @@ export default function Dashboard() {
         </div>
         <button
           type="button"
+          onClick={handleDownloadPdf}
           className="mr-10 mt-5 flex h-9 shrink-0 cursor-pointer items-center gap-2 rounded-lg bg-[#4B92DB] px-4 text-sm font-semibold text-white transition-colors hover:bg-[#3A7FC5]"
         >
           <Icon icon="mdi:download" className="text-lg" />
@@ -136,7 +242,10 @@ export default function Dashboard() {
         </button>
       </div>
 
-      <Card className="rounded-[24px] shadow-[0_10px_30px_rgba(0,0,0,0.08)]">
+      <div
+        ref={printRef}
+        className="rounded-[24px] bg-[#FFFFFF] text-[#111827] shadow-[0_10px_30px_rgba(0,0,0,0.08)]"
+      >
         <div className="px-4 py-4">
           <div className="mb-5 grid grid-cols-4 gap-3 max-[1200px]:grid-cols-2 max-[640px]:grid-cols-1">
             <StatsCard
@@ -217,7 +326,7 @@ export default function Dashboard() {
             <PostsByCategoryChart />
           </div>
         </div>
-      </Card>
+      </div>
     </div>
   );
 }
