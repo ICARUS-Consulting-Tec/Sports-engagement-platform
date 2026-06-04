@@ -33,7 +33,7 @@ const LoseContainer = styled.div`
 
 const Title = styled.div`
 	width: 100%;
-	font-size: 2em;
+	font-size: 1.5em;
 	padding: ${props => props.portrait ? 10 : 2}% 0;
 	text-align: center;
 	border-bottom: 1px solid white;
@@ -45,10 +45,12 @@ const ContainerStatus = styled.div`
 	display: flex;
 	flex-direction: column;
 	justify-content: space-evenly;
+	padding: ${props => props.portrait ? 10 : 2}% 0;
 `;
 
 const StatusRow = styled.div`
 	text-align: center;
+	font-size: 1em;
 `;
 
 const ContainerButton = styled.div`
