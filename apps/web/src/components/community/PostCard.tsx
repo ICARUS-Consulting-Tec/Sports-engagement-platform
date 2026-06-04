@@ -6,6 +6,7 @@ import { Auth } from "../../context/AuthContext";
 import { postReportsService } from "../../services/postReportsService";
 import type { Post } from "../../types/community";
 import { getInitials, getPostTime } from "../../utils/postUtils";
+import RepliesList from "./repliesList";
 
 const reportReasons = [
   {
@@ -198,16 +199,7 @@ export default function PostCard({
             <div className="mt-2" onClick={(e) => e.stopPropagation()}>
               <p className="mb-4 text-sm text-black">{post.content}</p>
               {showReplies && onOpenDetail && (
-                <button
-                  type="button"
-                  className="text-sm font-medium text-blue-600"
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    onOpenDetail(post);
-                  }}
-                >
-                  Ver respuestas
-                </button>
+                <RepliesList post_id={post.post_id} />
               )}
             </div>
           )}

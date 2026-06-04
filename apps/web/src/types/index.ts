@@ -66,6 +66,7 @@ export interface Profile {
   account_id: number | string;
   avatar_url: string;
   role: string;
+  report_status?: string | null;
 }
 
 export type ProfileResponse = {

@@ -173,7 +173,7 @@ export default function SuggestionBox() {
                   <div className="flex min-w-0 flex-1 flex-col gap-2">
                     <div className="flex flex-wrap items-center gap-2">
                       <span
-                        className={`rounded-[10px] px-[9px] py-[3px] text-[10px] font-bold uppercase tracking-[0.6px] ${catBadgeClass[catKey]}`}
+                        className={`rounded-[10px] px-2.25 py-0.75 text-[10px] font-bold uppercase tracking-[0.6px] ${catBadgeClass[catKey]}`}
                       >
                         {catLabel[catKey]}
                       </span>
@@ -187,7 +187,7 @@ export default function SuggestionBox() {
                     </div>
                   </div>
 
-                  <div className="w-[110px] shrink-0">
+                  <div className="w-27.5 shrink-0">
                     {hasImages ? (
                       <div className="flex flex-col gap-1.5">
                         {item.image_urls.slice(0, 1).map((url, i) => (
@@ -195,13 +195,13 @@ export default function SuggestionBox() {
                             <img
                               src={url}
                               alt={`Attachment ${i + 1}`}
-                              className="block h-[90px] w-[110px] rounded-[10px] border border-[#e8eaf0] object-cover"
+                              className="block h-22.5 w-27.5 rounded-[10px] border border-[#e8eaf0] object-cover"
                             />
                           </a>
                         ))}
                       </div>
                     ) : (
-                      <div className="flex h-[90px] w-[110px] flex-col items-center justify-center gap-1.5 rounded-[10px] border border-dashed border-[#d0d4e0] bg-[#eef0f5] text-[10px] font-semibold uppercase tracking-[0.4px] text-[#b0b8cc]">
+                      <div className="flex h-22.5 w-27.5 flex-col items-center justify-center gap-1.5 rounded-[10px] border border-dashed border-[#d0d4e0] bg-[#eef0f5] text-[10px] font-semibold uppercase tracking-[0.4px] text-[#b0b8cc]">
                         <ImageIcon />
                         <span>No image</span>
                       </div>

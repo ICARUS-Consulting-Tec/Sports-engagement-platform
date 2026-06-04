@@ -213,7 +213,7 @@ function FanChatEmptyState({ match }: { match: ApiMatch | null }) {
 }
 
 function FanChat({ matchId, match }: FanChatProps) {
-  const { session } = Auth();
+  const { session, reportStatus } = Auth();
   const [messages, setMessages] = useState<ChatMessageRow[]>([]);
   const [input, setInput] = useState("");
   const [error, setError] = useState<string | null>(null);
@@ -240,6 +240,7 @@ function FanChat({ matchId, match }: FanChatProps) {
     session?.user != null ? avatarFromSession(session.user) : null;
   const senderAvatarUrl = senderProfileAvatarUrl || senderSessionAvatarUrl;
   const live = match != null && isLiveMatch(match);
+  const isBanned = reportStatus?.toLowerCase() === "banned";
 
   const refresh = useCallback(async () => {
     if (!Number.isFinite(matchId)) return;
@@ -276,7 +277,7 @@ function FanChat({ matchId, match }: FanChatProps) {
   }, [matchId, userId]);
 
   useEffect(() => {
-    if (!session?.user || userId == null) {
+    if (!session?.user || userId == null || isBanned) {
       setReady(false);
       return;
     }
@@ -302,7 +303,7 @@ function FanChat({ matchId, match }: FanChatProps) {
       if (interval) clearInterval(interval);
       bootstrapped.current = false;
     };
-  }, [session?.user, userId, matchId, refresh]);
+  }, [session?.user, userId, matchId, refresh, isBanned]);
 
   useEffect(() => {
     const missingIds = [
@@ -398,7 +399,7 @@ function FanChat({ matchId, match }: FanChatProps) {
 
   async function sendMessage() {
     const text = input.trim();
-    if (!text || userId == null || !ready) return;
+    if (!text || userId == null || !ready || isBanned) return;
     setInput("");
     try {
       await postMatchMessage(
@@ -500,6 +501,15 @@ function FanChat({ matchId, match }: FanChatProps) {
           No valid user id (Supabase UUID). Sign out and sign back in. In development you can set{" "}
           <code>VITE_CHAT_DEV_USER_ID</code> to a valid UUID.
         </p>
+      </div>
+    );
+  }
+
+  if (isBanned) {
+    return (
+      <div className="fan-chat fan-chat--placeholder">
+        <h3>Fan Chat</h3>
+        <p>Your account is banned, so live match chat is disabled.</p>
       </div>
     );
   }

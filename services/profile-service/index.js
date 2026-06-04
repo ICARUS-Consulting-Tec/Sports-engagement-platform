@@ -76,8 +76,9 @@ app.get("/reports/count-banned-users", async (req, res) => {
   try {
     const result = await pool.query(`
       SELECT COUNT(*)::INTEGER AS total
-      FROM accounts
-      WHERE report_status = 'Banned'
+      FROM accounts a
+      JOIN report_status rs ON a.report_status_id = rs.id
+      WHERE rs.name = 'banned'
     `);
 
     res.json({
@@ -104,8 +105,14 @@ app.patch("/reports/ban-user", requireAuth, async (req, res) => {
     }
 
     const result = await pool.query(`
-      UPDATE accounts
-      SET report_status = 'Banned', updated_at = NOW()
+      UPDATE accounts                                                         
+      SET 
+        report_status_id = (
+          SELECT id 
+          FROM report_status 
+          WHERE name='banned'
+        ),
+        updated_at = NOW()
       WHERE user_id = $1
       RETURNING
         account_id,
@@ -116,7 +123,7 @@ app.patch("/reports/ban-user", requireAuth, async (req, res) => {
         country,
         avatar_url,
         role,
-        report_status,
+        report_status_id,
         created_at,
         updated_at
     `, [user_id]);
@@ -179,18 +186,20 @@ app.get("/me", requireAuth, async (req, res) => {
 
     const result = await pool.query(`
       SELECT
-        account_id,
-        user_id,
-        first_name,
-        last_name,
-        username,
-        country,
-        avatar_url,
-        role,
-        created_at,
-        updated_at
-      FROM accounts
-      WHERE user_id = $1
+        a.account_id,
+        a.user_id,
+        a.first_name,
+        a.last_name,
+        a.username,
+        a.country,
+        a.avatar_url,
+        a.role,
+        rs.name AS report_status,
+        a.created_at,
+        a.updated_at
+      FROM accounts a
+      LEFT JOIN report_status rs ON rs.id = a.report_status_id
+      WHERE a.user_id = $1
     `, [userId]);
 
     if (result.rows.length === 0) {
