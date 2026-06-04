@@ -12,6 +12,19 @@ import {
   updateUserReport,
   type UserReport,
 } from "../../services/userReportsService";
+import { 
+  normalizeStatus,
+  statusToSeverity,
+  isStatusHigher,
+  statusRank,
+  formatReasons,
+  formatDateTime,
+  formatTimeAgo,
+  isAfter,
+  compareDatesDesc
+ } from "../../utils/userReports";
+import { getInitials } from "../../utils/postUtils";
+import { getProfilesBatch } from "../../services/profileService";
 
 type ReportFilterKey = "all" | "pending" | "critical" | "resolved";
 
@@ -68,6 +81,7 @@ function UserManagement() {
   });
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [reporterNameMap, setReporterNameMap] = useState<Record<string,string>>({});
 
   useEffect(() => {
     let isMounted = true;
@@ -173,6 +187,39 @@ function UserManagement() {
     return groupedReports.filter((group) => group.status === filter);
   }, [filter, groupedReports]);
 
+  // when a group is selected, fetch reporter usernames for the reports if needed
+  useEffect(() => {
+    let isMounted = true;
+    async function fetchReporterNames() {
+      if (!selectedGroup) return;
+
+      const ids = Array.from(new Set(selectedGroup.reports.map((r) => r.reported_by).filter(Boolean) as string[]));
+      const missing = ids.filter((id) => !reporterNameMap[id]);
+      if (missing.length === 0) return;
+
+      try {
+        const profiles = await getProfilesBatch(missing);
+        if (!isMounted) return;
+        const map: Record<string,string> = {};
+        for (const p of profiles) {
+          if (p.user_id) {
+            map[p.user_id] = p.username || `${p.first_name || ""} ${p.last_name || ""}`.trim() || p.user_id;
+          }
+        }
+        setReporterNameMap((prev) => ({ ...prev, ...map }));
+      } catch (e) {
+        // ignore profile resolution errors; UI will fallback to id
+        console.error("Error fetching reporter profiles:", e);
+      }
+    }
+
+    void fetchReporterNames();
+
+    return () => {
+      isMounted = false;
+    };
+  }, [selectedGroup]);
+
   async function handleResolveGroup(group: ReportGroup, resolvedType: string) {
     try {
       if (resolvedType === "Banned" && group.userId) {
@@ -249,7 +296,7 @@ function UserManagement() {
         <h2 className="m-0 text-[2.15rem] font-extrabold leading-[1.05] text-[#0b2e63]">
           REPORTED USERS
         </h2>
-        <p className="mt-[10px] text-[0.95rem] text-[#9aa3af]">
+        <p className="mt-2.5 text-[0.95rem] text-[#9aa3af]">
           Review and moderation of users reported by the community
         </p>
       </div>
@@ -298,22 +345,14 @@ function UserManagement() {
                   key={group.key}
                   username={
                     group.userName ||
-                    (group.userId ? `user_${group.userId}` : "anonymous")
+                    (group.userId ? `user` : "anonymous")
                   }
                   severity={statusToSeverity(group.status)}
                   timeAgo={formatTimeAgo(group.latestCreatedAt)}
-                  meta={
-                    group.userId
-                      ? `User id: ${group.userId}`
-                      : "User id: unknown"
-                  }
                   content={group.contentPreview || "No report content available."}
                   reportReason={formatReasons(group.reasons)}
                   reportedByCount={group.reporterIds.length}
-                  primaryActionLabel="Ban user"
-                  secondaryActionLabel="Dismiss"
-                  onRemovePost={() => handleResolveGroup(group, "Banned")}
-                  onDismiss={() => handleResolveGroup(group, "Dismissed")}
+                    showActions={false}
                   onOpenDetails={() => setSelectedGroup(group)}
                 />
               ))
@@ -346,30 +385,25 @@ function UserManagement() {
             <div className="flex flex-wrap gap-3">
               <button
                 type="button"
+                disabled={selectedGroup.status === "resolved"}
                 onClick={() => handleResolveGroup(selectedGroup, "Banned")}
-                className="rounded-[12px] border-2 border-[#d7dce6] bg-white px-5 py-2.5 text-[15px] font-extrabold leading-none text-[#344363] transition hover:border-[#c6ccd9] hover:bg-[#fbfcff]"
+                className="cursor-pointer rounded-3xl border-2 border-[#d7dce6] bg-white px-5 py-2.5 text-[15px] font-extrabold leading-none text-[#344363] transition hover:border-[#c61d1d] hover:bg-[#c61d1d] hover:text-white disabled:cursor-not-allowed disabled:border-[#e6e9ee] disabled:bg-[#f5f6f8] disabled:text-[#9aa3af] disabled:shadow-none"
               >
                 Ban user
-              </button>
+              </button> 
               <button
                 type="button"
+                disabled={selectedGroup.status === "resolved"}
                 onClick={() => handleResolveGroup(selectedGroup, "Dismissed")}
-                className="rounded-[12px] border-2 border-[#d7dce6] bg-white px-5 py-2.5 text-[15px] font-extrabold leading-none text-[#344363] transition hover:border-[#c6ccd9] hover:bg-[#fbfcff]"
+                className="cursor-pointer rounded-3xl border-2 border-[#d7dce6] bg-white px-5 py-2.5 text-[15px] font-extrabold leading-none text-[#344363] transition hover:border-[#c6ccd9] hover:bg-[#fbfcff] disabled:cursor-not-allowed disabled:border-[#e6e9ee] disabled:bg-[#f5f6f8] disabled:text-[#9aa3af] disabled:shadow-none"
               >
                 Dismiss
               </button>
             </div>
           }
-          dialogClassName="max-w-[720px]"
         >
           <div className="flex flex-col gap-4">
-            <div className="rounded-[16px] bg-[#f7f8fc] p-4">
-              <p className="m-0 text-[14px] font-semibold text-[#8a94ab]">
-                User id
-              </p>
-              <p className="m-0 mt-1 break-all text-[15px] font-extrabold text-[#15233d]">
-                {selectedGroup.userId || "Unknown"}
-              </p>
+            <div className="rounded-4xl bg-[#f7f8fc] p-4">
               <div className="mt-3 flex flex-wrap gap-4 text-[14px] font-semibold text-[#596175]">
                 <span>Total reports: {selectedGroup.reports.length}</span>
                 <span>Unique reporters: {selectedGroup.reporterIds.length}</span>
@@ -398,34 +432,46 @@ function UserManagement() {
               <p className="m-0 text-[14px] font-semibold text-[#8a94ab]">
                 Reports detail
               </p>
-              <div className="mt-3 max-h-[320px] space-y-3 overflow-y-auto">
-                {selectedGroup.reports.map((report) => (
-                  <div
-                    key={report.report_id}
-                    className="rounded-[14px] border border-[#e1e6f0] bg-white p-3"
-                  >
-                    <div className="flex flex-wrap items-center justify-between gap-2 text-[13px] font-semibold text-[#8a94ab]">
-                      <span>
-                        Reporter: {report.reported_by || "Unknown"}
-                      </span>
-                      <span>{formatDateTime(report.createdat)}</span>
+              <div className="mt-3 max-h-80 space-y-3 overflow-y-auto">
+                {selectedGroup.reports.map((report) => {
+                  const reporterId = report.reported_by || "";
+                  const reporterName = report.reporter_name || reporterNameMap[reporterId] || (report as any).reported_by_name || (report as any).reported_by_user_name || (report as any).reporter_user_name || reporterId || "Unknown";
+
+                  return (
+                    <div
+                      key={report.report_id}
+                      className="rounded-[14px] border border-[#e1e6f0] bg-white p-3"
+                    >
+                      <div className="flex items-start gap-3">
+                        <div className="h-8 w-8 rounded-full bg-[#eef2f8] text-[12px] font-bold text-[#0B2A55] flex items-center justify-center">
+                          {getInitials(reporterName)}
+                        </div>
+
+                        <div className="flex-1">
+                          <div className="flex items-center justify-between">
+                            <p className="m-0 text-[14px] font-semibold text-[#0B2A55]">
+                              {reporterName}
+                            </p>
+                            <span className="text-[13px] font-semibold text-[#8a94ab]">{formatDateTime(report.createdat)}</span>
+                          </div>
+
+                          <p className="m-0 mt-2 text-[15px] font-semibold text-[#15233d]">
+                            Reason: {report.reason}
+                          </p>
+                          {report.content ? (
+                            <p className="m-0 mt-1 text-[14px] text-[#596175]">
+                              {report.content}
+                            </p>
+                          ) : null}
+                          <div className="mt-2 text-[13px] font-semibold text-[#596175]">
+                            Status: {report.status || "Pending"}
+                            {report.resolved_type ? ` (${report.resolved_type})` : ""}
+                          </div>
+                        </div>
+                      </div>
                     </div>
-                    <p className="m-0 mt-2 text-[15px] font-semibold text-[#15233d]">
-                      Reason: {report.reason}
-                    </p>
-                    {report.content ? (
-                      <p className="m-0 mt-1 text-[14px] text-[#596175]">
-                        {report.content}
-                      </p>
-                    ) : null}
-                    <div className="mt-2 text-[13px] font-semibold text-[#596175]">
-                      Status: {report.status || "Pending"}
-                      {report.resolved_type
-                        ? ` (${report.resolved_type})`
-                        : ""}
-                    </div>
-                  </div>
-                ))}
+                  );
+                })}
               </div>
             </div>
           </div>
@@ -436,72 +482,4 @@ function UserManagement() {
 }
 
 export default UserManagement;
-
-function normalizeStatus(status?: string | null): ReportFilterKey {
-  const normalized = (status || "").toLowerCase();
-  if (normalized === "critical") return "critical";
-  if (normalized === "resolved") return "resolved";
-  if (normalized === "pending") return "pending";
-  return "pending";
-}
-
-function statusToSeverity(status?: string | null) {
-  const normalized = normalizeStatus(status);
-  if (normalized === "critical") return "critical" as const;
-  if (normalized === "resolved") return "resolved" as const;
-  return "pending" as const;
-}
-
-function isStatusHigher(next: ReportFilterKey, current: ReportFilterKey) {
-  return statusRank(next) > statusRank(current);
-}
-
-function statusRank(status: ReportFilterKey) {
-  if (status === "critical") return 3;
-  if (status === "pending") return 2;
-  return 1;
-}
-
-function formatReasons(reasons: string[]) {
-  if (reasons.length === 0) return "No report reason";
-  if (reasons.length <= 2) return reasons.join(", ");
-  return `${reasons.slice(0, 2).join(", ")} +${reasons.length - 2} more`;
-}
-
-function formatTimeAgo(isoDate?: string | null) {
-  if (!isoDate) return "";
-  const now = Date.now();
-  const timestamp = new Date(isoDate).getTime();
-  if (Number.isNaN(timestamp)) return "";
-  const diffSeconds = Math.max(0, Math.floor((now - timestamp) / 1000));
-
-  if (diffSeconds < 60) return "just now";
-  const diffMinutes = Math.floor(diffSeconds / 60);
-  if (diffMinutes < 60) return `${diffMinutes}m ago`;
-  const diffHours = Math.floor(diffMinutes / 60);
-  if (diffHours < 24) return `${diffHours}h ago`;
-  const diffDays = Math.floor(diffHours / 24);
-  if (diffDays < 7) return `${diffDays}d ago`;
-  const diffWeeks = Math.floor(diffDays / 7);
-  return `${diffWeeks}w ago`;
-}
-
-function formatDateTime(isoDate?: string | null) {
-  if (!isoDate) return "";
-  const date = new Date(isoDate);
-  if (Number.isNaN(date.getTime())) return "";
-  return date.toLocaleString();
-}
-
-function isAfter(next?: string | null, current?: string | null) {
-  if (!next) return false;
-  if (!current) return true;
-  return new Date(next).getTime() > new Date(current).getTime();
-}
-
-function compareDatesDesc(a?: string | null, b?: string | null) {
-  const aTime = a ? new Date(a).getTime() : 0;
-  const bTime = b ? new Date(b).getTime() : 0;
-  return bTime - aTime;
-}
 

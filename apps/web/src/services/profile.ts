@@ -126,6 +126,7 @@ export type Profile = {
   username: string | null;
   country: string | null;
   avatar_url: string | null;
+  report_status?: string | null;
   created_at?: string;
   updated_at?: string;
 };
