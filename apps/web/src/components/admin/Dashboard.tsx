@@ -7,6 +7,7 @@ import SectionCard from "../reportsC/SectionCard";
 import PostsPerDayChart from "../reportsC/PostPerDayChart";
 import PostsByCategoryChart from "../reportsC/PostsByCatChart";
 import TopContributorsCard from "../reportsC/TopContributorsCard";
+import { MOCK_POSTS_PER_DAY } from "../reportsC/mockReportData";
 import {
   dashboardService,
   type ActiveReportsStat,
@@ -14,6 +15,13 @@ import {
   type TotalPostsStat,
   type TotalProductsStat,
 } from "../../services/dashboardService";
+
+function formatPostDayLabel(value: string | number): string {
+  return new Date(value).toLocaleDateString("es", {
+    month: "short",
+    day: "numeric",
+  });
+}
 
 function resolveStatsTrend(
   trend: StatsTrend | undefined,
@@ -188,10 +196,20 @@ export default function Dashboard() {
 
           <div className="mt-4 grid grid-cols-2 gap-4">
             <div className="rounded-xl bg-[#f7f8fc] shadow-[0_8px_24px_rgba(15,23,42,0.04)]">
-              <TopContributorsCard />
+              <MembersPerWeekChart
+                endpoint="/api/dashboard/stats/posts-per-day"
+                fallbackData={MOCK_POSTS_PER_DAY}
+                formatXValue={formatPostDayLabel}
+                height={240}
+                stroke="#4e83b7"
+                title="Posts Per Day"
+                tooltipLabel="Posts"
+                xKey="day"
+                yKey="total_posts"
+              />
             </div>
             <div className="rounded-xl bg-[#f7f8fc] shadow-[0_8px_24px_rgba(15,23,42,0.04)]">
-              <PostsPerDayChart />
+              <TopContributorsCard />
             </div>
           </div>
 
