@@ -6,11 +6,11 @@ const Container = styled.div`
 	background-color: ${props =>
 		props.backgroundColor ? props.backgroundColor : "black"};
 	transition: background-color 0.5s;
-	border: ${props => (props.borderSize ? props.borderSize : "3")}px solid white;
 	${props => !props.portrait && `width: 100%;`}
 	padding: ${props => (props.padding ? props.padding : "15")}px
 		${props => (props.portrait ? props.padding / 2 : 0)}px; /*15*/
 	margin-bottom: ${props => (props.margin ? props.margin : "10")}px; /*10*/
+	box-shadow: 0 8px 20px rgba(0, 0, 0, 0.50);
 `;
 
 const Title = styled.div`

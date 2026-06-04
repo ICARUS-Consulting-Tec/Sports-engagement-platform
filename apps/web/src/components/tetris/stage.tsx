@@ -4,7 +4,6 @@ import styled from "styled-components";
 import Switch from "react-switch";
 
 import useWindowDimensions from "../../hooks/tetris/useWindowDimensions";
-import background from "../../assets/tetris/background.jpg";
 import StatusRow from "./statusRow";
 import LoseGame from "./loseGame";
 
@@ -19,9 +18,7 @@ const Game = styled.div`
 	flex-direction: ${props => (props.portrait ? "column" : "row")};
 	justify-content: center;
 	align-items: center;
-	background-image: url(${background});
-	background-size: cover;
-	background-position: center;
+	background-color: #0f3d78;	
 `;
 
 const StageShell = styled.div`
@@ -48,18 +45,17 @@ const Next = styled.div`
 	height: ${props => props.pixelSize * 3}px;
 	background-color: ${props => (props.theme3d ? "#444" : "black")};
 	transition: background-color 0.5;
-	border: ${props => props.pixelSize / 10}px solid white;
 	overflow: hidden;
 	display: flex;
 	flex-direction: column;
 	justify-content: center;
+	box-shadow: 0 8px 20px rgba(0, 0, 0, 0.50);
 	align-items: center;
 	margin-bottom: ${props => (props.portrait ? 0 : props.pixelSize / 3)}px;
 	margin-right: ${props => (!props.portrait ? 0 : props.pixelSize / 3)}px;
 `;
 
 const StyledStage = styled.div`
-	border: ${props => props.pixelSize / 10}px solid white;
 	background-color: ${props => (props.theme3d ? "#444" : "black")};
 	transition: background-color 0.5s;
 	overflow: hidden;
@@ -67,6 +63,7 @@ const StyledStage = styled.div`
 	flex-direction: column;
 	justify-content: center;
 	align-items: center;
+	box-shadow: 0 8px 20px rgba(0, 0, 0, 0.50);
 `;
 
 const Center = styled.div`
