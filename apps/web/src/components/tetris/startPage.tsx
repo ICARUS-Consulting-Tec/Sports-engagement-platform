@@ -1,83 +1,57 @@
 // @ts-nocheck
 import React from "react";
 import styled from "styled-components";
-
-const StyledStartPage = styled.div`
-	position: relative;
-	width: 100%;
-	height: 100%;
-	min-height: 640px;
-	overflow: hidden;
-	background-color: #e3b505;
-`;
-
 const StartButton = styled.button`
-	font-size: 2.2em;
-	font-family: "ZCOOL QingKe HuangYou", cursive;
-	/* border: 2px solid #222; */
-	border: none;
-	padding: 30px 100px;
-	background-color: #fff;
-	position: absolute;
-	top: 50%;
-	left: 50%;
-	transform: translate(-50%, -50%);
-	vertical-align: middle;
-	text-decoration: none;
-	transition: all 0.5s;
-	color: #95190c;
-	border-right: 1px solid #eee;
-	border-radius: 2px;
-	border-bottom: 1px solid #ccc;
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
 
-	:focus {
-		outline: 0;
-	}
+  border: none;
+  border-radius: 0.75rem;
 
-	:hover {
-		margin-left: 5px;
-		margin-top: 5px;
-		::after {
-			right: -5px;
-			top: 2px;
-			width: 5px;
-		}
-		::before {
-			right: -3px;
-			height: 5px;
-		}
-	}
+  background-color: #0f3d78;
+  color: white;
 
-	::after {
-		content: "";
-		height: 100%;
-		width: 10px;
-		background-color: #eee;
-		right: -10px;
-		top: 5px;
-		transform: skewY(45deg);
-		position: absolute;
-		transition: all 0.5s;
-	}
+  padding: 1rem 2.5rem;
 
-	::before {
-		content: "";
-		height: 10px;
-		width: 100%;
-		background-color: #ccc;
-		right: -5px;
-		top: 95px;
-		transform: skewX(45deg);
-		position: absolute;
-		transition: all 0.5s;
-	}
+  font-size: 1.125rem;
+  font-weight: 700;
+
+  cursor: pointer;
+  transition:
+    background-color 0.2s ease,
+    transform 0.2s ease;
+
+  &:hover {
+    background-color: #0b2a55;
+    transform: translate(-50%, -50%) scale(1.03);
+  }
+
+  &:active {
+    transform: translate(-50%, -50%) scale(0.98);
+  }
+
+  &:focus {
+    outline: none;
+  }
 `;
 
 const StartPage = ({ startClick }) => {
 	return (
-		<StyledStartPage>
+		<div className="relative w-full h-full min-h-[640px] overflow-hidden bg-white p-6 text-white shadow-[0_10px_24px_rgba(0,0,0,0.12)]">
+			<header >
+				<p className="mb-2 text-[12px] font-extrabold tracking-[0.18em] text-[#d62839]">
+				TETRIS
+				</p>
+				<h2 className="mb-2 text-[32px] font-bold text-[#0b2a55] max-[900px]:text-[26px]">
+				Titans Cubic adventure!
+				</h2>
+				<p className="m-0 max-w-3xl leading-[1.6] text-[#516173]">
+				Stack, rotate, and clear lines as long as you can. Test your reflexes, strategy, and speed in this Tetris challenge only true Titans can survive!.</p>
+			</header>
 			<StartButton onClick={startClick}>Start</StartButton>
-		</StyledStartPage>
+		</div >
 	);
 };
 export default StartPage;

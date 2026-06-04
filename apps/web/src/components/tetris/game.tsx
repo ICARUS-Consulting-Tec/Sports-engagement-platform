@@ -9,10 +9,6 @@ import Center from "./center";
 
 import { PrintPlayerInMap } from "../../utils/Utils";
 
-//TODO: Alterar OnClick (rotatePlayer) para OnFastClick (criar hook)
-//TODO: Organização do componente "Game" (Separar codigo em hooks, outros components e funcoes)
-//TODO: Dar um tempo quando o bloco estiver no chão, mas o usuário mexendo
-
 const STAGE_HEIGHT = 18;
 const STAGE_WIDTH = 10;
 
