@@ -125,7 +125,7 @@ services:
     container_name: icarus-cards
     environment:
       PORT: 4009
-      CARDS_DB_URL: postgresql://cards_svc:CardsSvc_2026_dev@host.docker.internal:15432/cards_db
+      CARDS_DB_URL: ${CARDS_DB_URL}
     networks:
       - supabase_net
 

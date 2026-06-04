@@ -116,9 +116,7 @@ export function WarRoomAgendaWaitPhase({ match, syncError }: WaitProps) {
       )}
       {readyCount === totalCount && totalCount > 0 && !syncError && (
         <p className="mt-3 text-xs text-gray-500">
-          Starting the game… If this takes more than 10s, check{" "}
-          <code className="rounded bg-gray-100 px-1">docker logs icarus-war-room</code> for
-          initializeGame errors.
+          Starting the game… 
         </p>
       )}
     </div>

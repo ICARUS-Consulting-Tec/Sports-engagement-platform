@@ -28,7 +28,7 @@ services:
 
   cards-service:
     environment:
-      CARDS_DB_URL: postgresql://cards_svc:CardsSvc_2026_dev@host.docker.internal:15432/cards_db
+      CARDS_DB_URL: ${CARDS_DB_URL}
 
   offseason-service:
     environment:
