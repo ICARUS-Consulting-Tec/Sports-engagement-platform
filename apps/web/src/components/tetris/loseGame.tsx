@@ -4,9 +4,9 @@ import styled from 'styled-components';
 const CenterOverlay = styled.div`
 	position: absolute;
 	top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
+	left: 0;
+	right: 0;
+	bottom: 0;
 	width: 100%;
 	height: 100%;
 	z-index: 100;
@@ -17,16 +17,18 @@ const CenterOverlay = styled.div`
 `;
 
 const LoseContainer = styled.div`
-	transition: all 0.2s;
-	width: ${props => props.pixelSize * (props.portrait ? 12 : 20)}px;
-	height: ${props => props.pixelSize * (props.portrait ? 20 : 10)}px;
-	border: ${props => props.pixelSize / 10}px solid white;
-	background-color: ${props => props.theme3d ? '#444' : '#000'};
-	font-size: ${props => props.pixelSize}px;
-	font-family: "ZCOOL QingKe HuangYou", cursive;
-	color: white;
-	display: flex;
-	flex-flow: column;
+  transition: all 0.2s;
+  width: ${props => props.pixelSize * (props.portrait ? 12 : 20)}px;
+	min-height: ${props => props.pixelSize * (props.portrait ? 20 : 10)}px;
+  background-color: #0f3d78;	
+  border-radius: 24px;
+	box-sizing: border-box;
+
+  font-size: ${props => props.pixelSize}px;
+  color: white;
+  font-weight: 800;
+  display: flex;
+  flex-flow: column;
 `;
 
 const Title = styled.div`
@@ -51,7 +53,7 @@ const StatusRow = styled.div`
 
 const ContainerButton = styled.div`
 	flex: 0 1 auto;
-	padding: ${props => props.portrait ? 10 : 2}% 0;
+	padding: ${props => props.portrait ? 4 : 1}% 0;
 	display: flex;
 	justify-content: center;
 	align-items: center;
@@ -62,19 +64,19 @@ const Button = styled.button`
 	width: ${props => props.pixelSize * 10}px;
 	height: ${props => props.pixelSize * 2}px;
 	font-size: ${props => props.pixelSize / 1.5}px;
-	font-family: "ZCOOL QingKe HuangYou", cursive;
 	color: white;
 	border: ${props => props.pixelSize / 20}px solid white;
-	border-radius: ${props => props.pixelSize / 10}px;
-	background-color: rgba(0,0,0,0);
+  	border-radius: 20px;
+	background-color: #0f3d78;	
 	transition: all 0.5s;
+	margin-top: 10px;
+	margin-bottom: 15px;
 
 	:hover {
 		color: #222;
 		border: ${props => props.pixelSize / 20}px solid rgba(0,0,0,0);
 		background-color: white;
 	}
-
 `;
 
 const LoseGame = ({status, portrait, pixelSize, theme3d, restartClick}) => (
