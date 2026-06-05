@@ -33,7 +33,7 @@ function OffSeasonPage() {
               }`}
               onClick={() => setActiveTab("unity")}
             >
-              Unity
+              Titans Toss
             </button>
             <button
               type="button"
@@ -44,7 +44,7 @@ function OffSeasonPage() {
               }`}
               onClick={() => setActiveTab("wordle")}
             >
-              Wordle
+              Titans Words
             </button>
 
             <button
@@ -82,7 +82,7 @@ function OffSeasonPage() {
                     WAR ROOM
                   </p>
                   <h2 className="mb-2 text-[32px] font-bold text-[#0b2a55] max-[900px]:text-[26px]">
-                    Titans Draft Night
+                    Titans War Room
                   </h2>
                   <p className="m-0 max-w-3xl leading-[1.6] text-[#516173]">
                     Real-time board game for up to 3 GMs: agendas, trades, Breaking
