@@ -8,8 +8,11 @@ import {
   Tooltip,
   ResponsiveContainer,
 } from "recharts";
+import { apiFetch } from "../../services/api";
 import { MOCK_MEMBER_STATS } from "./mockReportData";
 import "../../styles/admin.css";
+
+
 
 type ChartValue = string | number;
 
@@ -77,13 +80,7 @@ export default function MembersPerWeekChart({
 
     let isMounted = true;
 
-    fetch(endpoint ?? "/api/dashboard/stats/members-per-month")
-      .then((r) => {
-        if (!r.ok) {
-          throw new Error(`HTTP ${r.status}`);
-        }
-        return r.json();
-      })
+    apiFetch<ChartRow[] | ChartResponse>(endpoint ?? "/api/dashboard/stats/members-per-month")
       .then((payload: ChartRow[] | ChartResponse) => {
         if (!isMounted) return;
 
