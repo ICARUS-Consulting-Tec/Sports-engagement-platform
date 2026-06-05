@@ -59,4 +59,4 @@ services:
 
   war-room-service:
     environment:
-      WAR_ROOM_DB_URL: ${WAR_ROOM_DB_URL:-postgresql://war_room_svc:WarRoomSvc_2026_dev@host.docker.internal:15432/war_room_db}
+      WAR_ROOM_DB_URL: postgresql://war_room_svc:WarRoomSvc_2026_dev@host.docker.internal:15432/war_room_db

@@ -141,7 +141,7 @@ const PostComp = ({ activeFilter = "hot", activeCategory = "All Topics", refresh
 
   return (
     <>
-      <div className="space-y-4">
+      <div className="space-y-4 max-h-[80vh] overflow-y-auto pr-1">
         {categoryFilteredPosts.map((post) => (
           <PostCard
             key={post.post_id}
@@ -150,6 +150,7 @@ const PostComp = ({ activeFilter = "hot", activeCategory = "All Topics", refresh
             isLiked={upvotedPosts.has(post.post_id)}
             onClick={handleTogglePostDetails}
             onLike={handleLikeClick}
+            onRequireAuth={() => setIsOpen(true)}
             onOpenDetail={(selectedPost) => {
               setIsDetailsOpen(true);
               setSelectedPost(selectedPost)

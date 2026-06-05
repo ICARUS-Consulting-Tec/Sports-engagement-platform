@@ -58,7 +58,7 @@ export default function PostsPerDayChart({
 
     let isMounted = true;
 
-    fetch(endpoint ?? "/api/dashboard/stats/posts-per-day")
+    fetch(endpoint ?? "/dashboard/stats/posts-per-day")
       .then((r) => {
         if (!r.ok) {
           throw new Error(`HTTP ${r.status}`);
