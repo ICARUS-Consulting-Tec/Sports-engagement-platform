@@ -1,12 +1,12 @@
 import { useState } from "react";
 import { Link } from "react-router-dom";
 import Navbar from "../components/layout/Navbar";
-import UnityGameCard from "../components/unity/UnityGameCard";
+import TitansTossPanel from "../components/titansToss/TitansTossPanel";
 import WordleGame from "../components/wordle/WordleGame";
 import Tetris from "../components/tetris/coreTetris";
 import type { TetrisLeaderboardResponse } from "../services/tetrisService";
 
-const UNITY_BUILD_REVISION = "2026-03-12-bridge-fix-2";
+const UNITY_BUILD_REVISION = "2026-05-26-testwebgl-1";
 const TAB_BUTTON_BASE_CLASS =
   "cursor-pointer rounded-full px-5 py-3 text-sm font-bold transition-colors";
 const TAB_BUTTON_INACTIVE_CLASS = "border border-[#b7c4d1] bg-white text-[#28415a]";
@@ -39,7 +39,7 @@ function OffSeasonPage() {
               }`}
               onClick={() => setActiveTab("unity")}
             >
-              Unity
+              Titans Toss
             </button>
             <button
               type="button"
@@ -50,7 +50,7 @@ function OffSeasonPage() {
               }`}
               onClick={() => setActiveTab("wordle")}
             >
-              Wordle
+              Titans Words
             </button>
 
             <button
@@ -80,12 +80,12 @@ function OffSeasonPage() {
 
           <div role="tabpanel">
             {activeTab === "unity" ? (
-              <UnityGameCard
+              <TitansTossPanel
                 unityConfig={{
-                  loaderUrl: `/Build/BuildPrototipo3.loader.js?v=${UNITY_BUILD_REVISION}`,
-                  dataUrl: `/Build/BuildPrototipo3.data?v=${UNITY_BUILD_REVISION}`,
-                  frameworkUrl: `/Build/BuildPrototipo3.framework.js?v=${UNITY_BUILD_REVISION}`,
-                  codeUrl: `/Build/BuildPrototipo3.wasm?v=${UNITY_BUILD_REVISION}`,
+                  loaderUrl: `/Build/TestWebGL.loader.js?v=${UNITY_BUILD_REVISION}`,
+                  dataUrl: `/Build/TestWebGL.data?v=${UNITY_BUILD_REVISION}`,
+                  frameworkUrl: `/Build/TestWebGL.framework.js?v=${UNITY_BUILD_REVISION}`,
+                  codeUrl: `/Build/TestWebGL.wasm?v=${UNITY_BUILD_REVISION}`,
                 }}
               />
             ) : null}
@@ -99,7 +99,7 @@ function OffSeasonPage() {
                     WAR ROOM
                   </p>
                   <h2 className="mb-2 text-[32px] font-bold text-[#0b2a55] max-[900px]:text-[26px]">
-                    Titans Draft Night
+                    Titans War Room
                   </h2>
                   <p className="m-0 max-w-3xl leading-[1.6] text-[#516173]">
                     Real-time board game for up to 3 GMs: agendas, trades, Breaking

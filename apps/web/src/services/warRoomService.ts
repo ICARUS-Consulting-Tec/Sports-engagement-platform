@@ -13,6 +13,7 @@ export interface WarRoomPlayer {
   titansCash: number;
   agendaReady: boolean;
   isReady: boolean;
+  username: string | null;
 }
 
 export interface MyAgenda {
@@ -20,6 +21,7 @@ export interface MyAgenda {
   name: string;
   description: string;
   bonusPoints: number;
+  achieved?: boolean;
 }
 
 export interface WarRoomMatch {
@@ -38,6 +40,11 @@ export interface WarRoomMatch {
   };
   players: WarRoomPlayer[];
   pendingTradeForYou: TradeProposal | null;
+  pendingTradeFromYou: {
+    proposalId: string;
+    toSeat: number;
+    expiresAt: string;
+  } | null;
   negotiateAttemptsLeft: number;
 }
 
