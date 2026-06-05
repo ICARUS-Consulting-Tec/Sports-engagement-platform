@@ -1,7 +1,6 @@
 // @ts-nocheck
 import React, { useState, useEffect, useRef } from "react";
 import styled from "styled-components";
-import Switch from "react-switch";
 
 import useWindowDimensions from "../../hooks/tetris/useWindowDimensions";
 import StatusRow from "./statusRow";
@@ -138,6 +137,32 @@ const ContainerSwitch = styled.div`
 	`};
 `;
 
+const ThemeSwitchButton = styled.button`
+	width: ${props => props.pixelSize * 2}px;
+	height: ${props => props.pixelSize / 1.2}px;
+	border: 0;
+	border-radius: ${props => props.pixelSize / 1.2}px;
+	background-color: ${props => (props.checked ? "#444" : "#000")};
+	display: flex;
+	align-items: center;
+	justify-content: ${props => (props.checked ? "flex-end" : "flex-start")};
+	padding: 0;
+	cursor: pointer;
+	transition: background-color 0.5s;
+	box-sizing: border-box;
+`;
+
+const ThemeSwitchThumb = styled.span`
+	width: ${props => props.pixelSize / 1.2}px;
+	height: ${props => props.pixelSize / 1.2}px;
+	border-radius: 50%;
+	background-color: white;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	box-shadow: 0 2px 6px rgba(0, 0, 0, 0.35);
+`;
+
 const ContainerStatus = styled.div`
 	width: ${props => props.pixelSize * 8}px;
 	${props =>
@@ -237,37 +262,27 @@ const Stage = ({ lose, restartClick, map, player, hint, status, paused, ...other
 							))}
 						</Next>
 						<ContainerSwitch portrait={portrait}>
-							<Switch
-								width={pixelSize * 2}
-								height={pixelSize / 1.2}
-								onChange={setTheme3d}
+							<ThemeSwitchButton
+								type="button"
+								role="switch"
+								aria-checked={theme3d}
+								aria-label="Toggle 3D blocks"
 								checked={theme3d}
-								offColor="#000"
-								onColor="#444"
-								uncheckedIcon={
-									<Center>
-										<Pixel
-											theme3d={false}
-											pixelSize={pixelSize / 3}
-											stage="true"
-											fill={1}
-											color={"#e54b4b"}
-										/>
-									</Center>
-								}
-								checkedIcon={
-									<Center>
-										<Pixel
-											theme3d="true"
-											pixelSize={pixelSize / 3}
-											stage="true"
-											fill={1}
-											color={"#e54b4b"}
-											topBloco="true"
-										/>
-									</Center>
-								}
-							/>
+								pixelSize={pixelSize}
+								onMouseDown={(event) => event.preventDefault()}
+								onClick={() => setTheme3d(value => !value)}
+							>
+								<ThemeSwitchThumb pixelSize={pixelSize}>
+									<Pixel
+										theme3d={theme3d}
+										pixelSize={pixelSize / 3}
+										stage="true"
+										fill={1}
+										color={"#e54b4b"}
+										topBloco={theme3d}
+									/>
+								</ThemeSwitchThumb>
+							</ThemeSwitchButton>
 						</ContainerSwitch>
 					</ContainerNext>
 				)}
