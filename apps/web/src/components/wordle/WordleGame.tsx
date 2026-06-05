@@ -196,7 +196,7 @@ function WordleGame() {
   return (
     <section className="rounded-2xl border border-[#d8dee5] bg-white p-6">
       <header className="mb-5">
-        <p className="mb-2 text-[12px] font-extrabold tracking-[0.18em] text-[#d62839]">TITAN WORDS</p>
+        <p className="mb-2 text-[12px] font-extrabold tracking-[0.18em] text-[#d62839]">TITANS WORDS</p>
         <h2 className="mb-2 text-[32px] font-bold text-[#0b2a55] max-[900px]:text-[26px]">
          Titans Words
         </h2>
