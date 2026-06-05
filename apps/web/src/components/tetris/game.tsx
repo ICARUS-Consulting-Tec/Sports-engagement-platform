@@ -26,6 +26,27 @@ const colors = [
 	"#f8ebee"
 ];
 
+const gameplayKeyCodes = new Set([32, 37, 38, 39, 40]);
+
+const isEditableTarget = target => {
+	const element = target instanceof Element ? target : null;
+	if (!element) return false;
+
+	const tagName = element.tagName.toLowerCase();
+	return (
+		tagName === "input" ||
+		tagName === "textarea" ||
+		tagName === "select" ||
+		element.closest("[contenteditable='true']")
+	);
+};
+
+const preventGameplayScroll = (event, isActive) => {
+	if (isActive && gameplayKeyCodes.has(event.keyCode) && !isEditableTarget(event.target)) {
+		event.preventDefault();
+	}
+};
+
 const I = {
 	bloco: [
 		[0, 0, 0, 0],
@@ -191,7 +212,10 @@ const Game = ({ onGameOver }) => {
 			setPlayer({ ...player, bloco: { ...player.bloco, bloco: mtrx } });
 	};
 
-	const keyUp = ({ keyCode }) => {
+	const keyUp = event => {
+		preventGameplayScroll(event, !pause && !gameOver);
+		const { keyCode } = event;
+
 		if (pause || gameOver)
 			return;
 		const THRESHOLD = 80;
@@ -220,7 +244,10 @@ const Game = ({ onGameOver }) => {
 		});
 	};
 
-	const keyDown = ({ keyCode }) => {
+	const keyDown = event => {
+		preventGameplayScroll(event, !pause && !gameOver);
+		const { keyCode } = event;
+
 		if (pause || gameOver)
 			return;
 		switch (keyCode) {
