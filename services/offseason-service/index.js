@@ -6,11 +6,12 @@ app.use(express.json());
 
 const PORT = process.env.PORT || 4010;
 const WORDLE_GAME_ID = 1;
+const TETRIS_GAME_ID = Number.parseInt(process.env.TETRIS_GAME_ID || "3", 10) || 3;
 const TITANS_TOSS_GAME_ID = 2;
 const DEFAULT_TIMEZONE = process.env.WORDLE_TIMEZONE || "America/Monterrey";
 const MAX_ATTEMPTS = 6;
 const WORD_LENGTH = 5;
-const PROFILE_SERVICE_URL = process.env.PROFILE_SERVICE_URL || "http://icarus-profile:4006";
+const PROFILE_SERVICE_URL = process.env.PROFILE_SERVICE_URL || "http://profile-service:4006";
 const WORDLE_DICTIONARY_TABLES = {
   answer: "wordle_words",
   general: "wordle_general_words",
@@ -121,6 +122,34 @@ function serializeLeaderboardEntry(row) {
   };
 }
 
+function serializeTetrisSession(row) {
+  return {
+    sessionId: row.session_id,
+    gameId: row.game_id,
+    userId: row.user_id,
+    score: row.score,
+    playtimeSeconds: row.playtime_seconds,
+    playedAt: row.played_at,
+    linesCleared: row.lines_cleared,
+    levelReached: row.level_reached,
+  };
+}
+
+function serializeTetrisLeaderboardEntry(row) {
+  return {
+    leaderboardId: row.leaderboard_id,
+    gameId: row.game_id,
+    userId: row.user_id,
+    playerName: row.player_name || `User ${row.user_id}`,
+    score: row.score,
+    rank: Number(row.rank),
+    playtimeSeconds: row.playtime_seconds,
+    playedAt: row.played_at,
+    linesCleared: row.lines_cleared,
+    levelReached: row.level_reached,
+  };
+}
+
 async function getProfileByAuthToken(authorizationHeader) {
   const response = await fetch(`${PROFILE_SERVICE_URL}/me`, {
     headers: {
@@ -186,6 +215,28 @@ async function getWordleConfig() {
     puzzleDate: formatDateInTimezone(),
     maxAttempts: MAX_ATTEMPTS,
     wordLength: WORD_LENGTH,
+  };
+}
+
+async function getTetrisConfig() {
+  const result = await pool.query(
+    `
+      SELECT game_id, name
+      FROM games
+      WHERE game_id = $1
+      LIMIT 1;
+    `,
+    [TETRIS_GAME_ID],
+  );
+
+  if (result.rowCount === 0) {
+    throw new Error("Tetris game configuration is missing in games table.");
+  }
+
+  return {
+    gameId: result.rows[0].game_id,
+    gameName: result.rows[0].name,
+    userId: null,
   };
 }
 
@@ -317,6 +368,108 @@ async function getWordleHistoryByUser(userIdInput) {
     gameId: WORDLE_GAME_ID,
     userId,
     sessions: result.rows.map(serializeSession),
+  };
+}
+
+async function getTetrisLeaderboard(queryable = pool) {
+  const result = await queryable.query(
+    `
+      WITH ranked_sessions AS (
+        SELECT
+          session_id,
+          game_id,
+          user_id,
+          score,
+          playtime_seconds,
+          played_at,
+          lines_cleared,
+          level_reached,
+          ROW_NUMBER() OVER (
+            PARTITION BY user_id
+            ORDER BY
+              score DESC NULLS LAST,
+              lines_cleared DESC NULLS LAST,
+              level_reached DESC NULLS LAST,
+              playtime_seconds ASC NULLS LAST,
+              played_at ASC NULLS LAST,
+              session_id ASC
+          ) AS user_session_rank
+        FROM game_sessions
+        WHERE game_id = $1
+      ),
+      best_sessions AS (
+        SELECT
+          session_id,
+          game_id,
+          user_id,
+          score,
+          playtime_seconds,
+          played_at,
+          lines_cleared,
+          level_reached,
+          ROW_NUMBER() OVER (
+            ORDER BY
+              score DESC NULLS LAST,
+              lines_cleared DESC NULLS LAST,
+              level_reached DESC NULLS LAST,
+              playtime_seconds ASC NULLS LAST,
+              played_at ASC NULLS LAST,
+              user_id ASC,
+              session_id ASC
+          ) AS rank
+        FROM ranked_sessions
+        WHERE user_session_rank = 1
+      )
+      SELECT
+        session_id AS leaderboard_id,
+        game_id,
+        user_id,
+        score,
+        rank,
+        playtime_seconds,
+        played_at,
+        lines_cleared,
+        level_reached
+      FROM best_sessions
+      ORDER BY rank ASC
+      LIMIT 5;
+    `,
+    [TETRIS_GAME_ID],
+  );
+
+  const rowsWithNames = await Promise.all(
+    result.rows.map(async (row) => ({
+      ...row,
+      player_name: await getProfileName(row.user_id),
+    })),
+  );
+
+  return {
+    gameId: TETRIS_GAME_ID,
+    entries: rowsWithNames.map((row) => ({
+      ...serializeTetrisLeaderboardEntry(row),
+      playerName: row.player_name,
+    })),
+  };
+}
+
+async function getTetrisHistoryByUser(userIdInput) {
+  const userId = parsePositiveInteger(userIdInput, "user_id");
+  const result = await pool.query(
+    `
+      SELECT session_id, game_id, user_id, score, playtime_seconds, played_at, lines_cleared, level_reached
+      FROM game_sessions
+      WHERE game_id = $1
+        AND user_id = $2
+      ORDER BY played_at DESC, session_id DESC;
+    `,
+    [TETRIS_GAME_ID, userId],
+  );
+
+  return {
+    gameId: TETRIS_GAME_ID,
+    userId,
+    sessions: result.rows.map(serializeTetrisSession),
   };
 }
 
@@ -650,6 +803,82 @@ async function rebuildTitansTossLeaderboard(client, puzzleDateInput) {
   );
 }
 
+async function resolveTetrisUserId(payload, authorizationHeader) {
+  if (authorizationHeader) {
+    const profile = await getProfileByAuthToken(authorizationHeader);
+
+    return parsePositiveInteger(profile.account_id, "account_id");
+  }
+
+  if (payload.user_id !== undefined && payload.user_id !== null) {
+    return parsePositiveInteger(payload.user_id, "user_id");
+  }
+  
+  throw new Error("Authentication is required to save a Tetris session.");
+}
+
+
+
+async function saveTetrisSession(payload, authorizationHeader) {
+  const userId = await resolveTetrisUserId(payload, authorizationHeader);
+  const score = parsePositiveInteger(payload.score, "score", {
+    allowZero: true,
+  });
+  const linesCleared = parsePositiveInteger(payload.linesCleared, "linesCleared", {
+    allowZero: true,
+  });
+  const levelReached = parsePositiveInteger(payload.levelReached, "levelReached");
+  const playtimeSeconds = parsePositiveInteger(payload.playtimeSeconds, "playtimeSeconds", {
+    allowZero: true,
+  });
+  const playedAt = normalizePlayedAt(payload.playedAt);
+  const client = await pool.connect();
+
+  try {
+    await client.query("BEGIN");
+    const insertResult = await client.query(
+      `
+        INSERT INTO game_sessions (
+          game_id,
+          user_id,
+          score,
+          playtime_seconds,
+          played_at,
+          lines_cleared,
+          level_reached
+        )
+        VALUES ($1, $2, $3, $4, $5, $6, $7)
+        RETURNING session_id, game_id, user_id, score, playtime_seconds, played_at, lines_cleared, level_reached;
+      `,
+      [
+        TETRIS_GAME_ID,
+        userId,
+        score,
+        playtimeSeconds,
+        playedAt,
+        linesCleared,
+        levelReached,
+      ],
+    );
+
+    const leaderboard = await getTetrisLeaderboard(client);
+    await client.query("COMMIT");
+
+    return {
+      session: serializeTetrisSession(insertResult.rows[0]),
+      leaderboard,
+    };
+  } catch (error) {
+    await client.query("ROLLBACK");
+    throw error;
+  } finally {
+    client.release();
+  }
+}
+    
+    
+    
+  
 async function resolveTitansTossUserId(payload, authorizationHeader) {
   if (authorizationHeader) {
     const profile = await getProfileByAuthToken(authorizationHeader);
@@ -740,7 +969,7 @@ function buildDatabaseError(error) {
   }
 
   if (error.code === "42703") {
-    return "Wordle schema is missing required columns in offseason_db";
+    return "Offseason schema is missing required columns in offseason_db";
   }
 
   return error.message;
@@ -763,7 +992,7 @@ function asyncHandler(handler) {
 app.get("/", (req, res) => {
   res.json({
     service: "offseason-service",
-    modules: ["wordle", "titans-toss"],
+    modules: ["wordle", "titans-toss", "tetris"],
     status: "ok",
     endpoints: [
       "/health",
@@ -774,6 +1003,11 @@ app.get("/", (req, res) => {
       "/wordle/history",
       "/wordle/history/:userId",
       "/wordle/session",
+      "/tetris/config",
+      "/tetris/leaderboard",
+      "/tetris/history",
+      "/tetris/history/:userId",
+      "/tetris/session",
       "/titans-toss/config",
       "/titans-toss/leaderboard",
       "/titans-toss/leaderboard/:date",
@@ -786,7 +1020,7 @@ app.get("/health", asyncHandler(async (req, res) => {
   const result = await pool.query("SELECT NOW() AS now");
   res.json({
     service: "offseason-service",
-    modules: ["wordle", "titans-toss"],
+    modules: ["wordle", "titans-toss", "tetris"],
     status: "ok",
     db: "connected",
     time: result.rows[0].now,
@@ -854,6 +1088,56 @@ app.post("/wordle/session", asyncHandler(async (req, res) => {
   res.status(201).json(savedSession);
 }));
 
+app.get("/tetris/config", asyncHandler(async (req, res) => {
+  const config = await getTetrisConfig();
+  res.json(config);
+}));
+
+app.get("/tetris/leaderboard", asyncHandler(async (req, res) => {
+  const leaderboard = await getTetrisLeaderboard();
+  res.json(leaderboard);
+}));
+
+app.get("/tetris/history", asyncHandler(async (req, res) => {
+  if (req.query.userId) {
+    const history = await getTetrisHistoryByUser(req.query.userId);
+    res.json(history);
+    return;
+  }
+
+  const authorizationHeader = getAuthorizationHeader(req);
+
+  if (!authorizationHeader) {
+    res.status(400).json({
+      status: "error",
+      error: "Authentication is required to load personal Tetris history.",
+    });
+    return;
+  }
+
+  const profile = await getProfileByAuthToken(authorizationHeader);
+  const history = await getTetrisHistoryByUser(profile.account_id);
+  res.json(history);
+}));
+
+app.get("/tetris/history/:userId", asyncHandler(async (req, res) => {
+  const history = await getTetrisHistoryByUser(req.params.userId);
+  res.json(history);
+}));
+
+app.post("/tetris/session", asyncHandler(async (req, res) => {
+  const payload = {
+    user_id: req.body.user_id,
+    score: req.body.score,
+    linesCleared: req.body.linesCleared,
+    levelReached: req.body.levelReached,
+    playtimeSeconds: req.body.playtimeSeconds,
+    playedAt: req.body.playedAt,
+  };
+
+  const savedSession = await saveTetrisSession(payload, getAuthorizationHeader(req));
+  res.status(201).json(savedSession);
+}));
 app.get("/titans-toss/config", asyncHandler(async (req, res) => {
   const config = await getTitansTossConfig();
   res.json(config);
