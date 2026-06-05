@@ -198,7 +198,7 @@ function WordleGame() {
       <header className="mb-5">
         <p className="mb-2 text-[12px] font-extrabold tracking-[0.18em] text-[#d62839]">TITAN WORDS</p>
         <h2 className="mb-2 text-[32px] font-bold text-[#0b2a55] max-[900px]:text-[26px]">
-          Off-Season Titan Words
+         Titans Words
         </h2>
         <p className="m-0 max-w-3xl leading-[1.6] text-[#516173]">
           Test your football knowledge by uncovering hidden words inspired by the world of the Titans and American football. 

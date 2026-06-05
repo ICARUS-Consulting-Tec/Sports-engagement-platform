@@ -17,8 +17,9 @@ export const TIER_STYLES: Record<
   5: { bg: "bg-gradient-to-r from-red-700 to-blue-800", text: "text-white", label: "5 pts" },
 };
 
-export const TURN_SECONDS = 30;
+export const TURN_SECONDS = 45;
 export const TRADE_RESPONSE_SECONDS = 15;
+export const MAX_ROUNDS = 10;
 
 /** Map War Room tier (1–5) to roster rarity for Team-style card chrome. */
 export function tierToRarity(tier: number): CardRarity {
