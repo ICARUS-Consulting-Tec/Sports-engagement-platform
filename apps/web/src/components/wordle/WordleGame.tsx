@@ -200,12 +200,13 @@ function WordleGame() {
         <h2 className="mb-2 text-[32px] font-bold text-[#0b2a55] max-[900px]:text-[26px]">
          Titans Words
         </h2>
-        <p className="m-0 leading-[1.6] text-[#516173] text-[20px]">
-          Test your football knowledge by uncovering hidden words inspired by the world of the Titans and American football.
+        <p className="m-0 max-w-3xl leading-[1.6] text-[#516173]">
+          Test your football knowledge by uncovering hidden words inspired by the world of the Titans and American football. 
+          Do you have what it takes to dominate the field and solve the Wordle before you run out of attempts?
         </p>
-        <p className="m-0 leading-[1.6] text-[#516173] text-[20px]">
+        {/* <p className="m-0 max-w-3xl leading-[1.6] text-[#516173]">
            Do you have what it takes to dominate the field and solve the Wordle before you run out of attempts?
-        </p>
+        </p> */}
         {loadingMessage ? <p className={MESSAGE_CLASS}>{loadingMessage}</p> : null}
         {saveError ? <p className={MESSAGE_CLASS}>{saveError}</p> : null}
         {isSaving ? <p className={MESSAGE_CLASS}>Saving score...</p> : null}

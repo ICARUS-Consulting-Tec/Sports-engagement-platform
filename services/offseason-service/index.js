@@ -6,6 +6,7 @@ app.use(express.json());
 
 const PORT = process.env.PORT || 4010;
 const WORDLE_GAME_ID = 1;
+const TITANS_TOSS_GAME_ID = 2;
 const DEFAULT_TIMEZONE = process.env.WORDLE_TIMEZONE || "America/Monterrey";
 const MAX_ATTEMPTS = 6;
 const WORD_LENGTH = 5;
@@ -67,6 +68,20 @@ function parsePositiveInteger(value, fieldName, { allowZero = false, fallback } 
   }
 
   return parsedValue;
+}
+
+function parseDistanceYards(value, fieldName = "distance_yards") {
+  const parsedValue = Number.parseFloat(String(value));
+
+  if (Number.isNaN(parsedValue) || parsedValue <= 0) {
+    throw new Error(`Invalid ${fieldName}. Expected a positive number.`);
+  }
+
+  return parsedValue;
+}
+
+function distanceYardsToScore(distanceYards) {
+  return Math.round(distanceYards * 100);
 }
 
 function getAuthorizationHeader(req) {
@@ -465,6 +480,260 @@ async function saveWordleSession(payload, authorizationHeader) {
   }
 }
 
+async function getTitansTossConfig() {
+  const result = await pool.query(
+    `
+      SELECT game_id, name
+      FROM games
+      WHERE game_id = $1
+      LIMIT 1;
+    `,
+    [TITANS_TOSS_GAME_ID],
+  );
+
+  if (result.rowCount === 0) {
+    throw new Error("Titans Toss game configuration is missing in games table.");
+  }
+
+  return {
+    gameId: result.rows[0].game_id,
+    gameName: result.rows[0].name,
+    puzzleDate: formatDateInTimezone(),
+  };
+}
+
+async function getTitansTossLeaderboardRows(queryable, puzzleDateInput) {
+  const puzzleDate = normalizePuzzleDate(puzzleDateInput);
+  const result = await queryable.query(
+    `
+      WITH best_sessions AS (
+        SELECT
+          session_id,
+          game_id,
+          user_id,
+          score,
+          attempt_count,
+          playtime_seconds,
+          puzzle_date,
+          played_at,
+          ROW_NUMBER() OVER (
+            PARTITION BY user_id
+            ORDER BY score DESC, played_at ASC, session_id ASC
+          ) AS user_best_rank
+        FROM game_sessions
+        WHERE game_id = $1
+          AND puzzle_date = $2
+      ),
+      ranked_sessions AS (
+        SELECT
+          session_id,
+          game_id,
+          user_id,
+          score,
+          attempt_count,
+          playtime_seconds,
+          puzzle_date,
+          ROW_NUMBER() OVER (
+            ORDER BY score DESC, played_at ASC, user_id ASC
+          ) AS rank
+        FROM best_sessions
+        WHERE user_best_rank = 1
+      )
+      SELECT
+        session_id AS leaderboard_id,
+        game_id,
+        user_id,
+        score,
+        rank,
+        attempt_count,
+        playtime_seconds,
+        puzzle_date
+      FROM ranked_sessions
+      ORDER BY rank ASC, user_id ASC
+      LIMIT 5;
+    `,
+    [TITANS_TOSS_GAME_ID, puzzleDate],
+  );
+
+  return {
+    puzzleDate,
+    rows: result.rows,
+  };
+}
+
+async function getTitansTossLeaderboardByDate(puzzleDateInput, queryable = pool) {
+  const { puzzleDate, rows } = await getTitansTossLeaderboardRows(queryable, puzzleDateInput);
+
+  const rowsWithNames = await Promise.all(
+    rows.map(async (row) => ({
+      ...row,
+      player_name: await getProfileName(row.user_id),
+    })),
+  );
+
+  return {
+    gameId: TITANS_TOSS_GAME_ID,
+    puzzleDate,
+    entries: rowsWithNames.map((row) => ({
+      ...serializeLeaderboardEntry(row),
+      playerName: row.player_name,
+    })),
+  };
+}
+
+async function rebuildTitansTossLeaderboard(client, puzzleDateInput) {
+  const puzzleDate = normalizePuzzleDate(puzzleDateInput);
+
+  await client.query(
+    `
+      DELETE FROM leaderboard
+      WHERE game_id = $1
+        AND puzzle_date = $2;
+    `,
+    [TITANS_TOSS_GAME_ID, puzzleDate],
+  );
+
+  await client.query(
+    `
+      INSERT INTO leaderboard (
+        game_id,
+        user_id,
+        score,
+        rank,
+        attempt_count,
+        playtime_seconds,
+        puzzle_date
+      )
+      WITH best_sessions AS (
+        SELECT
+          game_id,
+          user_id,
+          score,
+          attempt_count,
+          playtime_seconds,
+          puzzle_date,
+          played_at,
+          session_id,
+          ROW_NUMBER() OVER (
+            PARTITION BY user_id
+            ORDER BY score DESC, played_at ASC, session_id ASC
+          ) AS user_best_rank
+        FROM game_sessions
+        WHERE game_id = $1
+          AND puzzle_date = $2
+      ),
+      ranked_sessions AS (
+        SELECT
+          game_id,
+          user_id,
+          score,
+          attempt_count,
+          playtime_seconds,
+          puzzle_date,
+          ROW_NUMBER() OVER (
+            ORDER BY score DESC, played_at ASC, user_id ASC
+          ) AS rank
+        FROM best_sessions
+        WHERE user_best_rank = 1
+      )
+      SELECT
+        game_id,
+        user_id,
+        score,
+        rank,
+        attempt_count,
+        playtime_seconds,
+        puzzle_date
+      FROM ranked_sessions;
+    `,
+    [TITANS_TOSS_GAME_ID, puzzleDate],
+  );
+}
+
+async function resolveTitansTossUserId(payload, authorizationHeader) {
+  if (authorizationHeader) {
+    const profile = await getProfileByAuthToken(authorizationHeader);
+
+    return parsePositiveInteger(profile.account_id, "account_id");
+  }
+
+  if (payload.user_id !== undefined && payload.user_id !== null) {
+    return parsePositiveInteger(payload.user_id, "user_id");
+  }
+
+  throw new Error("Authentication is required to save a Titans Toss session.");
+}
+
+async function saveTitansTossSession(payload, authorizationHeader) {
+  const userId = await resolveTitansTossUserId(payload, authorizationHeader);
+  const distanceYards = parseDistanceYards(payload.distance_yards);
+  const score = distanceYardsToScore(distanceYards);
+  const playtimeSeconds = parsePositiveInteger(payload.playtime_seconds, "playtime_seconds", {
+    allowZero: true,
+    fallback: 0,
+  });
+  const puzzleDate = normalizePuzzleDate(payload.puzzle_date);
+  const playedAt = normalizePlayedAt(payload.played_at);
+  const client = await pool.connect();
+
+  try {
+    await client.query("BEGIN");
+
+    const attemptCountResult = await client.query(
+      `
+        SELECT COUNT(*)::int AS attempt_count
+        FROM game_sessions
+        WHERE game_id = $1
+          AND user_id = $2
+          AND puzzle_date = $3;
+      `,
+      [TITANS_TOSS_GAME_ID, userId, puzzleDate],
+    );
+
+    const attemptCount = (attemptCountResult.rows[0]?.attempt_count ?? 0) + 1;
+
+    const insertResult = await client.query(
+      `
+        INSERT INTO game_sessions (
+          game_id,
+          user_id,
+          score,
+          playtime_seconds,
+          played_at,
+          attempt_count,
+          puzzle_date
+        )
+        VALUES ($1, $2, $3, $4, $5, $6, $7)
+        RETURNING session_id, game_id, user_id, score, playtime_seconds, played_at, attempt_count, puzzle_date;
+      `,
+      [
+        TITANS_TOSS_GAME_ID,
+        userId,
+        score,
+        playtimeSeconds,
+        playedAt,
+        attemptCount,
+        puzzleDate,
+      ],
+    );
+
+    await rebuildTitansTossLeaderboard(client, puzzleDate);
+    const leaderboard = await getTitansTossLeaderboardByDate(puzzleDate, client);
+
+    await client.query("COMMIT");
+
+    return {
+      session: serializeSession(insertResult.rows[0]),
+      leaderboard,
+    };
+  } catch (error) {
+    await client.query("ROLLBACK");
+    throw error;
+  } finally {
+    client.release();
+  }
+}
+
 function buildDatabaseError(error) {
   if (error.code === "42501") {
     return "Database permission denied for offseason-service user";
@@ -494,7 +763,7 @@ function asyncHandler(handler) {
 app.get("/", (req, res) => {
   res.json({
     service: "offseason-service",
-    module: "wordle",
+    modules: ["wordle", "titans-toss"],
     status: "ok",
     endpoints: [
       "/health",
@@ -505,6 +774,10 @@ app.get("/", (req, res) => {
       "/wordle/history",
       "/wordle/history/:userId",
       "/wordle/session",
+      "/titans-toss/config",
+      "/titans-toss/leaderboard",
+      "/titans-toss/leaderboard/:date",
+      "/titans-toss/session",
     ],
   });
 });
@@ -513,7 +786,7 @@ app.get("/health", asyncHandler(async (req, res) => {
   const result = await pool.query("SELECT NOW() AS now");
   res.json({
     service: "offseason-service",
-    module: "wordle",
+    modules: ["wordle", "titans-toss"],
     status: "ok",
     db: "connected",
     time: result.rows[0].now,
@@ -578,6 +851,35 @@ app.post("/wordle/session", asyncHandler(async (req, res) => {
   };
 
   const savedSession = await saveWordleSession(payload, getAuthorizationHeader(req));
+  res.status(201).json(savedSession);
+}));
+
+app.get("/titans-toss/config", asyncHandler(async (req, res) => {
+  const config = await getTitansTossConfig();
+  res.json(config);
+}));
+
+app.get("/titans-toss/leaderboard", asyncHandler(async (req, res) => {
+  const config = await getTitansTossConfig();
+  const leaderboard = await getTitansTossLeaderboardByDate(config.puzzleDate);
+  res.json(leaderboard);
+}));
+
+app.get("/titans-toss/leaderboard/:date", asyncHandler(async (req, res) => {
+  const leaderboard = await getTitansTossLeaderboardByDate(req.params.date);
+  res.json(leaderboard);
+}));
+
+app.post("/titans-toss/session", asyncHandler(async (req, res) => {
+  const payload = {
+    user_id: req.body.user_id,
+    distance_yards: req.body.distance_yards,
+    playtime_seconds: req.body.playtime_seconds,
+    played_at: req.body.played_at,
+    puzzle_date: req.body.puzzle_date,
+  };
+
+  const savedSession = await saveTitansTossSession(payload, getAuthorizationHeader(req));
   res.status(201).json(savedSession);
 }));
 

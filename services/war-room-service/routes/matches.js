@@ -23,7 +23,7 @@ app.get(
   }),
 );
 
-// POST /matches
+// POST /matches = Crea los lobbies
 app.post(
   "/matches",
   asyncRoute(async (_req, res) => {
@@ -72,7 +72,7 @@ app.post(
   }),
 );
 
-// POST /matches/join/:inviteCode
+// POST /matches/join/:inviteCode = Valida el codigo para unirse
 app.post(
   "/matches/join/:inviteCode",
   asyncRoute(async (req, res) => {
@@ -161,7 +161,7 @@ app.post(
   }),
 );
 
-// GET /matches/:matchId
+// GET /matches/:matchId = Valida la informacion del juego
 app.get(
   "/matches/:matchId",
   asyncRoute(async (req, res) => {
@@ -244,7 +244,6 @@ app.get(
     const p = participant.rows[0];
     const m = matchResult.rows[0];
 
-    // Pending trade proposal directed at this player
     let pendingTradeForYou = null;
     const pendingTrade = await pool.query(
       `SELECT mtp.proposal_id AS "proposalId",
