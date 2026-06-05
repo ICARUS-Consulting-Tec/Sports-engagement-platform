@@ -3,12 +3,19 @@ import { WarRoomCardVisual } from "./WarRoomCardVisual";
 
 interface Props {
   trade: TradeProposal;
+  fromLabel: string;
   timer: number;
   loading: boolean;
   onRespond: (accept: boolean) => void;
 }
 
-export function WarRoomIncomingTradeModal({ trade, timer, loading, onRespond }: Props) {
+export function WarRoomIncomingTradeModal({
+  trade,
+  fromLabel,
+  timer,
+  loading,
+  onRespond,
+}: Props) {
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60">
       <div className="mx-4 w-full max-w-md rounded-2xl bg-white shadow-2xl overflow-hidden">
@@ -18,7 +25,7 @@ export function WarRoomIncomingTradeModal({ trade, timer, loading, onRespond }: 
               Trade Offer
             </p>
             <h2 className="text-xl font-black text-white">
-              GM {trade.fromSeat} wants to trade
+              {fromLabel} wants to trade
             </h2>
           </div>
           <div className={`text-2xl font-black ${timer > 8 ? "text-green-300" : "text-red-400"}`}>
