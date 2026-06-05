@@ -3,8 +3,8 @@ import { Link } from "react-router-dom";
 import Navbar from "../components/layout/Navbar";
 import UnityGameCard from "../components/unity/UnityGameCard";
 import WordleGame from "../components/wordle/WordleGame";
-import StartPage from "../components/tetris/startPage";
 import Tetris from "../components/tetris/coreTetris";
+import type { TetrisLeaderboardResponse } from "../services/tetrisService";
 
 const UNITY_BUILD_REVISION = "2026-03-12-bridge-fix-2";
 const TAB_BUTTON_BASE_CLASS =
@@ -14,6 +14,9 @@ const TAB_BUTTON_ACTIVE_CLASS = "border border-[#0f3d78] bg-[#0f3d78] text-white
 
 function OffSeasonPage() {
   const [activeTab, setActiveTab] = useState<"unity" | "wordle" | "warroom" | "tetris">("unity");
+  const [tetrisLeaderboard, setTetrisLeaderboard] = useState<TetrisLeaderboardResponse | null>(null);
+  const [isTetrisLeaderboardLoading, setIsTetrisLeaderboardLoading] = useState(false);
+  const [tetrisStatusMessage, setTetrisStatusMessage] = useState<string | null>(null);
 
   return (
     <div className="min-h-screen bg-[#F4F5F7]">
@@ -150,7 +153,11 @@ function OffSeasonPage() {
 
                 <div className="grid grid-cols-[minmax(0,1.4fr)_minmax(280px,0.85fr)] items-start gap-5 max-[900px]:grid-cols-1">
                   <div className="flex flex-col items-center justify-center gap-5 rounded-[14px] border border-[#d8dee5] bg-[#f8fafc] overflow-hidden">
-                    <Tetris />
+                    <Tetris
+                      onLeaderboardChange={setTetrisLeaderboard}
+                      onLeaderboardLoadingChange={setIsTetrisLeaderboardLoading}
+                      onStatusMessageChange={setTetrisStatusMessage}
+                    />
                   </div>
 
                   <aside className="flex flex-col gap-4 rounded-[14px] border border-[#d8dee5] bg-[#f8fafc] p-5">
@@ -161,6 +168,32 @@ function OffSeasonPage() {
                       <li className="border-l-2 border-[#0f3d78]/35 pl-4">Press space to drop the piece instantly.</li>
                       <li className="border-l-2 border-[#0f3d78]/35 pl-4">Clear lines to score points and level up.</li>
                     </ul>
+                    <div className="border-t border-[#d8dee5] pt-4">
+                      <p className="m-0 mb-3 text-[12px] font-extrabold tracking-[0.18em] text-[#d62839]">LEADERBOARD</p>
+                      {tetrisStatusMessage ? (
+                        <p className="m-0 mb-3 text-sm font-semibold leading-snug text-[#516173]">{tetrisStatusMessage}</p>
+                      ) : null}
+                      {isTetrisLeaderboardLoading ? (
+                        <p className="m-0 text-sm font-semibold text-[#516173]">Loading leaderboard...</p>
+                      ) : null}
+                      {!isTetrisLeaderboardLoading && !tetrisLeaderboard?.entries.length ? (
+                        <p className="m-0 text-sm font-semibold text-[#516173]">No saved scores yet.</p>
+                      ) : null}
+                      {!isTetrisLeaderboardLoading && tetrisLeaderboard?.entries.length ? (
+                        <ol className="m-0 grid list-none gap-2 p-0">
+                          {tetrisLeaderboard.entries.slice(0, 5).map((entry) => (
+                            <li
+                              key={entry.leaderboardId}
+                              className="grid grid-cols-[auto_minmax(0,1fr)_auto] items-center gap-2 rounded-lg border border-[#d8dee5] bg-white px-3 py-2 text-sm"
+                            >
+                              <span className="font-black text-[#d62839]">#{entry.rank}</span>
+                              <span className="truncate font-bold text-[#0b2a55]">{entry.playerName}</span>
+                              <span className="font-black text-[#28415a]">{entry.score}</span>
+                            </li>
+                          ))}
+                        </ol>
+                      ) : null}
+                    </div>
                   </aside>
                 </div>
               </section>

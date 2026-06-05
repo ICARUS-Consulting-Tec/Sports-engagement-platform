@@ -34,6 +34,7 @@ services:
   offseason-service:
     environment:
       OFFSEASON_DB_URL: ${OFFSEASON_DB_URL:-postgresql://offseason_svc:OffseasonSvc_2026_dev@host.docker.internal:15432/offseason_db}
+      PROFILE_SERVICE_URL: http://profile-service:4006
 
   news-service:
     environment:

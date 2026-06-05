@@ -10,7 +10,7 @@ const TETRIS_GAME_ID = Number.parseInt(process.env.TETRIS_GAME_ID || "3", 10) ||
 const DEFAULT_TIMEZONE = process.env.WORDLE_TIMEZONE || "America/Monterrey";
 const MAX_ATTEMPTS = 6;
 const WORD_LENGTH = 5;
-const PROFILE_SERVICE_URL = process.env.PROFILE_SERVICE_URL || "http://icarus-profile:4006";
+const PROFILE_SERVICE_URL = process.env.PROFILE_SERVICE_URL || "http://profile-service:4006";
 const WORDLE_DICTIONARY_TABLES = {
   answer: "wordle_words",
   general: "wordle_general_words",
@@ -370,6 +370,29 @@ async function getTetrisLeaderboard(queryable = pool) {
           lines_cleared,
           level_reached,
           ROW_NUMBER() OVER (
+            PARTITION BY user_id
+            ORDER BY
+              score DESC NULLS LAST,
+              lines_cleared DESC NULLS LAST,
+              level_reached DESC NULLS LAST,
+              playtime_seconds ASC NULLS LAST,
+              played_at ASC NULLS LAST,
+              session_id ASC
+          ) AS user_session_rank
+        FROM game_sessions
+        WHERE game_id = $1
+      ),
+      best_sessions AS (
+        SELECT
+          session_id,
+          game_id,
+          user_id,
+          score,
+          playtime_seconds,
+          played_at,
+          lines_cleared,
+          level_reached,
+          ROW_NUMBER() OVER (
             ORDER BY
               score DESC NULLS LAST,
               lines_cleared DESC NULLS LAST,
@@ -379,8 +402,8 @@ async function getTetrisLeaderboard(queryable = pool) {
               user_id ASC,
               session_id ASC
           ) AS rank
-        FROM game_sessions
-        WHERE game_id = $1
+        FROM ranked_sessions
+        WHERE user_session_rank = 1
       )
       SELECT
         session_id AS leaderboard_id,
@@ -392,7 +415,7 @@ async function getTetrisLeaderboard(queryable = pool) {
         played_at,
         lines_cleared,
         level_reached
-      FROM ranked_sessions
+      FROM best_sessions
       ORDER BY rank ASC
       LIMIT 5;
     `,

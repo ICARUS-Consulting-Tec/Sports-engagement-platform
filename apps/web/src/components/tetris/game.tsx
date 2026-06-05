@@ -101,7 +101,7 @@ const getRandomPlayer = player => {
 	return { pos, bloco, next };
 };
 
-const Game = () => {
+const Game = ({ onGameOver }) => {
 	const [map, setMap] = useState(initialMap);
 	const [player, setPlayer] = useState();
 	const [down, setDown] = useState(false);
@@ -115,6 +115,8 @@ const Game = () => {
 	const [dragX, setDragX] = useState(0);
 	const [dragY, setDragY] = useState(0);
 	const [gameOver, setGameOver] = useState(false);
+	const playStartedAtRef = React.useRef(Date.now());
+	const gameOverReportedRef = React.useRef(false);
 
 	useEffect(() => {
 		const levelBaseScore = 1000;
@@ -133,11 +135,30 @@ const Game = () => {
 		setScore(0);
 		setLevel(1);
 		setGameOver(false);
+		playStartedAtRef.current = Date.now();
+		gameOverReportedRef.current = false;
 	}
 
 	const loseGame = () => {
 		setGameOver(true);
 	};
+
+	useEffect(() => {
+		if (!gameOver || gameOverReportedRef.current) {
+			return;
+		}
+
+		gameOverReportedRef.current = true;
+		onGameOver?.({
+			score,
+			linesCleared: lines,
+			levelReached: level,
+			playtimeSeconds: Math.max(
+				1,
+				Math.ceil((Date.now() - playStartedAtRef.current) / 1000),
+			),
+		});
+	}, [gameOver, level, lines, onGameOver, score]);
 
 	const drop = () => {
 		if (!player) {
