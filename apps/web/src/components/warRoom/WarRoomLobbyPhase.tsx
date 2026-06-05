@@ -1,4 +1,5 @@
 import { type WarRoomMatch } from "../../services/warRoomService";
+import { warRoomPlayerLabel, warRoomSeatLabel } from "./warRoomPlayerLabel";
 
 interface Props {
   match: WarRoomMatch;
@@ -27,7 +28,7 @@ export function WarRoomLobbyPhase({
   return (
     <div className="rounded-2xl bg-white p-10 shadow text-center">
       <p className="text-2xl font-black text-[#0B2A55] mb-2">War Room Lobby</p>
-      <p className="text-sm text-gray-500 mb-2">Share the invite code with your GMs</p>
+      <p className="text-sm text-gray-500 mb-2">Share the invite code with your Game Managers</p>
       <p className="mb-8 font-mono text-3xl font-black tracking-widest text-[#0f3d78]">
         {match.inviteCode}
       </p>
@@ -49,7 +50,9 @@ export function WarRoomLobbyPhase({
                   : "border-yellow-400 bg-yellow-50 text-yellow-700"
               }`}
             >
-              GM {seat}{seat === match.you.seat ? " (You)" : ""}
+              {player
+                ? warRoomPlayerLabel(player, match.you.seat)
+                : warRoomSeatLabel(seat, match.players, match.you.seat)}
               <br />
               <span className="text-xs font-normal">
                 {!joined ? "Waiting..." : ready ? "Ready" : "Not ready"}
@@ -101,20 +104,20 @@ export function WarRoomLobbyPhase({
             {startLoading
               ? "Starting..."
               : playerCount < 2
-              ? "Waiting for at least 1 more GM..."
+              ? "Waiting for at least 1 more Game Manager..."
               : !allReady
-              ? "Waiting for all GMs to be ready..."
-              : `Start Draft Night with ${playerCount} GM${playerCount > 1 ? "s" : ""}`}
+              ? "Waiting for all Game Managers to be ready..."
+              : `Start Draft Night with ${playerCount} Game Manager${playerCount > 1 ? "s" : ""}`}
           </button>
           {playerCount >= 2 && !allReady && (
             <p className="mt-2 text-xs text-gray-400">
-              All GMs must click "I'm Ready" before you can start.
+              All Game Managers must click "I'm Ready" before you can start.
             </p>
           )}
         </div>
       ) : (
         <p className="animate-pulse text-sm text-gray-400">
-          Waiting for the host (GM 1) to start the match...
+          Waiting for the host ({warRoomSeatLabel(1, match.players)}) to start the match...
         </p>
       )}
     </div>

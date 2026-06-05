@@ -7,7 +7,8 @@ import { WarRoomLobbyPhase } from "../components/warRoom/WarRoomLobbyPhase";
 import { WarRoomPlayingPhase } from "../components/warRoom/WarRoomPlayingPhase";
 import { WarRoomResultsScreen } from "../components/warRoom/WarRoomResultsScreen";
 import { WarRoomTutorialModal } from "../components/warRoom/WarRoomTutorialModal";
-import { TRADE_RESPONSE_SECONDS, TURN_SECONDS, type NegotiateStep } from "../components/warRoom/warRoomTypes";
+import { MAX_ROUNDS, TRADE_RESPONSE_SECONDS, TURN_SECONDS, type NegotiateStep } from "../components/warRoom/warRoomTypes";
+import { warRoomPlayerLabel, warRoomSeatLabel } from "../components/warRoom/warRoomPlayerLabel";
 import {
   drawNews,
   forfeitBuy,
@@ -102,12 +103,20 @@ export default function WarRoomGamePage() {
   const [incomingTrade, setIncomingTrade] = useState<TradeProposal | null>(null);
   const [incomingTradeTimer, setIncomingTradeTimer] = useState(TRADE_RESPONSE_SECONDS);
   const [respondLoading, setRespondLoading] = useState(false);
+  const [statusToast, setStatusToast] = useState<string | null>(null);
+  const [awaitingTradeSeat, setAwaitingTradeSeat] = useState<number | null>(null);
 
   // ── Refs ──────────────────────────────────────────────────────────────────
   const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const buyTimerRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  const prevIsMyTurnRef = useRef(false);
   const incomingTradeTimerRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const autoPassingRef = useRef(false);
+  const awaitingTradeSeatRef = useRef<number | null>(null);
+
+  useEffect(() => {
+    awaitingTradeSeatRef.current = awaitingTradeSeat;
+  }, [awaitingTradeSeat]);
 
   // ── Helpers ───────────────────────────────────────────────────────────────
   const derivePhase = useCallback((m: WarRoomMatch): Phase => {
@@ -120,6 +129,14 @@ export default function WarRoomGamePage() {
   }, []);
 
   const isMyTurn = match?.activeSeat === match?.you.seat;
+
+  const refreshMatchState = useCallback(async () => {
+    if (!matchId || !token) return null;
+    const m = await getMatch(matchId, token);
+    setMatch(m);
+    setNegotiateAttemptsLeft(m.negotiateAttemptsLeft ?? 2);
+    return m;
+  }, [matchId, token]);
 
   function applyTurnResult(result: BuyResult) {
     if (buyTimerRef.current) clearInterval(buyTimerRef.current);
@@ -134,7 +151,11 @@ export default function WarRoomGamePage() {
           }
         : prev,
     );
-    if (result.gameEnded) setPhase("ended");
+    if (result.gameEnded) {
+      setPhase("ended");
+    } else if (matchId && token) {
+      refreshMatchState().catch(() => { /* silent */ });
+    }
   }
 
   function startBuyTimer(onExpire: () => void) {
@@ -226,13 +247,42 @@ export default function WarRoomGamePage() {
     return () => clearInterval(interval);
   }, [phase, matchId, token, isMyTurn, incomingTrade]);
 
-  // Countdown timer when your turn — auto-pass at 0
+  // Toast when your turn starts
   useEffect(() => {
-    if (!isMyTurn || phase !== "playing") return;
+    if (isMyTurn && !prevIsMyTurnRef.current && phase === "playing") {
+      setStatusToast("Your turn! Pick an action.");
+      const t = setTimeout(() => setStatusToast(null), 4000);
+      return () => clearTimeout(t);
+    }
+    prevIsMyTurnRef.current = isMyTurn;
+  }, [isMyTurn, phase]);
+
+  // Resume paused trade wait if match still has outbound proposal
+  useEffect(() => {
+    if (phase !== "playing" || !match || !isMyTurn) return;
+    if (match.pendingTradeFromYou) {
+      setAwaitingTradeSeat(match.pendingTradeFromYou.toSeat);
+    }
+  }, [phase, match?.pendingTradeFromYou, isMyTurn, match?.you.seat]);
+
+  // New turn: reset timer and proposals (not while waiting on trade response)
+  useEffect(() => {
+    if (!isMyTurn || phase !== "playing" || awaitingTradeSeat !== null) return;
     setTimer(TURN_SECONDS);
+    setProposedSeats([]);
     setActionError(null);
     autoPassingRef.current = false;
-    setProposedSeats([]);
+  }, [isMyTurn, match?.activeSeat, phase, awaitingTradeSeat]);
+
+  // Countdown timer when your turn — paused while waiting on a trade response
+  useEffect(() => {
+    if (!isMyTurn || phase !== "playing") return;
+
+    if (awaitingTradeSeat !== null) {
+      if (timerRef.current) clearInterval(timerRef.current);
+      return;
+    }
+
     if (timerRef.current) clearInterval(timerRef.current);
     timerRef.current = setInterval(() => {
       setTimer((prev) => {
@@ -242,15 +292,15 @@ export default function WarRoomGamePage() {
             autoPassingRef.current = true;
             passAction(matchId, token)
               .then((result) => {
-                setMatch((prev) =>
-                  prev
+                setMatch((prevM) =>
+                  prevM
                     ? {
-                        ...prev,
+                        ...prevM,
                         activeSeat: result.activeSeat ?? null,
                         currentRound: result.currentRound,
-                        status: result.gameEnded ? "ENDED" : prev.status,
+                        status: result.gameEnded ? "ENDED" : prevM.status,
                       }
-                    : prev,
+                    : prevM,
                 );
                 if (result.gameEnded) setPhase("ended");
               })
@@ -262,10 +312,25 @@ export default function WarRoomGamePage() {
         return prev - 1;
       });
     }, 1000);
-    return () => { if (timerRef.current) clearInterval(timerRef.current); };
-  }, [isMyTurn, match?.activeSeat, phase, matchId, token]);
 
-  // Background poll during your turn — detect external advance (trade accepted)
+    return () => {
+      if (timerRef.current) clearInterval(timerRef.current);
+    };
+  }, [isMyTurn, match?.activeSeat, phase, matchId, token, awaitingTradeSeat]);
+
+  // After trade wait window, resume turn timer if still your turn
+  useEffect(() => {
+    if (awaitingTradeSeat === null || !isMyTurn || phase !== "playing") return;
+    const t = setTimeout(() => {
+      setAwaitingTradeSeat(null);
+      setStatusToast("Trade ended — your turn continues.");
+      setTimer(TURN_SECONDS);
+      setTimeout(() => setStatusToast(null), 4000);
+    }, TRADE_RESPONSE_SECONDS * 1000);
+    return () => clearTimeout(t);
+  }, [awaitingTradeSeat, isMyTurn, phase]);
+
+  // Background poll during your turn — detect trade accept / turn advance
   useEffect(() => {
     if (!isMyTurn || phase !== "playing" || !matchId || !token) return;
     const mySeat = match?.you.seat;
@@ -275,15 +340,27 @@ export default function WarRoomGamePage() {
         if (m.activeSeat !== mySeat) {
           if (timerRef.current) clearInterval(timerRef.current);
           autoPassingRef.current = true;
+          if (awaitingTradeSeatRef.current !== null) {
+            setStatusToast("Trade accepted! Turn updated.");
+            setTimeout(() => setStatusToast(null), 4000);
+          }
+          setAwaitingTradeSeat(null);
           setMatch(m);
           setNegotiateAttemptsLeft(m.negotiateAttemptsLeft ?? 2);
           const updatedHand = await getHand(matchId, token);
           setHand(updatedHand);
           if (m.status === "ENDED") setPhase("ended");
         } else {
-          setMatch((prev) =>
-            prev ? { ...prev, you: { ...prev.you, titansCash: m.you.titansCash } } : prev,
-          );
+          setMatch(m);
+          setNegotiateAttemptsLeft(m.negotiateAttemptsLeft ?? 2);
+          if (awaitingTradeSeatRef.current !== null && !m.pendingTradeFromYou) {
+            setAwaitingTradeSeat(null);
+            setStatusToast("Trade declined — your turn continues.");
+            setTimer(TURN_SECONDS);
+            setTimeout(() => setStatusToast(null), 4000);
+            const updatedHand = await getHand(matchId, token);
+            setHand(updatedHand);
+          }
         }
       } catch { /* silent */ }
     }, 2000);
@@ -332,7 +409,7 @@ export default function WarRoomGamePage() {
   }
 
   async function handleNews() {
-    if (!matchId || !token || !isMyTurn || actionLoading) return;
+    if (!matchId || !token || !isMyTurn || actionLoading || awaitingTradeSeat !== null) return;
     setActionLoading(true);
     setActionError(null);
     try {
@@ -349,7 +426,11 @@ export default function WarRoomGamePage() {
             }
           : prev,
       );
-      if (result.gameEnded) setPhase("ended");
+      if (result.gameEnded) {
+        setPhase("ended");
+      } else {
+        await refreshMatchState();
+      }
     } catch (e) {
       setActionError(e instanceof Error ? e.message : "Action failed");
     } finally {
@@ -358,7 +439,15 @@ export default function WarRoomGamePage() {
   }
 
   async function handleBuyScout() {
-    if (!matchId || !token || !isMyTurn || buyLoading || actionLoading) return;
+    if (
+      !matchId ||
+      !token ||
+      !isMyTurn ||
+      buyLoading ||
+      actionLoading ||
+      awaitingTradeSeat !== null
+    )
+      return;
     setBuyLoading(true);
     setActionError(null);
     try {
@@ -449,7 +538,14 @@ export default function WarRoomGamePage() {
   }
 
   async function handleNegotiateOpen() {
-    if (!isMyTurn || negotiateAttemptsLeft === 0 || !matchId || !token) return;
+    if (
+      !isMyTurn ||
+      negotiateAttemptsLeft === 0 ||
+      !matchId ||
+      !token ||
+      awaitingTradeSeat !== null
+    )
+      return;
     // Always refresh hand before opening so card IDs are current
     try {
       const freshHand = await getHand(matchId, token);
@@ -496,6 +592,14 @@ export default function WarRoomGamePage() {
       setNegotiateAttemptsLeft(result.attemptsLeft);
       setProposedSeats((prev) => [...prev, negotiateTarget!]);
       setNegotiateStep("closed");
+
+      setAwaitingTradeSeat(negotiateTarget);
+      if (timerRef.current) clearInterval(timerRef.current);
+      const targetLabel = match
+        ? warRoomSeatLabel(negotiateTarget, match.players)
+        : `Game Manager ${negotiateTarget}`;
+      setStatusToast(`Trade sent — waiting for ${targetLabel}…`);
+
       // Poll immediately to catch fast accept/reject from rival
       try {
         const m = await getMatch(matchId, token);
@@ -503,11 +607,23 @@ export default function WarRoomGamePage() {
         if (m.activeSeat !== mySeat) {
           if (timerRef.current) clearInterval(timerRef.current);
           autoPassingRef.current = true;
+          setAwaitingTradeSeat(null);
+          setStatusToast("Trade accepted! Turn updated.");
+          setTimeout(() => setStatusToast(null), 4000);
           setMatch(m);
           const updatedHand = await getHand(matchId, token);
           setHand(updatedHand);
           if (m.status === "ENDED") setPhase("ended");
+        } else if (!m.pendingTradeFromYou) {
+          setAwaitingTradeSeat(null);
+          setStatusToast("Trade declined — your turn continues.");
+          setTimer(TURN_SECONDS);
+          setTimeout(() => setStatusToast(null), 4000);
+          setMatch(m);
+          const updatedHand = await getHand(matchId, token);
+          setHand(updatedHand);
         } else {
+          setMatch(m);
           const updatedHand = await getHand(matchId, token);
           setHand(updatedHand);
         }
@@ -527,6 +643,8 @@ export default function WarRoomGamePage() {
       if (incomingTradeTimerRef.current)
         clearInterval(incomingTradeTimerRef.current);
       setIncomingTrade(null);
+      setStatusToast(accept ? "Trade accepted!" : "Trade rejected.");
+      setTimeout(() => setStatusToast(null), 4000);
       if (result.accepted && result.activeSeat !== undefined) {
         const freshMatch = await getMatch(matchId, token);
         setMatch(freshMatch);
@@ -567,35 +685,84 @@ export default function WarRoomGamePage() {
   ) : null;
 
   // ── Shared banner ─────────────────────────────────────────────────────────
+  const bannerCompact = match?.status === "PLAYING";
   const banner = match && (
-    <section className="mb-6 flex flex-wrap items-center justify-between gap-4 rounded-[28px] bg-[linear-gradient(90deg,#0B2A55_0%,#1D4E89_50%,#60A5FA_100%)] px-10 py-8 text-white shadow-[0_10px_24px_rgba(0,0,0,0.12)]">
-      <div>
-        <h1 className="m-0 text-4xl font-black">TITANS WAR ROOM</h1>
-        <p className="mt-1 text-sm opacity-70">
-          Invite code:{" "}
-          <span className="font-mono font-bold tracking-widest text-base">
-            {match.inviteCode}
-          </span>
-        </p>
-      </div>
-      <div className="flex flex-col items-end gap-1">
-        {match.status === "PLAYING" && (
-          <>
-            <p className="text-2xl font-black">Round {match.currentRound} / 12</p>
-            <p className="text-sm opacity-80">
-              TitanCash: <span className="font-black">{match.you.titansCash}</span>
+    <section
+      className={`flex flex-wrap items-center justify-between gap-3 rounded-[28px] bg-[linear-gradient(90deg,#0B2A55_0%,#1D4E89_50%,#60A5FA_100%)] text-white shadow-[0_10px_24px_rgba(0,0,0,0.12)] ${
+        bannerCompact ? "mb-2.5 shrink-0 px-6 py-4" : "mb-6 px-10 py-8"
+      }`}
+    >
+      {bannerCompact ? (
+        <>
+          <div className="flex min-w-0 flex-wrap items-baseline gap-x-4 gap-y-1">
+            <h1 className="m-0 text-2xl font-black leading-tight sm:text-3xl">
+              TITANS WAR ROOM
+            </h1>
+            <p className="text-base opacity-90">
+              Code{" "}
+              <span className="font-mono text-lg font-bold tracking-widest">
+                {match.inviteCode}
+              </span>
             </p>
-          </>
-        )}
-        <p className="text-sm opacity-70">GM Seat {match.you.seat}</p>
-        <button
-          type="button"
-          onClick={() => { setPendingNavHref("/offseason"); setShowNavConfirm(true); }}
-          className="mt-1 rounded-lg border border-white/40 bg-white/10 px-4 py-2 text-sm font-bold text-white hover:bg-white/20 transition-colors"
-        >
-          Leave War Room
-        </button>
-      </div>
+          </div>
+          <div className="flex flex-wrap items-center gap-3 sm:gap-5">
+            <p className="text-lg font-black sm:text-xl">
+              Round {match.currentRound} / {MAX_ROUNDS}
+            </p>
+            <p className="text-base opacity-90">
+              {warRoomPlayerLabel(
+                match.players.find((p) => p.seat === match.you.seat) ?? {
+                  seat: match.you.seat,
+                  username: null,
+                },
+                match.you.seat,
+              )}
+            </p>
+            <button
+              type="button"
+              onClick={() => { setPendingNavHref("/offseason"); setShowNavConfirm(true); }}
+              className="rounded-lg border border-white/40 bg-white/10 px-5 py-2.5 text-base font-bold text-white hover:bg-white/20 transition-colors"
+            >
+              Leave
+            </button>
+          </div>
+        </>
+      ) : (
+        <>
+          <div>
+            <h1 className="m-0 text-4xl font-black">TITANS WAR ROOM</h1>
+            <p className="mt-1 text-sm opacity-70">
+              Invite code:{" "}
+              <span className="font-mono font-bold tracking-widest text-base">
+                {match.inviteCode}
+              </span>
+            </p>
+          </div>
+          <div className="flex flex-col items-end gap-2">
+            {match.status === "PLAYING" && (
+              <p className="text-xl font-black">
+                Round {match.currentRound} / {MAX_ROUNDS}
+              </p>
+            )}
+            <p className="text-sm opacity-70">
+              {warRoomPlayerLabel(
+                match.players.find((p) => p.seat === match.you.seat) ?? {
+                  seat: match.you.seat,
+                  username: null,
+                },
+                match.you.seat,
+              )}
+            </p>
+            <button
+              type="button"
+              onClick={() => { setPendingNavHref("/offseason"); setShowNavConfirm(true); }}
+              className="mt-1 rounded-lg border border-white/40 bg-white/10 px-4 py-2 text-sm font-bold text-white hover:bg-white/20 transition-colors"
+            >
+              Leave War Room
+            </button>
+          </div>
+        </>
+      )}
     </section>
   );
 
@@ -710,10 +877,18 @@ export default function WarRoomGamePage() {
   const rivalSeats = match.players.map((p) => p.seat).filter((s) => s !== match.you.seat);
 
   return (
-    <div className="min-h-screen bg-[#F4F5F7]">
-      <main className="mx-auto w-full max-w-[1400px] p-6">
-        <Navbar />
+    <div className="h-screen overflow-hidden bg-[#F4F5F7]">
+      <main className="mx-auto flex h-full max-w-[1400px] flex-col overflow-hidden p-3">
+        <div className="shrink-0">
+          <Navbar />
+        </div>
         {banner}
+        {statusToast && (
+          <p className="mb-2 shrink-0 rounded-xl bg-[#0f3d78] px-4 py-2 text-center text-sm font-bold text-white">
+            {statusToast}
+          </p>
+        )}
+        <div className="min-h-0 flex-1 overflow-hidden">
         <WarRoomPlayingPhase
           match={match}
           hand={hand}
@@ -733,6 +908,8 @@ export default function WarRoomGamePage() {
           rivalHand={rivalHand}
           rivalSeats={rivalSeats}
           proposedSeats={proposedSeats}
+          awaitingTradeSeat={awaitingTradeSeat}
+          tradeWaiting={awaitingTradeSeat !== null}
           newsResult={newsResult}
           scoutCards={scoutCards}
           buyTimer={buyTimer}
@@ -761,6 +938,7 @@ export default function WarRoomGamePage() {
           onNavConfirm={() => { setShowNavConfirm(false); if (pendingNavHref) navigate(pendingNavHref); }}
           onNavCancel={() => { setShowNavConfirm(false); setPendingNavHref(null); }}
         />
+        </div>
       </main>
     </div>
   );

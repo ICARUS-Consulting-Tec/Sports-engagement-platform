@@ -145,7 +145,7 @@ async function advanceTurn(
   const newRound = Math.ceil(newGlobalTurn / totalSeats);
   const nextSeat = (activeSeat % totalSeats) + 1;
 
-  if (newRound > 12) {
+  if (newRound > 10) {
     await client.query(
       `UPDATE war_matches
        SET status = 'ENDED', active_seat = NULL,
