@@ -22,6 +22,7 @@ interface UnityConfig {
   companyName: string;
   productName: string;
   productVersion: string;
+  matchWebGLToCanvasSize?: boolean;
   showBanner?: (message: string, type?: "warning" | "error" | "log") => void;
 }
 

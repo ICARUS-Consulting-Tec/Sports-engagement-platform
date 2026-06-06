@@ -1,20 +1,30 @@
 import { useEffect, useState } from "react";
-import { Card } from "@heroui/react";
+import { Icon } from "@iconify/react";
 import MembersPerWeekChart from "../reportsC/ChartCard";
 import StatsCard, { type StatsTrend } from "../reportsC/StatsCard";
 import SectionCard from "../reportsC/SectionCard";
-import PostsPerDayChart from "../reportsC/PostPerDayChart";
 import PostsByCategoryChart from "../reportsC/PostsByCatChart";
 import TopContributorsCard from "../reportsC/TopContributorsCard";
+import { MOCK_POSTS_PER_DAY } from "../reportsC/mockReportData";
+import React from "react";
 import {
   dashboardService,
+  type ActiveReportsStat,
   type TotalMembersStat,
   type TotalPostsStat,
   type TotalProductsStat,
 } from "../../services/dashboardService";
+import html2canvas from "html2canvas-pro";
+import jsPDF from "jspdf";
+import titanLogo from "../../assets/home/TitanCrewLogo.png";
 
-import "../../styles/admin.css";
-import "../../styles/profile.css";
+
+function formatPostDayLabel(value: string | number): string {
+  return new Date(value).toLocaleDateString("es", {
+    month: "short",
+    day: "numeric",
+  });
+}
 
 function resolveStatsTrend(
   trend: StatsTrend | undefined,
@@ -28,10 +38,115 @@ function resolveStatsTrend(
 }
 
 export default function Dashboard() {
+
+  const printRef = React.useRef(null);
+
+  const handleDownloadPdf = async () => {
+  const element = printRef.current;
+
+  if (!element) {
+    return;
+  }
+
+  const canvas = await html2canvas(element, {
+    scale: 2,
+  });
+
+  const data = canvas.toDataURL("image/png");
+
+  const pdf = new jsPDF({
+    orientation: "portrait",
+    unit: "px",
+    format: "a4",
+  });
+
+  const pageWidth = pdf.internal.pageSize.getWidth();
+  const pageHeight = pdf.internal.pageSize.getHeight();
+
+  // =========================
+  // HEADER
+  // =========================
+
+    // Logo
+    pdf.addImage(
+      titanLogo,
+      "PNG",
+      20, 15, 40, 40
+    );
+
+    // Nombre de la aplicación
+    pdf.setFont("helvetica", "bold");
+    pdf.setFontSize(22);
+    pdf.text("Titan Crew", 70, 32);
+
+    // Título del reporte
+    pdf.setFont("helvetica", "normal");
+    pdf.setFontSize(14);
+    pdf.text("Administrative Dashboard", 70, 52);
+
+    // Fecha (esquina superior derecha)
+    pdf.setFontSize(10);
+
+    pdf.text(
+      `Generated: ${new Date().toLocaleDateString("en-US", {
+        year: "numeric",
+        month: "long",
+        day: "numeric",
+      })}`,
+      pageWidth - 150,
+      25
+    );
+
+    // Línea divisoria
+    pdf.line(20, 70, pageWidth - 20, 70);
+
+  // =========================
+  // DASHBOARD IMAGE
+  // =========================
+
+  const imgProperties = pdf.getImageProperties(data);
+  
+
+  const imageWidth = pageWidth - 50;
+  const xPosition = (pageWidth - imageWidth) / 2;
+
+  const imageHeight =
+    (imgProperties.height * imageWidth) /
+    imgProperties.width;
+
+  const headerHeight = 95;
+
+  pdf.addImage(
+    data,
+    "PNG",
+    xPosition,
+    headerHeight,
+    imageWidth,
+    imageHeight
+  );
+
+  // =========================
+  // FOOTER
+  // =========================
+
+  pdf.setFontSize(9);
+
+  pdf.text(
+    "Titan Crew - Administrative Dashboard Report",
+    20,
+    pageHeight - 15
+  );
+
+  pdf.save("ADMIN_Report.pdf");
+};
+
   const [totalMembers, setTotalMembers] = useState<TotalMembersStat | null>(
     null,
   );
   const [totalPosts, setTotalPosts] = useState<TotalPostsStat | null>(null);
+  const [activeReports, setActiveReports] = useState<ActiveReportsStat | null>(
+    null,
+  );
   const [totalProducts, setTotalProducts] = useState<TotalProductsStat | null>(
     null,
   );
@@ -43,10 +158,11 @@ export default function Dashboard() {
     async function loadStatsCards() {
       try {
         setStatsLoading(true);
-        const [membersResult, postsResult, productsResult] =
+        const [membersResult, postsResult, activeReportsResult, productsResult] =
           await Promise.allSettled([
             dashboardService.getTotalMembers(),
             dashboardService.getTotalPosts(),
+            dashboardService.getActiveReports(),
             dashboardService.getTotalProducts(),
           ]);
 
@@ -60,6 +176,10 @@ export default function Dashboard() {
           setTotalPosts(postsResult.value);
         }
 
+        if (activeReportsResult.status === "fulfilled") {
+          setActiveReports(activeReportsResult.value);
+        }
+
         if (productsResult.status === "fulfilled") {
           setTotalProducts(productsResult.value);
         }
@@ -67,6 +187,7 @@ export default function Dashboard() {
         if (
           membersResult.status === "rejected" ||
           postsResult.status === "rejected" ||
+          activeReportsResult.status === "rejected" ||
           productsResult.status === "rejected"
         ) {
           console.error("Error loading one or more dashboard stats cards:", {
@@ -74,6 +195,10 @@ export default function Dashboard() {
               membersResult.status === "rejected" ? membersResult.reason : null,
             posts:
               postsResult.status === "rejected" ? postsResult.reason : null,
+            activeReports:
+              activeReportsResult.status === "rejected"
+                ? activeReportsResult.reason
+                : null,
             products:
               productsResult.status === "rejected"
                 ? productsResult.reason
@@ -97,15 +222,32 @@ export default function Dashboard() {
   }, []);
 
   return (
-    <div className="personal-info-section">
-      <div className="personal-info-header">
-        <h2>DASHBOARD</h2>
-        <p>Admin overview and management tools will appear here</p>
+    <div className="w-full">
+      <div className="mb-7 flex items-start justify-between gap-4">
+        <div>
+          <h2 className="m-0 text-[2.15rem] font-extrabold leading-[1.05] text-[#0b2e63]">
+            DASHBOARD
+          </h2>
+          <p className="mt-[10px] text-[0.95rem] text-[#9aa3af]">
+            Admin overview and management tools will appear here
+          </p>
+        </div>
+        <button
+          type="button"
+          onClick={handleDownloadPdf}
+          className="mr-10 mt-5 flex h-9 shrink-0 cursor-pointer items-center gap-2 rounded-lg bg-[#4B92DB] px-4 text-sm font-semibold text-white transition-colors hover:bg-[#3A7FC5]"
+        >
+          <Icon icon="mdi:download" className="text-lg" />
+          Download Report
+        </button>
       </div>
 
-      <Card className="personal-info-card">
-        <div className="personal-info-card-body">
-          <div className="stats-grid">
+      <div
+        ref={printRef}
+        className="rounded-[24px] bg-[#FFFFFF] text-[#111827] shadow-[0_10px_30px_rgba(0,0,0,0.08)]"
+      >
+        <div className="px-4 py-4">
+          <div className="mb-5 grid grid-cols-4 gap-3 max-[1200px]:grid-cols-2 max-[640px]:grid-cols-1">
             <StatsCard
               title="TOTAL MEMBERS"
               value={
@@ -129,7 +271,19 @@ export default function Dashboard() {
               changeLabel={`+${totalPosts?.new_today ?? 0} today`}
               trend={resolveStatsTrend(totalPosts?.trend, totalPosts?.new_today)}
             />
-            <StatsCard />
+            <StatsCard
+              title="ACTIVE REPORTS"
+              value={
+                statsLoading
+                  ? "..."
+                  : (activeReports?.active_reports ?? 0).toLocaleString()
+              }
+              changeLabel={`+${activeReports?.new_today ?? 0} today`}
+              trend={resolveStatsTrend(
+                activeReports?.trend,
+                activeReports?.new_today,
+              )}
+            />
             <StatsCard
               title="TOTAL PRODUCTS"
               value={
@@ -142,27 +296,37 @@ export default function Dashboard() {
             />
           </div>
 
-          <div className="two-col">
+          <div className="mt-4 grid grid-cols-2 gap-4">
             <SectionCard />
-            <div className="background-chart">
+            <div className="rounded-xl bg-[#f7f8fc] shadow-[0_8px_24px_rgba(15,23,42,0.04)]">
               <MembersPerWeekChart />
             </div>
           </div>
 
-          <div className="two-col">
-            <div className="background-chart">
-              <TopContributorsCard />
+          <div className="mt-4 grid grid-cols-2 gap-4">
+            <div className="rounded-xl bg-[#f7f8fc] shadow-[0_8px_24px_rgba(15,23,42,0.04)]">
+              <MembersPerWeekChart
+                endpoint="/api/dashboard/stats/posts-per-day"
+                fallbackData={MOCK_POSTS_PER_DAY}
+                formatXValue={formatPostDayLabel}
+                height={240}
+                stroke="#4e83b7"
+                title="Posts Per Day"
+                tooltipLabel="Posts"
+                xKey="day"
+                yKey="total_posts"
+              />
             </div>
-            <div className="background-chart">
-              <PostsPerDayChart />
+            <div className="rounded-xl bg-[#f7f8fc] shadow-[0_8px_24px_rgba(15,23,42,0.04)]">
+              <TopContributorsCard />
             </div>
           </div>
 
-          <div className="horizontal-section">
+          <div className="mt-4 rounded-xl bg-[#f7f8fc] shadow-[0_8px_24px_rgba(15,23,42,0.04)]">
             <PostsByCategoryChart />
           </div>
         </div>
-      </Card>
+      </div>
     </div>
   );
 }

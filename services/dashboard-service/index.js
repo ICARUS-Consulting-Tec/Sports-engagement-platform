@@ -5,11 +5,11 @@ app.use(express.json());
 
 const PORT = process.env.PORT || 4015;
 const PROFILE_SERVICE_URL =
-  process.env.PROFILE_SERVICE_URL || "http://icarus-profile:4006";
+  process.env.PROFILE_SERVICE_URL || "http://profile-service:4006";
 const COMMUNITY_SERVICE_URL =
-  process.env.COMMUNITY_SERVICE_URL || "http://icarus-community:4001";
+  process.env.COMMUNITY_SERVICE_URL || "http://community-service:4001";
 const STORE_SERVICE_URL =
-  process.env.STORE_SERVICE_URL || "http://icarus-store:4005";
+  process.env.STORE_SERVICE_URL || "http://store-service:4005";
 
 async function fetchJson(url) {
   const response = await fetch(url);
@@ -33,6 +33,7 @@ app.get("/", (req, res) => {
       "/stats/posts-per-day",
       "/stats/posts-by-category",
       "/stats/total-posts",
+      "/stats/active-reports",
       "/stats/total-products",
       "/top_contributors",
       "/get_products",
@@ -153,6 +154,24 @@ app.get("/stats/total-posts", async (req, res) => {
       service: "dashboard-service",
       status: "error",
       error: "Unable to fetch total-posts data",
+      details: error.message,
+    });
+  }
+});
+
+app.get("/stats/active-reports", async (req, res) => {
+  try {
+    const activeReports = await fetchJson(
+      `${COMMUNITY_SERVICE_URL}/stats/active-reports`,
+    );
+
+    res.json(activeReports);
+  } catch (error) {
+    console.error("dashboard-service active-reports lookup failed:", error);
+    res.status(502).json({
+      service: "dashboard-service",
+      status: "error",
+      error: "Unable to fetch active-reports data",
       details: error.message,
     });
   }
