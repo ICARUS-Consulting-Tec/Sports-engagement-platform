@@ -500,6 +500,45 @@
   object-fit: contain;
 }
 
+.matches-card-logo--compact {
+  width: 2.75rem;
+  height: 2.75rem;
+}
+
+.matches-card-logo--compact .matches-card-logo-fallback {
+  font-size: 0.7rem;
+}
+
+@media (min-width: 640px) {
+  .matches-card-logo--compact {
+    width: 3.25rem;
+    height: 3.25rem;
+  }
+}
+
+.matches-card-logo--compact-lg {
+  width: 2.5rem;
+  height: 2.5rem;
+}
+
+.matches-card-logo--compact-lg .matches-card-logo-fallback {
+  font-size: 0.65rem;
+}
+
+@media (min-width: 640px) {
+  .matches-card-logo--compact-lg {
+    width: 2.75rem;
+    height: 2.75rem;
+  }
+}
+
+@media (min-width: 1024px) {
+  .matches-card-logo--compact-lg {
+    width: 3rem;
+    height: 3rem;
+  }
+}
+
 .matches-card-team-text {
   display: flex;
   flex-direction: column;

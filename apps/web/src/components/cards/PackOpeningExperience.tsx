@@ -1,21 +1,63 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { Button } from "@heroui/react";
-import RarityBadge from "./RarityBadge";
-import { positionAndJersey } from "../../utils/jerseyDisplay";
-import type { PackOpenResult } from "../../types";
+import EnvelopeVisual from "./EnvelopeVisual";
+import PlayerCard from "./PlayerCard";
+import type { PackOpenResult, RosterCard } from "../../types";
 
 /** Minimum envelope animation time before showing pulls (ms). */
 const ENVELOPE_REVEAL_MS = 1900;
 
 interface PackOpeningExperienceProps {
   result: PackOpenResult | null;
+  rosterCards: RosterCard[];
+  onViewStats?: (athleteId: number) => void;
   onClose: () => void;
 }
 
-export default function PackOpeningExperience({ result, onClose }: PackOpeningExperienceProps) {
+function resolveUnlockedCards(
+  unlocked: PackOpenResult["cards_unlocked"],
+  roster: RosterCard[],
+): RosterCard[] {
+  const byId = new Map(roster.map((card) => [card.card_id, card]));
+
+  return unlocked.map((card) => {
+    const full = byId.get(card.card_id);
+    if (full) {
+      return { ...full, unlocked: true };
+    }
+
+    return {
+      card_id: card.card_id,
+      card_image: null,
+      rarity: card.rarity,
+      athlete_id: 0,
+      espn_athlete_id: 0,
+      display_name: card.display_name,
+      position: card.position,
+      jersey_num: card.jersey_num,
+      headshot_url: null,
+      age: 0,
+      weight: 0,
+      height: 0,
+      unlocked: true,
+    };
+  });
+}
+
+export default function PackOpeningExperience({
+  result,
+  rosterCards,
+  onViewStats,
+  onClose,
+}: PackOpeningExperienceProps) {
   const [flapOpen, setFlapOpen] = useState(false);
   const [showRewards, setShowRewards] = useState(false);
   const openedAtRef = useRef<number>(Date.now());
+
+  const unlockedCards = useMemo(
+    () => (result ? resolveUnlockedCards(result.cards_unlocked, rosterCards) : []),
+    [result, rosterCards],
+  );
 
   useEffect(() => {
     openedAtRef.current = Date.now();
@@ -59,63 +101,17 @@ export default function PackOpeningExperience({ result, onClose }: PackOpeningEx
             {result ? "Your pack is ready" : "Opening your pack…"}
           </h2>
 
-          <div className="[perspective:1100px]">
-            <div
-              className="relative h-44 w-[min(16rem,78vw)] motion-reduce:scale-100 sm:h-52 sm:w-[min(18rem,85vw)]"
-              style={{ transformStyle: "preserve-3d" }}
-            >
-              <div
-                className={`absolute inset-[10%] top-[24%] rounded-md bg-gradient-to-b from-amber-400/25 via-[#4B90CD]/20 to-transparent transition-opacity duration-500 ${
-                  flapOpen ? "opacity-100" : "opacity-0"
-                }`}
-                aria-hidden
-              />
+          <div className="relative flex justify-center">
+            <EnvelopeVisual variant="opening" flapOpen={flapOpen} />
 
-              <div className="absolute inset-0 z-0 rounded-lg bg-gradient-to-br from-[#1a2a42] to-[#0f1b2d] shadow-[0_20px_50px_rgba(0,0,0,0.45)] ring-1 ring-white/10" />
-
-              <div
-                className="absolute bottom-0 left-0 right-0 z-[5] h-[58%] rounded-b-lg bg-gradient-to-b from-[#243652] to-[#152238] shadow-inner"
-                style={{
-                  clipPath: "polygon(0 12%, 50% 0, 100% 12%, 100% 100%, 0 100%)",
-                }}
-                aria-hidden
-              />
-
-              <div
-                className={`absolute left-1/2 top-[42%] z-[30] flex size-12 -translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-full bg-gradient-to-br from-[#8b2942] to-[#5c1528] shadow-lg ring-2 ring-[#c94d6a]/50 transition-all duration-500 motion-reduce:duration-150 sm:size-14 ${
-                  flapOpen ? "scale-75 opacity-0" : "opacity-100"
-                }`}
-                style={{ transform: "translate3d(-50%, -50%, 10px)" }}
-                aria-hidden
-              >
-                <span className="text-base font-black text-[#f5d0a8] sm:text-lg">TC</span>
-              </div>
-
-              <div
-                className="absolute left-0 right-0 top-0 h-[48%] origin-top transition-transform duration-[1000ms] motion-reduce:duration-200 ease-[cubic-bezier(0.34,1.3,0.64,1)]"
-                style={{
-                  transformStyle: "preserve-3d",
-                  transform: flapOpen ? "rotateX(178deg) translateZ(2px)" : "rotateX(0deg) translateZ(1px)",
-                }}
-              >
+            {!result ? (
+              <div className="pointer-events-none absolute inset-0 flex items-end justify-center pb-3">
                 <div
-                  className="h-full w-full bg-gradient-to-br from-[#3d5270] to-[#2a3d56] shadow-md ring-1 ring-white/5 [backface-visibility:hidden]"
-                  style={{
-                    clipPath: "polygon(0 0, 100% 0, 50% 100%)",
-                    WebkitBackfaceVisibility: "hidden",
-                  }}
+                  className="size-6 animate-spin rounded-full border-2 border-white/20 border-t-[#4B90CD]"
+                  aria-hidden
                 />
               </div>
-
-              {!result && (
-                <div className="absolute bottom-3 left-0 right-0 z-10 flex justify-center">
-                  <div
-                    className="size-6 animate-spin rounded-full border-2 border-white/20 border-t-[#4B90CD]"
-                    aria-hidden
-                  />
-                </div>
-              )}
-            </div>
+            ) : null}
           </div>
 
           <p className="max-w-xs text-center text-sm text-gray-400">
@@ -127,29 +123,31 @@ export default function PackOpeningExperience({ result, onClose }: PackOpeningEx
       ) : null}
 
       {showRewards && result ? (
-        <div className="my-auto w-full max-w-[min(100%,22rem)] animate-[pack-reward-in_0.55s_ease-out_both] rounded-2xl border border-gray-600/80 bg-gradient-to-b from-[#0f1b2d] to-[#1a2d47] p-4 shadow-2xl sm:max-w-md sm:p-6">
+        <div className="my-auto w-full max-w-[min(100%,40rem)] animate-[pack-reward-in_0.55s_ease-out_both] rounded-2xl border border-gray-600/80 bg-gradient-to-b from-[#0f1b2d] to-[#1a2d47] p-4 shadow-2xl sm:p-6">
           <div className="mb-4 text-center sm:mb-6">
-            <h3 className="text-xl font-black text-white sm:text-2xl">PACK OPENED!</h3>
+            <h3 id="pack-opening-title" className="text-xl font-black text-white sm:text-2xl">
+              PACK OPENED!
+            </h3>
             <p className="mt-1 text-xs text-gray-400 sm:text-sm">
               You unlocked {result.cards_unlocked.length} new card
               {result.cards_unlocked.length !== 1 ? "s" : ""}
             </p>
           </div>
 
-          <div className="grid grid-cols-2 gap-2.5 sm:gap-4">
-            {result.cards_unlocked.map((card, i) => (
+          <div className="grid grid-cols-2 gap-3 sm:gap-4">
+            {unlockedCards.map((card, i) => (
               <div
                 key={card.card_id}
-                className="flex min-w-0 flex-col items-center gap-1.5 rounded-xl border border-gray-600 bg-gray-800/90 p-2.5 opacity-0 animate-[pack-card-pop_0.45s_ease-out_both] sm:gap-2 sm:p-4"
+                className="min-w-0 opacity-0 animate-[pack-card-pop_0.45s_ease-out_both]"
                 style={{ animationDelay: `${120 + i * 90}ms` }}
               >
-                <RarityBadge rarity={card.rarity} />
-                <p className="line-clamp-2 w-full text-center text-[11px] font-bold leading-tight text-white sm:text-sm">
-                  {card.display_name}
-                </p>
-                <p className="text-center text-[10px] text-gray-400 sm:text-xs">
-                  {positionAndJersey(card.position, card.jersey_num)}
-                </p>
+                <PlayerCard
+                  card={card}
+                  onViewStats={(athleteId) => {
+                    onClose();
+                    onViewStats?.(athleteId);
+                  }}
+                />
               </div>
             ))}
           </div>

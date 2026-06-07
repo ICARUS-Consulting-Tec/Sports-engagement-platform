@@ -9,7 +9,7 @@ import {
   isLiveMatch,
   titansFirstTeams,
 } from "../../utils/matchHelpers";
-import { resolveTeamLogoUrl } from "../../utils/teamLogo";
+import MatchesStyleTeamLogo from "../common/MatchesStyleTeamLogo";
 import "../../styles/home.css";
 
 function selectLiveMatch(matches: ApiMatch[]): ApiMatch | null {
@@ -118,8 +118,6 @@ function MatchesCard() {
   }
 
   const { left, right, titansIsHome } = titansFirstTeams(liveMatch);
-  const leftLogo = resolveTeamLogoUrl(left.abbr, left.logo);
-  const rightLogo = resolveTeamLogoUrl(right.abbr, right.logo);
   const scoreLine = formatMatchScoreLine(liveMatch);
 
   return (
@@ -143,17 +141,7 @@ function MatchesCard() {
 
           <div className="matches-card-teams">
             <div className="matches-card-team">
-              <div className="matches-card-logo">
-                {leftLogo ? (
-                  <img
-                    src={leftLogo}
-                    alt=""
-                    className="matches-card-logo-img"
-                  />
-                ) : (
-                  <span className="matches-card-logo-fallback">{left.abbr ?? "TEN"}</span>
-                )}
-              </div>
+              <MatchesStyleTeamLogo abbr={left.abbr ?? "TEN"} apiLogoUrl={left.logo} />
               <div className="matches-card-team-text">
                 <h3 className="matches-card-team-name">{left.name ?? "Tennessee Titans"}</h3>
                 <p className="matches-card-team-label">{titansIsHome ? "Home" : "Away"}</p>
@@ -163,17 +151,7 @@ function MatchesCard() {
             <div className="matches-card-vs">VS</div>
 
             <div className="matches-card-team">
-              <div className="matches-card-logo">
-                {rightLogo ? (
-                  <img
-                    src={rightLogo}
-                    alt=""
-                    className="matches-card-logo-img"
-                  />
-                ) : (
-                  <span className="matches-card-logo-fallback">{right.abbr ?? "NFL"}</span>
-                )}
-              </div>
+              <MatchesStyleTeamLogo abbr={right.abbr ?? "NFL"} apiLogoUrl={right.logo} />
               <div className="matches-card-team-text">
                 <h3 className="matches-card-team-name">{right.name ?? "Opponent"}</h3>
                 <p className="matches-card-team-label">{titansIsHome ? "Away" : "Home"}</p>

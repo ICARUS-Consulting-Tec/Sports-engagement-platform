@@ -208,9 +208,6 @@ function TeamPage() {
     setIsOpeningPack(true);
     try {
       const result = await claimPack(currentUserId);
-      if (packRevealActiveRef.current) {
-        setPackResult(result);
-      }
 
       const [rosterData, statsData] = await Promise.all([
         getRoster(currentUserId),
@@ -220,6 +217,10 @@ function TeamPage() {
       setStats(statsData);
       setPackState({ status: "NONE" });
       setPackSecondsRemaining(null);
+
+      if (packRevealActiveRef.current) {
+        setPackResult(result);
+      }
     } catch (error) {
       console.error("Failed to claim pack:", error);
       packRevealActiveRef.current = false;
@@ -314,7 +315,12 @@ function TeamPage() {
         ) : null}
 
         {packRevealOpen ? (
-          <PackOpeningExperience result={packResult} onClose={handlePackRevealClose} />
+          <PackOpeningExperience
+            result={packResult}
+            rosterCards={cards}
+            onViewStats={handleViewStats}
+            onClose={handlePackRevealClose}
+          />
         ) : null}
       </main>
     </div>

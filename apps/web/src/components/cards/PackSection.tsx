@@ -1,4 +1,5 @@
 import { Card, Button } from "@heroui/react";
+import EnvelopeVisual from "./EnvelopeVisual";
 import type { PackOpeningState } from "../../types";
 
 interface PackSectionProps {
@@ -21,46 +22,7 @@ function formatCountdown(totalSeconds: number): string {
 }
 
 function EnvelopePreview() {
-  return (
-    <div className="[perspective:1100px] shrink-0">
-      <div
-        className="relative h-32 w-28 sm:h-40 sm:w-32 lg:h-48 lg:w-40"
-        style={{ transformStyle: "preserve-3d" }}
-      >
-        <div
-          className="absolute inset-[10%] top-[24%] rounded-md bg-gradient-to-b from-amber-400/15 via-[#4B90CD]/15 to-transparent opacity-80"
-          aria-hidden
-        />
-
-        <div className="absolute inset-0 rounded-lg bg-gradient-to-br from-[#1a2a42] to-[#0f1b2d] shadow-[0_18px_45px_rgba(0,0,0,0.45)] ring-1 ring-white/10" />
-
-        <div
-          className="absolute bottom-0 left-0 right-0 h-[58%] rounded-b-lg bg-gradient-to-b from-[#243652] to-[#152238] shadow-inner"
-          style={{
-            clipPath: "polygon(0 12%, 50% 0, 100% 12%, 100% 100%, 0 100%)",
-          }}
-          aria-hidden
-        />
-
-        <div
-          className="absolute left-1/2 top-[42%] z-20 flex size-10 -translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-full bg-gradient-to-br from-[#8b2942] to-[#5c1528] shadow-lg ring-2 ring-[#c94d6a]/50 lg:size-12"
-          aria-hidden
-        >
-          <span className="text-sm font-black text-[#f5d0a8] lg:text-base">TC</span>
-        </div>
-
-        <div className="absolute left-0 right-0 top-0 h-[48%] origin-top">
-          <div
-            className="h-full w-full bg-gradient-to-br from-[#3d5270] to-[#2a3d56] shadow-md ring-1 ring-white/5 [backface-visibility:hidden]"
-            style={{
-              clipPath: "polygon(0 0, 100% 0, 50% 100%)",
-              WebkitBackfaceVisibility: "hidden",
-            }}
-          />
-        </div>
-      </div>
-    </div>
-  );
+  return <EnvelopeVisual variant="preview" className="shrink-0" />;
 }
 
 export default function PackSection({

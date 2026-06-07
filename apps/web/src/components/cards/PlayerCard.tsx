@@ -60,7 +60,6 @@ function StatBlock({
 export default function PlayerCard({ card, onViewStats }: PlayerCardProps) {
   const {
     src: headshotSrc,
-    showPlaceholder,
     onImgError,
     onImgLoad,
     loaded,
@@ -120,17 +119,6 @@ export default function PlayerCard({ card, onViewStats }: PlayerCardProps) {
                 className={`absolute inset-0 z-[1] h-full w-full object-cover object-top [transform:translate3d(0,0,0.02px)] [backface-visibility:hidden] ${RARITY_HEADSHOT_IMAGE_OPACITY[card.rarity]} ${loaded ? "opacity-100" : "opacity-0"}`}
                 style={{ WebkitBackfaceVisibility: "hidden" }}
               />
-            ) : null}
-
-            {/* Placeholder mientras carga / o si se agotaron URLs */}
-            {showPlaceholder || !loaded ? (
-              <div className="absolute inset-0 z-[1] flex items-center justify-center">
-                <div className="flex size-24 items-center justify-center rounded-full bg-black/35 ring-2 ring-white/20 backdrop-blur-[2px]">
-                  <span className="text-3xl font-bold text-white">
-                    {card.display_name.charAt(0)}
-                  </span>
-                </div>
-              </div>
             ) : null}
           </div>
 
