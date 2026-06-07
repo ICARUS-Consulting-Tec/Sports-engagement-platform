@@ -476,16 +476,20 @@
   width: clamp(64px, 18vw, 132px);
   height: clamp(64px, 18vw, 132px);
   border-radius: 50%;
-  background: linear-gradient(
-    135deg,
-    rgba(121, 168, 234, 0.12) 0%,
-    rgba(38, 84, 142, 0.08) 100%
-  );
+  background: #f3f4f6;
+  border: 1px solid rgba(255, 255, 255, 0.85);
+  box-shadow: 0 2px 8px rgba(6, 24, 48, 0.12);
   display: flex;
   align-items: center;
   justify-content: center;
   overflow: hidden;
   flex-shrink: 0;
+}
+
+.matches-card-logo-fallback {
+  font-size: clamp(0.75rem, 2.5vw, 1.1rem);
+  font-weight: 800;
+  color: #0b2a55;
 }
 
 .matches-card-logo-img {
@@ -728,6 +732,12 @@
   text-underline-offset: 3px;
 }
 
+.home-community-posts {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
 .community-home-wrapper {
   width: 100%;
   display: flex;
@@ -956,27 +966,52 @@
   }
 
   .community-home-content {
-    padding: 22px 20px;
-    gap: 16px;
-    align-items: flex-start;
+    padding: 10px 12px;
+    gap: 10px;
+    align-items: center;
+  }
+
+  .community-home-card {
+    border-radius: 16px;
+    margin-bottom: 0;
+    box-shadow: 0 8px 18px rgba(15, 23, 42, 0.06);
+  }
+
+  .community-home-copy {
+    gap: 4px;
   }
 
   .community-home-avatar {
-    width: 60px;
-    height: 60px;
-    font-size: 1.55rem;
+    width: 40px;
+    height: 40px;
+    font-size: 0.95rem;
+  }
+
+  .community-home-name {
+    font-size: 0.875rem;
+    line-height: 1.2;
+  }
+
+  .community-home-comment {
+    font-size: 0.75rem;
+    line-height: 1.35;
+    display: -webkit-box;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 2;
+    overflow: hidden;
   }
 
   .community-home-actions {
-    gap: 18px;
+    gap: 12px;
+    padding-top: 2px;
   }
 
   .community-home-action {
-    font-size: 1.5rem;
+    font-size: 0.875rem;
   }
 
   .community-home-action span {
-    font-size: 1rem;
+    font-size: 0.7rem;
   }
 }
 
