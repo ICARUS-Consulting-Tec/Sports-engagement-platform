@@ -237,8 +237,8 @@ function TeamPage() {
   }
 
   return (
-    <div className="min-h-screen bg-[#F4F5F7]">
-      <main className="mx-auto w-full max-w-[1400px] p-6">
+    <div className="min-h-screen overflow-x-hidden bg-[#F4F5F7]">
+      <main className="page-main max-w-full overflow-x-hidden lg:mx-auto lg:max-w-[1400px] lg:p-6">
         <Navbar />
         {/* Header + Progress */}
         <div className="mb-6">
@@ -249,7 +249,7 @@ function TeamPage() {
         </div>
 
         {/* Filters + Search */}
-        <div className="flex flex-col gap-4 mb-8">
+        <div className="mb-8 flex min-w-0 flex-col gap-4">
           <CardFilterTabs selected={filter} onFilterChange={setFilter} />
           <CardSearchBar
             searchQuery={searchQuery}

@@ -59,17 +59,17 @@ export default function ProductDetailPage() {
   if (loading) {
     return (
       <div className="min-h-screen bg-[#F4F5F7]">
-        <div className="mx-auto w-full max-w-[1400px] px-6">
+        <div className="page-main">
           <Navbar />
         </div>
-        <main className="mx-auto max-w-[1400px] p-6">Loading…</main>
+        <main className="page-main">Loading…</main>
       </div>
     );
   }
 
   if (!product) {
     return (
-      <div className="min-h-screen bg-[#F4F5F7] p-6">
+      <div className="min-h-screen bg-[#F4F5F7] p-4 sm:p-6">
         <p>Product not found.</p>
         <Button onPress={() => navigate('/store')}>Back to store</Button>
       </div>
@@ -78,7 +78,7 @@ export default function ProductDetailPage() {
 
   return (
     <div className="min-h-screen bg-[#F4F5F7]">
-      <main className="mx-auto w-full max-w-[1400px] p-6">
+      <main className="page-main">
         <Navbar />
         
         {/* Barra con Back y Cart Button */}
@@ -135,7 +135,7 @@ export default function ProductDetailPage() {
               </div>
             ) : null}
 
-            <div className="flex w-full items-center gap-6">
+            <div className="flex w-full flex-col gap-4 sm:flex-row sm:items-center sm:gap-6">
               <div className="flex shrink-0 items-center gap-3">
                 <span className="text-sm text-slate-600">Quantity</span>
                 <div className="flex items-center gap-2">
@@ -161,7 +161,7 @@ export default function ProductDetailPage() {
 
               <Button
                 color="primary"
-                className="ml-auto min-w-[14rem] shrink-0 px-10"
+                className="w-full px-10 sm:ml-auto sm:w-auto sm:min-w-[14rem] sm:shrink-0"
                 onPress={() => {
                   addToCart(
                     product,

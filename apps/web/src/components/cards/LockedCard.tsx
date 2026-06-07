@@ -21,7 +21,7 @@ export default function LockedCard({ card }: LockedCardProps) {
   } = useRosterHeadshotSrc(card);
 
   return (
-    <article className="relative mx-auto w-full max-w-sm">
+    <article className="relative w-full min-w-0">
       {/* Misma caja 3:4 que PlayerCard: retrato + barra dentro del aspect-ratio */}
       <div className="relative aspect-[3/4] w-full overflow-hidden rounded-xl bg-[#0f1b2d] shadow-lg ring-2 ring-inset ring-gray-600">
         <div className="absolute inset-0 flex flex-col bg-gradient-to-b from-gray-800 to-gray-900">

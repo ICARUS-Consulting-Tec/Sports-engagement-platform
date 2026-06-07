@@ -22,7 +22,7 @@ function PrivateRoute({ children }: WrapperProps) {
   return (
     <>
       <div className="min-h-screen bg-[#F4F5F7]">
-        <main className="mx-auto w-full max-w-[1400px] p-6">
+        <main className="page-main">
           <Navbar />
           <section className="mx-auto max-w-lg py-20 text-center">
             <h1 className="m-0 text-2xl font-bold text-[#0B2A55]">
