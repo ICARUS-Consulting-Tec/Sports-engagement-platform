@@ -32,7 +32,7 @@ const DEFAULT_SLIDES: CarouselSlide[] = [
   },
   {
     id: "cards",
-    title: "Explore Your Cards",
+    title: "Collect cards by opening packs",
     subtitle:
       "Access the team's collection, review featured players, and enjoy a more immersive visual experience.",
     buttonLabel: "View Cards",
@@ -42,10 +42,10 @@ const DEFAULT_SLIDES: CarouselSlide[] = [
   },
   {
     id: "voice-agent",
-    title: "Talk to the Voice Agent",
+    title: "Talk to the T-Rac Agent",
     subtitle:
       "Start a conversational experience to get help, team information, and real-time answers.",
-    buttonLabel: "Open Agent",
+    buttonLabel: "Go to T-Rac",
     route: "/voice-agent",
     backgroundImageUrl:
       "https://static.clubs.nfl.com/image/upload/f_auto/titans/sydgcqdg3y1bfi1rg1wn",
