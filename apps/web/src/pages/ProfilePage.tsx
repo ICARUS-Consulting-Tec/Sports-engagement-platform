@@ -134,22 +134,20 @@ function ProfilePage() {
     last_name: string;
     username: string;
     }) => {
+    const payload: UpdateProfilePayload = {
+      first_name: formData.first_name?.trim() || null,
+      last_name: formData.last_name?.trim() || null,
+      username: formData.username?.trim() || null,
+      country: profile?.country || null,
+      avatar_url: profile?.avatar_url || null,
+    };
+
     try {
-        const payload: UpdateProfilePayload = {
-        first_name: formData.first_name?.trim() || null,
-        last_name: formData.last_name?.trim() || null,
-        username: formData.username?.trim() || null,
-        country: profile?.country || null,
-        avatar_url: profile?.avatar_url || null,
-        };
-
-        const updatedProfile = await updateMyProfile(payload);
-        setProfile(updatedProfile);
-
-        console.log("Profile updated successfully");
+      const updatedProfile = await updateMyProfile(payload);
+      setProfile(updatedProfile);
     } catch (error) {
-        console.error("Error updating profile:", error);
-        alert("Could not update profile.");
+      console.error("Error updating profile:", error);
+      throw error;
     }
     };
 
