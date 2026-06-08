@@ -4,7 +4,6 @@ import LegendaryPlayerCard from "../components/history/LegendaryPlayerCard";
 import LegendaryPlayerModal from "../components/history/LegendaryPlayerModal";
 import TimelineItem from "../components/history/TimelineItem";
 import TimelineStoryModal from "../components/history/TimelineStoryModal";
-import Navbar from "../components/layout/Navbar";
 import { getHistoryPageData } from "../services/historyService";
 import type { HistoryPageData, LegendaryPlayer, TimelineEvent } from "../types/history";
 
@@ -71,9 +70,7 @@ function HistoryPage() {
 
   return (
     <div className="min-h-screen overflow-x-hidden bg-[#f4f5f7]">
-      <main className="page-main max-w-full overflow-x-hidden lg:mx-auto lg:max-w-[1400px] lg:p-6">
-        <Navbar />
-
+      <main className="page-main max-w-full overflow-x-hidden lg:mx-auto lg:max-w-[1400px] lg:px-6 lg:pb-6">
         <section className="mb-6 rounded-3xl border border-[#e6e9ef] bg-white px-5 py-6 shadow-[0_8px_20px_rgba(15,23,42,0.08)] sm:px-8 sm:py-[30px]">
           <div className="max-w-[760px]">
             <h1 className="mb-2.5 text-[clamp(1.5rem,6vw,2.625rem)] font-bold leading-[1.08] text-[#0c2340] lg:text-[42px]">

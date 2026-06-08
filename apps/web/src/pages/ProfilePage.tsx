@@ -1,6 +1,5 @@
 import { useEffect, useState } from "react";
 import { Auth } from "../context/AuthContext";
-import Navbar from "../components/layout/Navbar";
 import SidebarMenu from "../components/Profile/SidebarMenu";
 import PersonalInfo from "../components/Profile/PersonalInfo";
 import Addresses from "../components/Profile/Addresses";
@@ -336,7 +335,6 @@ function ProfilePage() {
     return (
       <div className="profile-page">
         <main className="profile-container">
-          <Navbar />
           <div className="profile-page-wrapper">
             <p>Loading profile...</p>
           </div>
@@ -349,8 +347,6 @@ function ProfilePage() {
     <>
       <div className="profile-page">
         <main className="profile-container">
-          <Navbar />
-
           <section className="profile-header">
             <h1 className="profile-title">MY PROFILE</h1>
             <p className="profile-subtitle">

@@ -42,10 +42,10 @@ const DEFAULT_SLIDES: CarouselSlide[] = [
   },
   {
     id: "voice-agent",
-    title: "Talk to the T-Rac Agent",
+    title: "Talk to the T-Rac TitanBot",
     subtitle:
       "Start a conversational experience to get help, team information, and real-time answers.",
-    buttonLabel: "Go to T-Rac",
+    buttonLabel: "Go to T-Rac TitanBot",
     route: "/voice-agent",
     backgroundImageUrl:
       "https://static.clubs.nfl.com/image/upload/f_auto/titans/sydgcqdg3y1bfi1rg1wn",

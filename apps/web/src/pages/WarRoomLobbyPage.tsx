@@ -1,6 +1,5 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import Navbar from "../components/layout/Navbar";
 import { Auth } from "../context/AuthContext";
 import { createMatch, joinMatch } from "../services/warRoomService";
 
@@ -46,8 +45,6 @@ function WarRoomLobbyPage() {
   return (
     <div className="min-h-screen bg-[#F4F5F7]">
       <main className="page-main">
-        <Navbar />
-
         <section className="hero-section">
           <div>
             <h1 className="hero-title">

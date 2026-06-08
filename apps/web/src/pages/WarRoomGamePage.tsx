@@ -1,6 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
-import Navbar from "../components/layout/Navbar";
 import { Auth } from "../context/AuthContext";
 import { WarRoomAgendaPickPhase, WarRoomAgendaWaitPhase } from "../components/warRoom/WarRoomAgendaPhases";
 import { WarRoomLobbyPhase } from "../components/warRoom/WarRoomLobbyPhase";
@@ -839,7 +838,6 @@ export default function WarRoomGamePage() {
     return (
       <div className="min-h-screen overflow-x-hidden bg-[#F4F5F7]">
         <main className="page-main max-w-full overflow-x-hidden">
-          <Navbar />
           {banner}
           <WarRoomLobbyPhase
             match={match}
@@ -863,7 +861,6 @@ export default function WarRoomGamePage() {
     return (
       <div className="min-h-screen bg-[#F4F5F7]">
         <main className="page-main">
-          <Navbar />
           {banner}
           <WarRoomAgendaPickPhase
             agendas={agendas}
@@ -883,7 +880,6 @@ export default function WarRoomGamePage() {
     return (
       <div className="min-h-screen overflow-x-hidden bg-[#F4F5F7]">
         <main className="page-main max-w-full overflow-x-hidden">
-          <Navbar />
           {banner}
           <WarRoomAgendaWaitPhase match={match} />
         </main>
@@ -896,7 +892,6 @@ export default function WarRoomGamePage() {
     return (
       <div className="min-h-screen bg-[#F4F5F7]">
         <main className="page-main">
-          <Navbar />
           {banner}
           {!results ? (
             <div className="rounded-2xl bg-white p-10 shadow text-center">
@@ -919,10 +914,7 @@ export default function WarRoomGamePage() {
 
   return (
     <div className="min-h-screen overflow-x-hidden bg-[#F4F5F7]">
-      <main className="page-main flex min-h-screen flex-col overflow-x-hidden !py-3">
-        <div className="shrink-0">
-          <Navbar />
-        </div>
+      <main className="page-main flex min-h-screen flex-col overflow-x-hidden !pb-3">
         {banner}
         {statusToast && (
           <p className="mb-2 shrink-0 rounded-xl bg-[#0f3d78] px-4 py-2 text-center text-sm font-bold text-white">

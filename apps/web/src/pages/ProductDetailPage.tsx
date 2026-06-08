@@ -2,7 +2,6 @@ import { useEffect, useMemo, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { Button } from '@heroui/react';
 import StoreTag from '../components/store/StoreTag';
-import Navbar from '../components/layout/Navbar';
 import { getProducts } from '../services/storeService';
 import type { StoreProduct } from '../types';
 import { useCart } from '../context/CartContext';
@@ -60,7 +59,6 @@ export default function ProductDetailPage() {
     return (
       <div className="min-h-screen bg-[#F4F5F7]">
         <div className="page-main">
-          <Navbar />
         </div>
         <main className="page-main">Loading…</main>
       </div>
@@ -79,8 +77,6 @@ export default function ProductDetailPage() {
   return (
     <div className="min-h-screen bg-[#F4F5F7]">
       <main className="page-main">
-        <Navbar />
-        
         {/* Barra con Back y Cart Button */}
         <div className="mb-6 flex items-center justify-between">
           <button
