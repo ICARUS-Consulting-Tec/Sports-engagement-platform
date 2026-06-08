@@ -203,9 +203,9 @@ const Stage = ({ lose, restartClick, map, player, hint, status, paused, ...other
 	const [pixelSize, setPixelSize] = useState(30);
 	const [portrait, setPortrait] = useState(false);
 	const { width, height } = useWindowDimensions();
-	const [theme3d, setTheme3d] = useState(false);
 	const [nextRender, setNextRender] = useState();
 	const stageRef = useRef(null);
+	const theme3d = status ? Math.floor((status.level - 1) / 2) % 2 === 1 : false;
 
 	useEffect(() => {
 		let pixelSizeHeight = height / 28;
@@ -230,10 +230,6 @@ const Stage = ({ lose, restartClick, map, player, hint, status, paused, ...other
 			stageRef.current.focus();
 		}
 	}, [lose]);
-
-	useEffect(() => {
-		stageRef.current.focus();
-	}, [theme3d]);
 
 	return (
 		<StageShell>
@@ -261,29 +257,6 @@ const Stage = ({ lose, restartClick, map, player, hint, status, paused, ...other
 								</Row>
 							))}
 						</Next>
-						<ContainerSwitch portrait={portrait}>
-							<ThemeSwitchButton
-								type="button"
-								role="switch"
-								aria-checked={theme3d}
-								aria-label="Toggle 3D blocks"
-								checked={theme3d}
-								pixelSize={pixelSize}
-								onMouseDown={(event) => event.preventDefault()}
-								onClick={() => setTheme3d(value => !value)}
-							>
-								<ThemeSwitchThumb pixelSize={pixelSize}>
-									<Pixel
-										theme3d={theme3d}
-										pixelSize={pixelSize / 3}
-										stage="true"
-										fill={1}
-										color={"#e54b4b"}
-										topBloco={theme3d}
-									/>
-								</ThemeSwitchThumb>
-							</ThemeSwitchButton>
-						</ContainerSwitch>
 					</ContainerNext>
 				)}
 				{map && (
