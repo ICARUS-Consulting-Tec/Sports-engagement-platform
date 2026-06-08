@@ -45,12 +45,12 @@ function WarRoomLobbyPage() {
 
   return (
     <div className="min-h-screen bg-[#F4F5F7]">
-      <main className="mx-auto w-full max-w-[1400px] p-6">
+      <main className="page-main">
         <Navbar />
 
-        <section className="mb-9 flex flex-wrap items-start justify-between gap-6 rounded-[28px] bg-[linear-gradient(90deg,#0B2A55_0%,#1D4E89_50%,#60A5FA_100%)] px-10 py-[42px] text-white shadow-[0_10px_24px_rgba(0,0,0,0.12)]">
+        <section className="hero-section">
           <div>
-            <h1 className="m-0 text-[58px] leading-[1.05] font-black">
+            <h1 className="hero-title">
               TITANS WAR ROOM
             </h1>
             <p className="mt-2 text-lg opacity-80">

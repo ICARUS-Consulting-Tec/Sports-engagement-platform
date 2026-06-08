@@ -407,7 +407,7 @@ function ProfilePage() {
         <ModalComp
           isOpen={isDetailsOpen}
           onOpenChange={setIsDetailsOpen}
-          dialogClassName="w-[min(45vw,72rem)] max-w-none"
+          dialogClassName="w-[calc(100vw-2rem)] max-w-3xl sm:w-[min(45vw,72rem)] sm:max-w-none"
           children={
             selectedPost && (
               <div className="space-y-6">
