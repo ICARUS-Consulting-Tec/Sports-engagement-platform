@@ -1,5 +1,4 @@
 import { useEffect, useState } from "react";
-import Navbar from "../components/layout/Navbar";
 import MatchCard from "../components/matches/MatchCard";
 import { Button } from "@heroui/react";
 import { getMatches } from "../services/matchesService";
@@ -84,7 +83,6 @@ function MatchesPage() {
   return (
     <div className="min-h-screen bg-[#F4F5F7]">
     <main className="page-main">
-      <Navbar />
         <section className="matches-hero hero-section">
           <div className="matches-hero-main">
             <h1 className="hero-title">MATCH CALENDAR</h1>

@@ -5,6 +5,7 @@ import { SignupForm } from "../auth/SignUpForm";
 import { SigninWithEmailForm } from "../auth/SignInForm";
 import { useState, useEffect } from "react";
 import { FiMenu, FiX } from "react-icons/fi";
+import "../../styles/navbar.css";
 
 const NAV_LINKS = [
   { to: "/", label: "Home" },
@@ -19,7 +20,7 @@ const NAV_LINKS = [
 ] as const;
 
 interface NavbarProps {
-  variant?: "default" | "overlay";
+  variant?: "default" | "overlay" | "glass";
 }
 
 function Navbar({ variant = "default" }: NavbarProps) {
@@ -30,6 +31,7 @@ function Navbar({ variant = "default" }: NavbarProps) {
   const navigate = useNavigate();
   const location = useLocation();
   const isOverlay = variant === "overlay";
+  const isGlass = variant === "glass";
 
   useEffect(() => {
     setMobileMenuOpen(false);
@@ -42,21 +44,31 @@ function Navbar({ variant = "default" }: NavbarProps) {
     };
   }, [mobileMenuOpen]);
 
-  const linkClass = ({ isActive }: { isActive: boolean }) =>
-    isOverlay
-      ? [
-          "whitespace-nowrap rounded-full px-3 py-2 text-[15px] font-medium text-white/90 transition-colors hover:bg-white/10 hover:text-white",
-          isActive ? "font-bold text-white" : "",
-        ].join(" ")
-      : [
-          "whitespace-nowrap rounded-full px-3 py-2 text-[15px] font-medium text-gray-700 transition-colors hover:bg-gray-100 hover:text-[#0B2A55]",
-          isActive ? "font-bold text-[#0B2A55]" : "",
-        ].join(" ");
+  const linkClass = ({ isActive }: { isActive: boolean }) => {
+    if (isOverlay) {
+      return [
+        "whitespace-nowrap rounded-full px-3 py-2 text-[15px] font-bold text-white/90 transition-colors hover:bg-white/10 hover:text-white",
+        isActive ? "text-white" : "",
+      ].join(" ");
+    }
+
+    if (isGlass) {
+      return [
+        "whitespace-nowrap rounded-full px-3 py-2 text-[15px] font-bold text-[#0B2A55]/85 transition-colors hover:bg-white/50 hover:text-[#0B2A55]",
+        isActive ? "text-[#0B2A55]" : "",
+      ].join(" ");
+    }
+
+    return [
+      "whitespace-nowrap rounded-full px-3 py-2 text-[15px] font-bold text-gray-700 transition-colors hover:bg-gray-100 hover:text-[#0B2A55]",
+      isActive ? "text-[#0B2A55]" : "",
+    ].join(" ");
+  };
 
   const mobileLinkClass = ({ isActive }: { isActive: boolean }) =>
     [
-      "block w-full rounded-xl px-4 py-3.5 text-left text-base font-medium text-gray-800 transition-colors hover:bg-gray-50",
-      isActive ? "bg-[#0B2A55] font-bold text-white hover:bg-[#0B2A55]" : "",
+      "block w-full rounded-xl px-4 py-3.5 text-left text-base font-bold text-gray-800 transition-colors hover:bg-gray-50",
+      isActive ? "bg-[#0B2A55] text-white hover:bg-[#0B2A55]" : "",
     ].join(" ");
 
   return (
@@ -64,8 +76,10 @@ function Navbar({ variant = "default" }: NavbarProps) {
       <nav
         className={
           isOverlay
-            ? "relative z-30 mb-0 border-0 bg-transparent px-4 py-3 sm:px-6 sm:py-4 lg:px-8"
-            : "relative z-30 mb-4 rounded-t-2xl border border-gray-200 bg-white px-4 py-3 sm:mb-6 sm:px-6 sm:py-4 lg:px-8"
+            ? "navbar-shell navbar-shell--overlay"
+            : isGlass
+              ? "navbar-shell navbar-shell--glass"
+              : "navbar-shell navbar-shell--default sm:mb-6"
         }
       >
         <div className="flex items-center justify-between gap-3">
@@ -103,7 +117,9 @@ function Navbar({ variant = "default" }: NavbarProps) {
                 className={
                   isOverlay
                     ? "hidden rounded-full border border-white/30 bg-white/10 px-4 py-2.5 text-sm font-semibold text-white backdrop-blur-sm transition-colors hover:bg-white/20 sm:block sm:px-5 sm:py-3 sm:text-[15px]"
-                    : "hidden rounded-full bg-[#0B2A55] px-4 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-[#0d3468] sm:block sm:px-5 sm:py-3 sm:text-[15px]"
+                    : isGlass
+                      ? "hidden rounded-full border border-white/90 bg-white/60 px-4 py-2.5 text-sm font-semibold text-[#0B2A55] shadow-[inset_0_1px_0_rgba(255,255,255,0.9),0_4px_14px_rgba(11,42,85,0.1)] backdrop-blur-md transition-colors hover:bg-white/80 sm:block sm:px-5 sm:py-3 sm:text-[15px]"
+                      : "hidden rounded-full bg-[#0B2A55] px-4 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-[#0d3468] sm:block sm:px-5 sm:py-3 sm:text-[15px]"
                 }
                 onClick={() => setIsOpen(true)}
               >
@@ -115,7 +131,9 @@ function Navbar({ variant = "default" }: NavbarProps) {
                 className={
                   isOverlay
                     ? "hidden rounded-full border border-white/30 bg-white/10 px-4 py-2.5 text-sm font-semibold text-white backdrop-blur-sm transition-colors hover:bg-white/20 sm:block sm:px-5 sm:py-3 sm:text-[15px]"
-                    : "hidden rounded-full bg-[#0B2A55] px-4 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-[#0d3468] sm:block sm:px-5 sm:py-3 sm:text-[15px]"
+                    : isGlass
+                      ? "hidden rounded-full border border-white/90 bg-white/60 px-4 py-2.5 text-sm font-semibold text-[#0B2A55] shadow-[inset_0_1px_0_rgba(255,255,255,0.9),0_4px_14px_rgba(11,42,85,0.1)] backdrop-blur-md transition-colors hover:bg-white/80 sm:block sm:px-5 sm:py-3 sm:text-[15px]"
+                      : "hidden rounded-full bg-[#0B2A55] px-4 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-[#0d3468] sm:block sm:px-5 sm:py-3 sm:text-[15px]"
                 }
                 onClick={() => navigate("/profile")}
               >
@@ -128,7 +146,9 @@ function Navbar({ variant = "default" }: NavbarProps) {
               className={
                 isOverlay
                   ? "flex h-10 w-10 items-center justify-center rounded-xl border border-white/30 text-white transition-colors hover:bg-white/10 xl:hidden"
-                  : "flex h-10 w-10 items-center justify-center rounded-xl border border-gray-200 text-[#0B2A55] transition-colors hover:bg-gray-50 xl:hidden"
+                  : isGlass
+                    ? "flex h-10 w-10 items-center justify-center rounded-xl border border-white/80 bg-white/40 text-[#0B2A55] shadow-sm backdrop-blur-sm transition-colors hover:bg-white/60 xl:hidden"
+                    : "flex h-10 w-10 items-center justify-center rounded-xl border border-gray-200 text-[#0B2A55] transition-colors hover:bg-gray-50 xl:hidden"
               }
               onClick={() => setMobileMenuOpen((open) => !open)}
               aria-label={mobileMenuOpen ? "Cerrar menú" : "Abrir menú"}

@@ -1,5 +1,4 @@
 import { useState, useEffect, useMemo, useRef } from "react";
-import Navbar from "../components/layout/Navbar";
 import {
   CollectionHeader,
   CollectionProgressBar,
@@ -239,8 +238,7 @@ function TeamPage() {
 
   return (
     <div className="min-h-screen overflow-x-hidden bg-[#F4F5F7]">
-      <main className="page-main max-w-full overflow-x-hidden lg:mx-auto lg:max-w-[1400px] lg:p-6">
-        <Navbar />
+      <main className="page-main max-w-full overflow-x-hidden lg:mx-auto lg:max-w-[1400px] lg:px-6 lg:pb-6">
         {/* Header + Progress */}
         <div className="mb-6">
           <CollectionHeader stats={stats} />

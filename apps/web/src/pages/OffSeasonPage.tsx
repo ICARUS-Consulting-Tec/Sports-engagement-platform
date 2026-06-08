@@ -1,6 +1,5 @@
 import { useState } from "react";
 import { Link } from "react-router-dom";
-import Navbar from "../components/layout/Navbar";
 import TitansTossPanel from "../components/titansToss/TitansTossPanel";
 import WordleGame from "../components/wordle/WordleGame";
 import Tetris from "../components/tetris/coreTetris";
@@ -22,8 +21,6 @@ function OffSeasonPage() {
   return (
     <div className="min-h-screen bg-[#F4F5F7]">
       <main className="page-main">
-        <Navbar />
-
         <section className="hero-section">
           <h1 className="hero-title">OFF-SEASON</h1>
         </section>

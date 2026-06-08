@@ -22,16 +22,14 @@ import ProductDetailPage from "./pages/ProductDetailPage";
 import AddedToCartToast from "./components/store/AddedToCartToast";
 import FeedbackDrawer from "./components/feedback/FeedbackDrawer";
 import { Auth } from "./context/AuthContext";
+import { AppScrollNavShell } from "./context/ScrollNavContext";
 
 function App() {
   const { session } = Auth();
   const location = useLocation();
   const isAdminRoute = location.pathname.startsWith("/admin");
 
-  return (
-    <CartProvider>
-      <AddedToCartToast />
-      <>
+  const routes = (
         <Routes>
           <Route
             path="/"
@@ -170,8 +168,13 @@ function App() {
             }
           />
         </Routes>
-        {session && !isAdminRoute ? <FeedbackDrawer /> : null}
-      </>
+  );
+
+  return (
+    <CartProvider>
+      <AddedToCartToast />
+      {isAdminRoute ? routes : <AppScrollNavShell>{routes}</AppScrollNavShell>}
+      {session && !isAdminRoute ? <FeedbackDrawer /> : null}
     </CartProvider>
   );
 }

@@ -6,9 +6,6 @@
   margin-bottom: 14px;
 }
 
-.profile-container > nav {
-  margin-bottom: 12px;
-}
 
 .profile-title {
   font-size: clamp(1.35rem, 4.5vw, 3.5rem);
@@ -130,16 +127,12 @@
 .profile-container {
   max-width: 1400px;
   margin: 0 auto;
-  padding: 12px 16px 24px;
+  padding: var(--scroll-nav-offset) 16px 24px;
 }
 
 @media (min-width: 640px) {
   .profile-container {
-    padding: 16px 20px 28px;
-  }
-
-  .profile-container > nav {
-    margin-bottom: 16px;
+    padding: var(--scroll-nav-offset) 20px 28px;
   }
 
   .profile-title {
@@ -159,11 +152,7 @@
 
 @media (min-width: 1024px) {
   .profile-container {
-    padding: 24px;
-  }
-
-  .profile-container > nav {
-    margin-bottom: 24px;
+    padding: var(--scroll-nav-offset) 24px 24px;
   }
 
   .profile-sidebar-card {
@@ -364,6 +353,28 @@
   .full-width {
     grid-column: auto;
   }
+}
+
+.profile-feedback {
+  width: 100%;
+  margin: 28px 0 0;
+  padding: 12px 16px;
+  border-radius: 12px;
+  font-size: 0.875rem;
+  font-weight: 600;
+  line-height: 1.45;
+}
+
+.profile-feedback--success {
+  color: #166534;
+  background: #ecfdf3;
+  border: 1px solid #bbf7d0;
+}
+
+.profile-feedback--error {
+  color: #b91c1c;
+  background: #fef2f2;
+  border: 1px solid #fecaca;
 }
 
 .signout-btn {

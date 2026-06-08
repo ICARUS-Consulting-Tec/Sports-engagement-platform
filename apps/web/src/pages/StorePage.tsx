@@ -1,7 +1,6 @@
 import { useEffect, useState, useMemo } from 'react';
 import { getProducts } from '../services/storeService';
 import type { StoreProduct } from '../types';
-import Navbar from '../components/layout/Navbar';
 import ProductCard from '../components/store/ProductCard';
 import FilterBar from '../components/store/FilterBar';
 import RarityDropdown from '../components/store/RarityDropdown';
@@ -86,11 +85,7 @@ export default function StorePage() {
   if (loading) {
     return (
       <div className="min-h-screen bg-[#F4F5F7]">
-        <div className="page-main pt-4">
-          <Navbar />
-        </div>
-        
-        <main className="page-main pt-0 sm:pt-2">
+        <main className="page-main">
           <p className="text-gray-600">Loading products…</p>
         </main>
       </div>
@@ -100,7 +95,6 @@ export default function StorePage() {
   return (
     <div className="min-h-screen bg-[#F4F5F7]">
       <main className="page-main">
-        <Navbar />
         <section
           className="store-hero-bar mb-8"
           aria-label="Store"
