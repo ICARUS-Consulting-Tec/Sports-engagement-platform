@@ -1,12 +1,30 @@
 // @ts-nocheck
-import React, { useState, useEffect, useRef } from "react";
-import styled from "styled-components";
+import React, { useMemo, useState, useEffect, useRef } from "react";
+import styled, { keyframes } from "styled-components";
 
 import useWindowDimensions from "../../hooks/tetris/useWindowDimensions";
 import StatusRow from "./statusRow";
 import LoseGame from "./loseGame";
 
 import Color from "color";
+
+const TITANS_LOGO_SRC = "/team-logos/TEN.png";
+
+const confettiFall = keyframes`
+	0% {
+		opacity: 0;
+		transform: translate3d(0, 0, 0) rotate(0deg);
+	}
+
+	12% {
+		opacity: 1;
+	}
+
+	100% {
+		opacity: 0;
+		transform: translate3d(var(--dx), var(--dy), 0) rotate(var(--dr));
+	}
+`;
 
 const Game = styled.div`
 	position: relative;
@@ -17,7 +35,7 @@ const Game = styled.div`
 	flex-direction: ${props => (props.portrait ? "column" : "row")};
 	justify-content: center;
 	align-items: center;
-	background-color: #0f3d78;	
+	background-color: #0f3d78;
 `;
 
 const StageShell = styled.div`
@@ -55,6 +73,7 @@ const Next = styled.div`
 `;
 
 const StyledStage = styled.div`
+	position: relative;
 	background-color: ${props => (props.theme3d ? "#444" : "black")};
 	transition: background-color 0.5s;
 	overflow: hidden;
@@ -84,7 +103,12 @@ const Pixel = React.memo(styled.div`
 	width: ${props => (props.stage ? props.pixelSize : props.pixelSize / 1.6)}px;
 	height: ${props => (props.stage ? props.pixelSize : props.pixelSize / 1.6)}px;
 	background-color: ${props => (props.fill === 1 ? props.color : "inherited")};
+	background-image: ${props => (props.logo ? `url("${props.logo}")` : "none")};
+	background-repeat: no-repeat;
+	background-position: center;
+	background-size: ${props => (props.logo ? "78%" : "auto")};
 	position: relative;
+	overflow: hidden;
 	z-index: ${props => props.zIndex};
 
 	${props =>
@@ -123,6 +147,42 @@ const Pixel = React.memo(styled.div`
 		background-color: rgba(255,255,255,0.1);
 	`};
 `);
+
+const LogoMark = styled.img`
+	position: absolute;
+	inset: 14%;
+	width: 72%;
+	height: 72%;
+	object-fit: contain;
+	pointer-events: none;
+	z-index: 2;
+	filter: drop-shadow(0 1px 2px rgba(0, 0, 0, 0.25));
+`;
+
+const ConfettiLayer = styled.div`
+	position: absolute;
+	inset: 0;
+	pointer-events: none;
+	overflow: hidden;
+	z-index: 85;
+`;
+
+const ConfettiPiece = styled.span`
+	position: absolute;
+	left: ${props => props.left}%;
+	top: ${props => props.top}%;
+	width: ${props => props.size}px;
+	height: ${props => props.height}px;
+	background-color: ${props => props.color};
+	border-radius: ${props => (props.rounded ? "999px" : "2px")};
+	opacity: 0;
+	box-shadow: 0 0 6px rgba(255, 255, 255, 0.1);
+	will-change: transform, opacity;
+	animation: ${confettiFall} ${props => props.duration}ms ease-out ${props => props.delay}ms forwards;
+	--dx: ${props => props.dx}px;
+	--dy: ${props => props.dy}px;
+	--dr: ${props => props.dr}deg;
+`;
 
 const ContainerSwitch = styled.div`
 	${props =>
@@ -199,13 +259,41 @@ const getRenderizacaoBloco = bloco => {
 	return trimBloco;
 };
 
-const Stage = ({ lose, restartClick, map, player, hint, status, paused, ...others }) => {
+const isTitansLogoCell = (block, rowIndex, columnIndex) =>
+	Boolean(
+		block?.specialTitans &&
+		block?.logoCell &&
+		rowIndex === block.logoCell[0] &&
+		columnIndex === block.logoCell[1]
+	);
+
+const Stage = ({ lose, restartClick, map, player, hint, status, paused, confettiBurst, ...others }) => {
 	const [pixelSize, setPixelSize] = useState(30);
 	const [portrait, setPortrait] = useState(false);
 	const { width, height } = useWindowDimensions();
 	const [nextRender, setNextRender] = useState();
 	const stageRef = useRef(null);
 	const theme3d = status ? Math.floor((status.level - 1) / 2) % 2 === 1 : false;
+
+	const confettiPieces = useMemo(() => {
+		if (!confettiBurst) return [];
+
+		const palette = ["#7fdcff", "#b8f0ff", "#fdf6a4", "#ffffff", "#4bb7ff", "#d7f7ff"];
+		return [...new Array(24)].map((_, index) => ({
+			id: `${confettiBurst.id}-${index}`,
+			left: 26 + Math.random() * 48,
+			top: 10 + Math.random() * 18,
+			size: 5 + Math.random() * 5,
+			height: 3 + Math.random() * 5,
+			color: palette[index % palette.length],
+			rounded: index % 4 === 0,
+			duration: 1200 + Math.random() * 500,
+			delay: Math.random() * 140,
+			dx: (Math.random() - 0.5) * 280,
+			dy: 120 + Math.random() * 120,
+			dr: (Math.random() - 0.5) * 360,
+		}));
+	}, [confettiBurst]);
 
 	useEffect(() => {
 		let pixelSizeHeight = height / 28;
@@ -233,6 +321,26 @@ const Stage = ({ lose, restartClick, map, player, hint, status, paused, ...other
 
 	return (
 		<StageShell>
+			{confettiPieces.length > 0 && (
+				<ConfettiLayer aria-hidden="true">
+					{confettiPieces.map(piece => (
+						<ConfettiPiece
+							key={piece.id}
+							left={piece.left}
+							top={piece.top}
+							size={piece.size}
+							height={piece.height}
+							color={piece.color}
+							rounded={piece.rounded}
+							duration={piece.duration}
+							delay={piece.delay}
+							dx={piece.dx}
+							dy={piece.dy}
+							dr={piece.dr}
+						/>
+					))}
+				</ConfettiLayer>
+			)}
 			<Game portrait={portrait}>
 				{nextRender && (
 					<ContainerNext portrait={portrait} pixelSize={pixelSize}>
@@ -241,6 +349,7 @@ const Stage = ({ lose, restartClick, map, player, hint, status, paused, ...other
 								<Row pixelSize={pixelSize} key={`row-${y}`}>
 									{row.map((pixel, x) => {
 										let topBloco = pixel && (!nextRender[y - 1] || !nextRender[y - 1][x]);
+										const showTitansLogo = isTitansLogoCell(player.next, y, x);
 										return (
 											<Pixel
 												paused={paused}
@@ -251,7 +360,10 @@ const Stage = ({ lose, restartClick, map, player, hint, status, paused, ...other
 												key={`pixel-${x}`}
 												fill={pixel}
 												color={player.next.color}
-											/>
+												logo={showTitansLogo ? TITANS_LOGO_SRC : undefined}
+											>
+												{showTitansLogo && <LogoMark src={TITANS_LOGO_SRC} alt="" aria-hidden="true" />}
+											</Pixel>
 										);
 									})}
 								</Row>
@@ -267,6 +379,11 @@ const Stage = ({ lose, restartClick, map, player, hint, status, paused, ...other
 									let playerFill =
 										player.bloco.bloco[y - player.pos[0]] &&
 										player.bloco.bloco[y - player.pos[0]][x - player.pos[1]];
+									const showTitansLogo = isTitansLogoCell(
+										player.bloco,
+										y - player.pos[0],
+										x - player.pos[1]
+									);
 									let playerHint =
 										hint.bloco.bloco[y - hint.pos[0]] &&
 										hint.bloco.bloco[y - hint.pos[0]][x - hint.pos[1]];
@@ -289,7 +406,10 @@ const Stage = ({ lose, restartClick, map, player, hint, status, paused, ...other
 											playerColor={player.bloco.color}
 											topBloco={topBloco}
 											zIndex={zIndex}
-										></Pixel>
+											logo={pixel.logo ? (pixel.logoSrc || TITANS_LOGO_SRC) : undefined}
+										>
+											{pixel.logo && <LogoMark src={pixel.logoSrc || TITANS_LOGO_SRC} alt="" aria-hidden="true" />}
+										</Pixel>
 									);
 								})}
 							</Row>
@@ -328,9 +448,15 @@ const Stage = ({ lose, restartClick, map, player, hint, status, paused, ...other
 					</ContainerStatus>
 				)}
 			</Game>
-			{ lose && 
-				<LoseGame portrait={portrait} restartClick={restartClick} status={status} pixelSize={pixelSize} theme3d={theme3d}>
-				</LoseGame>}
+			{lose && (
+				<LoseGame
+					portrait={portrait}
+					restartClick={restartClick}
+					status={status}
+					pixelSize={pixelSize}
+					theme3d={theme3d}
+				/>
+			)}
 		</StageShell>
 	);
 };
