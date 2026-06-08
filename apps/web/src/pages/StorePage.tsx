@@ -86,11 +86,11 @@ export default function StorePage() {
   if (loading) {
     return (
       <div className="min-h-screen bg-[#F4F5F7]">
-        <div className="mx-auto w-full max-w-[1400px] px-6 pt-4">
+        <div className="page-main pt-4">
           <Navbar />
         </div>
         
-        <main className="mx-auto w-full max-w-[1400px] px-6 pt-6">
+        <main className="page-main pt-0 sm:pt-2">
           <p className="text-gray-600">Loading products…</p>
         </main>
       </div>
@@ -99,7 +99,7 @@ export default function StorePage() {
 
   return (
     <div className="min-h-screen bg-[#F4F5F7]">
-      <main className="mx-auto w-full max-w-[1400px] p-6">
+      <main className="page-main">
         <Navbar />
         <section
           className="store-hero-bar mb-8"
@@ -137,7 +137,7 @@ export default function StorePage() {
               <CartButton />
             </div>
 
-            <div className="grid grid-cols-1 items-stretch gap-6 sm:grid-cols-2 lg:grid-cols-3">
+            <div className="grid grid-cols-2 items-stretch gap-3 sm:gap-6 lg:grid-cols-3">
               {filteredProducts.map((product) => (
                 <ProductCard
                   key={product.id}

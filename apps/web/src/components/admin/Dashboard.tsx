@@ -223,19 +223,19 @@ export default function Dashboard() {
 
   return (
     <div className="w-full">
-      <div className="mb-7 flex items-start justify-between gap-4">
-        <div>
-          <h2 className="m-0 text-[2.15rem] font-extrabold leading-[1.05] text-[#0b2e63]">
-            DASHBOARD
+      <div className="mb-4 flex flex-col gap-3 sm:mb-6 lg:flex-row lg:items-start lg:justify-between lg:gap-4">
+        <div className="min-w-0">
+          <h2 className="m-0 text-lg font-extrabold uppercase tracking-[1px] text-[#0d1f3c] sm:text-[22px]">
+            Dashboard
           </h2>
-          <p className="mt-[10px] text-[0.95rem] text-[#9aa3af]">
+          <p className="mt-1 text-[13px] leading-snug text-[#9aa3b2]">
             Admin overview and management tools will appear here
           </p>
         </div>
         <button
           type="button"
           onClick={handleDownloadPdf}
-          className="mr-10 mt-5 flex h-9 shrink-0 cursor-pointer items-center gap-2 rounded-lg bg-[#4B92DB] px-4 text-sm font-semibold text-white transition-colors hover:bg-[#3A7FC5]"
+          className="flex h-9 w-full shrink-0 cursor-pointer items-center justify-center gap-2 rounded-lg bg-[#4B92DB] px-4 text-sm font-semibold text-white transition-colors hover:bg-[#3A7FC5] sm:w-auto lg:mt-1"
         >
           <Icon icon="mdi:download" className="text-lg" />
           Download Report
@@ -244,10 +244,9 @@ export default function Dashboard() {
 
       <div
         ref={printRef}
-        className="rounded-[24px] bg-[#FFFFFF] text-[#111827] shadow-[0_10px_30px_rgba(0,0,0,0.08)]"
+        className="flex flex-col gap-4 rounded-2xl bg-white p-3 shadow-[0_10px_30px_rgba(0,0,0,0.08)] sm:rounded-[24px] sm:p-4"
       >
-        <div className="px-4 py-4">
-          <div className="mb-5 grid grid-cols-4 gap-3 max-[1200px]:grid-cols-2 max-[640px]:grid-cols-1">
+          <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
             <StatsCard
               title="TOTAL MEMBERS"
               value={
@@ -296,14 +295,14 @@ export default function Dashboard() {
             />
           </div>
 
-          <div className="mt-4 grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
             <SectionCard />
             <div className="rounded-xl bg-[#f7f8fc] shadow-[0_8px_24px_rgba(15,23,42,0.04)]">
               <MembersPerWeekChart />
             </div>
           </div>
 
-          <div className="mt-4 grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
             <div className="rounded-xl bg-[#f7f8fc] shadow-[0_8px_24px_rgba(15,23,42,0.04)]">
               <MembersPerWeekChart
                 endpoint="/api/dashboard/stats/posts-per-day"
@@ -322,10 +321,9 @@ export default function Dashboard() {
             </div>
           </div>
 
-          <div className="mt-4 rounded-xl bg-[#f7f8fc] shadow-[0_8px_24px_rgba(15,23,42,0.04)]">
+          <div className="rounded-xl bg-[#f7f8fc] shadow-[0_8px_24px_rgba(15,23,42,0.04)]">
             <PostsByCategoryChart />
           </div>
-        </div>
       </div>
     </div>
   );

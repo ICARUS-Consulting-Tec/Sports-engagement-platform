@@ -32,7 +32,7 @@ function NewsPage() {
 
   return (
     <div className="min-h-screen bg-[#F4F5F7]">
-      <main className="mx-auto w-full max-w-[1400px] p-6">
+      <main className="page-main">
         <Navbar />
 
         <section className="news-section">

@@ -196,7 +196,7 @@ function WordleGame() {
   return (
     <section className="rounded-2xl border border-[#d8dee5] bg-white p-6">
       <header className="mb-5">
-        <p className="mb-2 text-[12px] font-extrabold tracking-[0.18em] text-[#d62839]">TITAN WORDS</p>
+        <p className="mb-2 text-[12px] font-extrabold tracking-[0.18em] text-[#d62839]">TITANS WORDS</p>
         <h2 className="mb-2 text-[32px] font-bold text-[#0b2a55] max-[900px]:text-[26px]">
          Titans Words
         </h2>
@@ -233,8 +233,8 @@ function WordleGame() {
               <div className="p-5 pt-0 pb-0" >
               <WordleGrid  board={board} />
               </div>
-              <div className="p-5 pt-0" >
-              <div className="rounded-xl border border-[#d8dee5] bg-[#f5f8fb] p-4 shadow-none">
+              <div className="p-3 pt-0 sm:p-5">
+              <div className="rounded-xl border border-[#d8dee5] bg-[#f5f8fb] p-2 sm:p-4">
                 <WordleKeyboard keyboardStatus={keyboardStatus} onKeyPress={handleWordleInput} />
               </div>
 
@@ -257,13 +257,13 @@ function WordleGame() {
           )}
         </div>
 
-        <aside className="grid gap-4">
-          <div className="grid gap-1">
-            <p className="m-0 min-h-6 text-center text-[20px] font-semibold text-[#4f6173]">
+        <aside className="grid gap-3 sm:gap-4">
+          <div className="grid gap-1.5 rounded-xl border border-[#e8edf3] bg-[#f8fafc] px-3 py-3 sm:px-4 sm:py-4">
+            <p className="m-0 text-center text-xs font-semibold text-[#4f6173] sm:text-sm">
               Daily puzzle: {puzzleDate}
             </p>
 
-            <p className="m-0 min-h-6 text-center text-[20px] font-semibold text-[#4f6173]">
+            <p className="m-0 text-center text-[11px] leading-relaxed text-[#64748b] sm:text-xs md:text-sm">
               {session?.user?.id
                 ? "Your first attempt of the day is saved on the leaderboard with your nickname."
                 : "Guest mode: you can play, but your score is not saved until you sign in."}

@@ -115,10 +115,10 @@ function TitansTossPanel({ unityConfig }: TitansTossPanelProps) {
     <section className="rounded-2xl border border-[#d8dee5] bg-white p-6 shadow-[0_24px_50px_rgba(15,39,70,0.08)]">
       <header className="mb-5">
         <p className="mb-2 text-[12px] font-extrabold tracking-[0.18em] text-[#d62839]">
-          UNITY WEBGL
+          TITANS TOSS
         </p>
         <h2 className="mb-2 text-[32px] font-bold text-[#0b2a55] max-[900px]:text-[26px]">
-          Off-Season Challenge
+          Titans Toss
         </h2>
         <p className="m-0 max-w-3xl leading-[1.6] text-[#516173]">
           Practice your skills throwing the ball and become a Titan.

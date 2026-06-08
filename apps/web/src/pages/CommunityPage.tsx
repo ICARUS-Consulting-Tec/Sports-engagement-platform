@@ -33,30 +33,67 @@ function CommunityPage() {
     setIsAuthOpen(true);
   };
 
+  const categoryProps = {
+    activeCategory,
+    onSelectCategory: setActiveCategory,
+  };
+
+  const barProps = {
+    onCreatePost: handleCreatePostClick,
+    activeFilter,
+    setActiveFilter,
+  };
+
+  const postsProps = {
+    activeFilter,
+    activeCategory,
+    refreshKey,
+  };
+
   return (
-    <div className="min-h-screen bg-[#F4F5F7]">
-      <main className="mx-auto w-full max-w-350 p-6">
+    <div className="min-h-screen overflow-x-hidden bg-[#F4F5F7]">
+      <main className="page-main max-w-full overflow-x-hidden lg:mx-auto lg:w-full lg:max-w-[1400px] lg:p-6">
         <Navbar />
-        <div className="grid items-start gap-6 lg:grid-cols-[280px_minmax(0,1fr)]">
-          <div className="space-y-8">
-            <PostCategories
-              activeCategory={activeCategory}
-              onSelectCategory={setActiveCategory}
-            />
-            <TopContributor /> 
+
+        {/* Mobile: single column */}
+        <div className="mx-auto w-full min-w-0 max-w-4xl space-y-5 sm:space-y-6 lg:hidden">
+          <CommunityHeader />
+          <PostCategories {...categoryProps} />
+          <CommunityBar {...barProps} />
+          <PostComp {...postsProps} />
+          <div className="space-y-5 pb-6 pt-2 sm:space-y-6">
+            <TopContributor />
             <TopContributors />
           </div>
-          
-          <div className="space-y-6">
+        </div>
+
+        {/* Desktop: sidebar + main content */}
+        <div className="hidden items-start gap-6 lg:grid lg:grid-cols-[280px_minmax(0,1fr)]">
+          <div className="space-y-8">
+            <PostCategories {...categoryProps} />
+            <TopContributor />
+            <TopContributors />
+          </div>
+
+          <div className="min-w-0 space-y-6">
             <CommunityHeader />
-            <CommunityBar onCreatePost={handleCreatePostClick} activeFilter={activeFilter} setActiveFilter={setActiveFilter}/>
-            <PostComp activeFilter={activeFilter} activeCategory={activeCategory} refreshKey={refreshKey} />
+            <CommunityBar {...barProps} />
+            <PostComp {...postsProps} />
           </div>
         </div>
-        <ModalComp 
+
+        <ModalComp
           isOpen={isOpen}
           onOpenChange={setIsOpen}
-          children={<NewPostForm onSwitchOpenModal={setIsOpen} onSuccess={() => { setIsOpen(false); setRefreshKey(k => k + 1); }} />}
+          children={
+            <NewPostForm
+              onSwitchOpenModal={setIsOpen}
+              onSuccess={() => {
+                setIsOpen(false);
+                setRefreshKey((k) => k + 1);
+              }}
+            />
+          }
         />
         <ModalComp
           isOpen={isAuthOpen}
