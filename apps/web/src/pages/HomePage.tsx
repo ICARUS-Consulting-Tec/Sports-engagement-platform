@@ -92,11 +92,16 @@ function HomePage() {
 
   return (
     <div className="home-page">
-      <main className="home-container">
-        <Navbar />
-
+      <header className="home-hero-header">
         <CarouselHome />
+        <div className="home-hero-navbar">
+          <div className="home-container home-container--overlay-nav">
+            <Navbar variant="overlay" />
+          </div>
+        </div>
+      </header>
 
+      <main className="home-container">
         <MatchesCard />
 
         <section className="home-section">

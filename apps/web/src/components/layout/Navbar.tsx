@@ -18,13 +18,18 @@ const NAV_LINKS = [
   { to: "/voice-agent", label: "Voice Agent" },
 ] as const;
 
-function Navbar() {
+interface NavbarProps {
+  variant?: "default" | "overlay";
+}
+
+function Navbar({ variant = "default" }: NavbarProps) {
   const [isOpen, setIsOpen] = useState<boolean>(false);
   const [authView, setAuthView] = useState<"signup" | "signin">("signin");
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const { session } = Auth();
   const navigate = useNavigate();
   const location = useLocation();
+  const isOverlay = variant === "overlay";
 
   useEffect(() => {
     setMobileMenuOpen(false);
@@ -38,10 +43,15 @@ function Navbar() {
   }, [mobileMenuOpen]);
 
   const linkClass = ({ isActive }: { isActive: boolean }) =>
-    [
-      "whitespace-nowrap rounded-full px-3 py-2 text-[15px] font-medium text-gray-700 transition-colors hover:bg-gray-100 hover:text-[#0B2A55]",
-      isActive ? "font-bold text-[#0B2A55]" : "",
-    ].join(" ");
+    isOverlay
+      ? [
+          "whitespace-nowrap rounded-full px-3 py-2 text-[15px] font-medium text-white/90 transition-colors hover:bg-white/10 hover:text-white",
+          isActive ? "font-bold text-white" : "",
+        ].join(" ")
+      : [
+          "whitespace-nowrap rounded-full px-3 py-2 text-[15px] font-medium text-gray-700 transition-colors hover:bg-gray-100 hover:text-[#0B2A55]",
+          isActive ? "font-bold text-[#0B2A55]" : "",
+        ].join(" ");
 
   const mobileLinkClass = ({ isActive }: { isActive: boolean }) =>
     [
@@ -51,7 +61,13 @@ function Navbar() {
 
   return (
     <>
-      <nav className="relative z-30 mb-4 rounded-t-2xl border border-gray-200 bg-white px-4 py-3 sm:mb-6 sm:px-6 sm:py-4 lg:px-8">
+      <nav
+        className={
+          isOverlay
+            ? "relative z-30 mb-0 border-0 bg-transparent px-4 py-3 sm:px-6 sm:py-4 lg:px-8"
+            : "relative z-30 mb-4 rounded-t-2xl border border-gray-200 bg-white px-4 py-3 sm:mb-6 sm:px-6 sm:py-4 lg:px-8"
+        }
+      >
         <div className="flex items-center justify-between gap-3">
           <NavLink to="/" className="flex shrink-0 items-center gap-2.5 sm:gap-3">
             <img
@@ -61,7 +77,13 @@ function Navbar() {
               height={72}
               className="h-11 w-11 object-contain sm:h-14 sm:w-14 lg:h-[72px] lg:w-[72px]"
             />
-            <h2 className="text-base font-bold tracking-tight text-[#0B2A55] sm:text-xl lg:text-[28px]">
+            <h2
+              className={
+                isOverlay
+                  ? "text-base font-bold tracking-tight text-white sm:text-xl lg:text-[28px]"
+                  : "text-base font-bold tracking-tight text-[#0B2A55] sm:text-xl lg:text-[28px]"
+              }
+            >
               TITANS CREW
             </h2>
           </NavLink>
@@ -78,7 +100,11 @@ function Navbar() {
             {!session ? (
               <button
                 type="button"
-                className="hidden rounded-full bg-[#0B2A55] px-4 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-[#0d3468] sm:block sm:px-5 sm:py-3 sm:text-[15px]"
+                className={
+                  isOverlay
+                    ? "hidden rounded-full border border-white/30 bg-white/10 px-4 py-2.5 text-sm font-semibold text-white backdrop-blur-sm transition-colors hover:bg-white/20 sm:block sm:px-5 sm:py-3 sm:text-[15px]"
+                    : "hidden rounded-full bg-[#0B2A55] px-4 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-[#0d3468] sm:block sm:px-5 sm:py-3 sm:text-[15px]"
+                }
                 onClick={() => setIsOpen(true)}
               >
                 Login / Sign Up
@@ -86,7 +112,11 @@ function Navbar() {
             ) : (
               <button
                 type="button"
-                className="hidden rounded-full bg-[#0B2A55] px-4 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-[#0d3468] sm:block sm:px-5 sm:py-3 sm:text-[15px]"
+                className={
+                  isOverlay
+                    ? "hidden rounded-full border border-white/30 bg-white/10 px-4 py-2.5 text-sm font-semibold text-white backdrop-blur-sm transition-colors hover:bg-white/20 sm:block sm:px-5 sm:py-3 sm:text-[15px]"
+                    : "hidden rounded-full bg-[#0B2A55] px-4 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-[#0d3468] sm:block sm:px-5 sm:py-3 sm:text-[15px]"
+                }
                 onClick={() => navigate("/profile")}
               >
                 My Profile
@@ -95,7 +125,11 @@ function Navbar() {
 
             <button
               type="button"
-              className="flex h-10 w-10 items-center justify-center rounded-xl border border-gray-200 text-[#0B2A55] transition-colors hover:bg-gray-50 xl:hidden"
+              className={
+                isOverlay
+                  ? "flex h-10 w-10 items-center justify-center rounded-xl border border-white/30 text-white transition-colors hover:bg-white/10 xl:hidden"
+                  : "flex h-10 w-10 items-center justify-center rounded-xl border border-gray-200 text-[#0B2A55] transition-colors hover:bg-gray-50 xl:hidden"
+              }
               onClick={() => setMobileMenuOpen((open) => !open)}
               aria-label={mobileMenuOpen ? "Cerrar menú" : "Abrir menú"}
               aria-expanded={mobileMenuOpen}
