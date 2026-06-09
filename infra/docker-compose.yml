@@ -129,6 +129,7 @@ services:
     environment:
       PORT: 4010
       OFFSEASON_DB_URL: ${OFFSEASON_DB_URL}
+      PROFILE_SERVICE_URL: ${PROFILE_SERVICE_URL}
     ports:
       - "4010:4010"
     networks:

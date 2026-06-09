@@ -57,10 +57,27 @@ async function resolveAccountIdFromRequest(req) {
   return { authorizationHeader, accountId };
 }
 
+async function getProfileDisplayName(accountId) {
+  try {
+    const response = await fetch(`${PROFILE_SERVICE_URL}/account/${accountId}`);
+    if (!response.ok) return null;
+    const data = await response.json();
+    const profile = data?.profile;
+    if (!profile) return null;
+    const firstName = (profile.first_name || "").trim();
+    const username = (profile.username || "").trim();
+    return username || firstName || null;
+  } catch (error) {
+    console.error(`war-room profile lookup failed for account ${accountId}:`, error);
+    return null;
+  }
+}
+
 module.exports = {
   PROFILE_SERVICE_URL,
   getAuthorizationHeader,
   resolveAccountIdFromRequest,
   parsePositiveIntegerAccountId,
   getProfileByAuthToken,
+  getProfileDisplayName,
 };
