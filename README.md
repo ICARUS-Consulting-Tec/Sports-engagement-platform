@@ -18,10 +18,10 @@ The Titans Sports Engagement Platform is designed to bring fans closer to their 
 
 - **Frontend**: React.js, Next.js, Tailwind CSS
 - **Backend**: Node.js, Express.js
-- **Database**: SQL
+- **Database**: PostgreSQL & Supabase
 - **Real-time**: WebSockets
 - **Authentication**: OAuth 2.0
-- **Hosting**: Vercel / AWS
+- **Hosting**: Vercel / Coolify / GCP VM
 
 ---
 
@@ -373,4 +373,3 @@ docker compose \
 - [`infra/staging-migration-runbook.md`](infra/staging-migration-runbook.md) — runbook de despliegue en staging
 - [`apps/web/.env.example`](apps/web/.env.example) — variables del frontend con comentarios detallados
 - [`infra/.env.local.example`](infra/.env.local.example) — variables de backend para desarrollo local
-
