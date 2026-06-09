@@ -11,6 +11,16 @@ interface PackSectionProps {
   onClaim: () => void;
 }
 
+const DEFAULT_PACKS_TOTAL = 12;
+const PACK_OPENING_BASE_SECONDS = 10;
+const PACK_OPENING_MULTIPLIER = 2;
+
+function getNextPackOpeningSeconds(packsRemaining: number): number {
+  const packNumber = DEFAULT_PACKS_TOTAL + 1 - packsRemaining;
+  const n = Math.max(1, Math.min(packNumber, DEFAULT_PACKS_TOTAL));
+  return PACK_OPENING_BASE_SECONDS * Math.pow(PACK_OPENING_MULTIPLIER, n - 1);
+}
+
 function formatCountdown(totalSeconds: number): string {
   const s = Math.max(0, Math.floor(totalSeconds));
   const h = Math.floor(s / 3600);
@@ -39,13 +49,15 @@ export default function PackSection({
   const isCountingDown = status === "OPENING";
   const countdown = secondsRemaining != null ? formatCountdown(secondsRemaining) : null;
 
+  const nextOpeningSeconds = getNextPackOpeningSeconds(packsRemaining);
+
   const buttonLabel = canClaim
     ? "Open now"
     : isCountingDown
       ? `Opening… ${countdown ?? ""}`.trim()
       : isOpening
         ? "Starting…"
-        : "Start opening (10s)";
+        : `Start opening (${formatCountdown(nextOpeningSeconds)})`;
 
   return (
     <div className="mt-8 rounded-2xl bg-gradient-to-b from-[#0f1b2d] to-[#1a2d47] p-4 sm:mt-10 sm:p-6 lg:mt-10 lg:p-8">
@@ -53,7 +65,7 @@ export default function PackSection({
         <div className="min-w-0">
           <h2 className="text-xl font-bold text-white sm:text-2xl lg:text-2xl">Digital Card Packs</h2>
           <p className="mt-1 text-xs text-gray-400 sm:text-sm lg:mt-1 lg:text-sm">
-            Start opening a pack, wait 24 hours, then claim your cards
+            Each pack takes longer to open — wait time doubles with every pack you start
           </p>
         </div>
         <span className="w-fit shrink-0 rounded-full bg-red-600 px-3 py-1.5 text-xs font-bold text-white sm:px-4 sm:py-2 sm:text-sm lg:px-4 lg:py-2 lg:text-sm">
