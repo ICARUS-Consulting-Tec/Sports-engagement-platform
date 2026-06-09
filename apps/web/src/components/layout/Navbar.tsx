@@ -4,6 +4,7 @@ import { ModalComp } from "../general/modal";
 import { SignupForm } from "../auth/SignUpForm";
 import { SigninWithEmailForm } from "../auth/SignInForm";
 import { useState, useEffect } from "react";
+import { createPortal } from "react-dom";
 import { FiMenu, FiX } from "react-icons/fi";
 import "../../styles/navbar.css";
 
@@ -66,10 +67,12 @@ function Navbar({ variant = "default" }: NavbarProps) {
   };
 
   const mobileLinkClass = ({ isActive }: { isActive: boolean }) =>
-    [
-      "block w-full rounded-xl px-4 py-3.5 text-left text-base font-bold text-gray-800 transition-colors hover:bg-gray-50",
-      isActive ? "bg-[#0B2A55] text-white hover:bg-[#0B2A55]" : "",
-    ].join(" ");
+    ["mobile-menu-link", isActive ? "mobile-menu-link--active" : ""].join(" ");
+
+  const mobileDrawerClass =
+    isGlass || isOverlay
+      ? "mobile-menu-drawer"
+      : "mobile-menu-drawer mobile-menu-drawer--default";
 
   return (
     <>
@@ -180,71 +183,75 @@ function Navbar({ variant = "default" }: NavbarProps) {
         />
       )}
 
-      {mobileMenuOpen && (
-        <>
-          <div
-            className="fixed inset-0 z-40 bg-black/45 backdrop-blur-[2px] xl:hidden"
-            onClick={() => setMobileMenuOpen(false)}
-            aria-hidden
-          />
-          <div className="fixed inset-y-0 right-0 z-50 flex w-[min(320px,88vw)] flex-col bg-white shadow-2xl xl:hidden">
-            <div className="flex items-center justify-between border-b border-gray-100 px-5 py-4">
-              <span className="text-sm font-bold uppercase tracking-wider text-[#0B2A55]">
-                Menú
-              </span>
-              <button
-                type="button"
-                className="flex h-9 w-9 items-center justify-center rounded-lg text-gray-500 hover:bg-gray-100"
-                onClick={() => setMobileMenuOpen(false)}
-                aria-label="Cerrar menú"
-              >
-                <FiX size={20} />
-              </button>
-            </div>
-
-            <nav className="flex-1 overflow-y-auto px-3 py-4">
-              <div className="flex flex-col gap-1">
-                {NAV_LINKS.map(({ to, label }) => (
-                  <NavLink
-                    key={to}
-                    to={to}
-                    className={mobileLinkClass}
-                    onClick={() => setMobileMenuOpen(false)}
-                  >
-                    {label}
-                  </NavLink>
-                ))}
+      {mobileMenuOpen &&
+        createPortal(
+          <>
+            <div
+              className="mobile-menu-backdrop fixed inset-0 z-[100] xl:hidden"
+              onClick={() => setMobileMenuOpen(false)}
+              aria-hidden
+            />
+            <div
+              className={`${mobileDrawerClass} fixed inset-y-0 right-0 z-[101] flex w-[min(320px,88vw)] flex-col xl:hidden`}
+            >
+              <div className="mobile-menu-header flex items-center justify-between px-5 py-4">
+                <span className="text-sm font-bold uppercase tracking-wider text-[#0B2A55]">
+                  Menú
+                </span>
+                <button
+                  type="button"
+                  className="mobile-menu-close flex h-9 w-9 items-center justify-center rounded-lg"
+                  onClick={() => setMobileMenuOpen(false)}
+                  aria-label="Cerrar menú"
+                >
+                  <FiX size={20} />
+                </button>
               </div>
-            </nav>
 
-            <div className="border-t border-gray-100 p-4">
-              {!session ? (
-                <button
-                  type="button"
-                  className="w-full rounded-full bg-[#0B2A55] px-5 py-3.5 text-base font-semibold text-white"
-                  onClick={() => {
-                    setMobileMenuOpen(false);
-                    setIsOpen(true);
-                  }}
-                >
-                  Login / Sign Up
-                </button>
-              ) : (
-                <button
-                  type="button"
-                  className="w-full rounded-full bg-[#0B2A55] px-5 py-3.5 text-base font-semibold text-white"
-                  onClick={() => {
-                    setMobileMenuOpen(false);
-                    navigate("/profile");
-                  }}
-                >
-                  My Profile
-                </button>
-              )}
+              <nav className="flex-1 overflow-y-auto px-3 py-4">
+                <div className="flex flex-col gap-1.5">
+                  {NAV_LINKS.map(({ to, label }) => (
+                    <NavLink
+                      key={to}
+                      to={to}
+                      className={mobileLinkClass}
+                      onClick={() => setMobileMenuOpen(false)}
+                    >
+                      {label}
+                    </NavLink>
+                  ))}
+                </div>
+              </nav>
+
+              <div className="mobile-menu-footer p-4">
+                {!session ? (
+                  <button
+                    type="button"
+                    className="mobile-menu-cta"
+                    onClick={() => {
+                      setMobileMenuOpen(false);
+                      setIsOpen(true);
+                    }}
+                  >
+                    Login / Sign Up
+                  </button>
+                ) : (
+                  <button
+                    type="button"
+                    className="mobile-menu-cta"
+                    onClick={() => {
+                      setMobileMenuOpen(false);
+                      navigate("/profile");
+                    }}
+                  >
+                    My Profile
+                  </button>
+                )}
+              </div>
             </div>
-          </div>
-        </>
-      )}
+          </>,
+          document.body,
+        )}
     </>
   );
 }
