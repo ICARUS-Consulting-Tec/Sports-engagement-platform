@@ -2,7 +2,7 @@
 import React, { useMemo, useState, useEffect, useRef } from "react";
 import styled, { keyframes } from "styled-components";
 
-import useWindowDimensions from "../../hooks/tetris/useWindowDimensions";
+import useContainerDimensions from "../../hooks/tetris/useContainerDimensions";
 import StatusRow from "./statusRow";
 import LoseGame from "./loseGame";
 
@@ -29,19 +29,19 @@ const confettiFall = keyframes`
 const Game = styled.div`
 	position: relative;
 	width: 100%;
-	height: 100%;
-	min-height: 640px;
 	display: flex;
 	flex-direction: ${props => (props.portrait ? "column" : "row")};
 	justify-content: center;
 	align-items: center;
 	background-color: #0f3d78;
+	padding: 12px;
+	box-sizing: border-box;
 `;
 
 const StageShell = styled.div`
 	position: relative;
 	width: 100%;
-	min-height: 640px;
+	min-height: clamp(320px, 52vh, 640px);
 	overflow: hidden;
 `;
 
@@ -267,12 +267,36 @@ const isTitansLogoCell = (block, rowIndex, columnIndex) =>
 		columnIndex === block.logoCell[1]
 	);
 
+const LANDSCAPE_COLS = 22;
+const LANDSCAPE_ROWS = 19;
+const PORTRAIT_COLS = 12;
+const PORTRAIT_ROWS = 26;
+const MIN_PIXEL_SIZE = 12;
+const MAX_PIXEL_SIZE = 32;
+
+function computePixelSize(containerWidth: number, containerHeight: number) {
+	if (containerWidth <= 0 || containerHeight <= 0) {
+		return MIN_PIXEL_SIZE;
+	}
+
+	const isPortrait = containerHeight > containerWidth;
+	const cols = isPortrait ? PORTRAIT_COLS : LANDSCAPE_COLS;
+	const rows = isPortrait ? PORTRAIT_ROWS : LANDSCAPE_ROWS;
+	const byWidth = containerWidth / cols;
+	const byHeight = containerHeight / rows;
+	const nextPixelSize = Math.floor(Math.min(byWidth, byHeight));
+
+	return Math.max(MIN_PIXEL_SIZE, Math.min(MAX_PIXEL_SIZE, nextPixelSize));
+}
+
 const Stage = ({ lose, restartClick, map, player, hint, status, paused, confettiBurst, ...others }) => {
 	const [pixelSize, setPixelSize] = useState(30);
 	const [portrait, setPortrait] = useState(false);
-	const { width, height } = useWindowDimensions();
 	const [nextRender, setNextRender] = useState();
+	const shellRef = useRef(null);
 	const stageRef = useRef(null);
+	const { width: containerWidth, height: containerHeight } =
+		useContainerDimensions(shellRef);
 	const theme3d = status ? Math.floor((status.level - 1) / 2) % 2 === 1 : false;
 
 	const confettiPieces = useMemo(() => {
@@ -296,17 +320,11 @@ const Stage = ({ lose, restartClick, map, player, hint, status, paused, confetti
 	}, [confettiBurst]);
 
 	useEffect(() => {
-		let pixelSizeHeight = height / 28;
-		let pixelSizeWidth = width / 32;
-		if (portrait) {
-			pixelSizeHeight = height / 26;
-			pixelSizeWidth = width / 12;
-		}
-		setPixelSize(
-			pixelSizeWidth < pixelSizeHeight ? pixelSizeWidth : pixelSizeHeight
-		);
-		setPortrait(height > width);
-	}, [width, height, portrait]);
+		if (!containerWidth || !containerHeight) return;
+
+		setPortrait(containerHeight > containerWidth);
+		setPixelSize(computePixelSize(containerWidth, containerHeight));
+	}, [containerWidth, containerHeight]);
 
 	useEffect(() => {
 		if (!player.next) return;
@@ -320,7 +338,7 @@ const Stage = ({ lose, restartClick, map, player, hint, status, paused, confetti
 	}, [lose]);
 
 	return (
-		<StageShell>
+		<StageShell ref={shellRef}>
 			{confettiPieces.length > 0 && (
 				<ConfettiLayer aria-hidden="true">
 					{confettiPieces.map(piece => (
