@@ -19,8 +19,8 @@ export function WarRoomAgendaPickPhase({
   onConfirm,
 }: PickProps) {
   return (
-    <div className="mx-auto max-w-2xl">
-      <div className="rounded-2xl bg-white p-8 shadow">
+    <div className="w-full min-w-0">
+      <div className="rounded-2xl bg-white p-4 shadow sm:p-8 lg:p-10">
         <h2 className="text-2xl font-black text-[#0B2A55] mb-1">Select Your Agendas</h2>
         <p className="text-sm text-gray-500 mb-6">
           Choose 2 secret objectives. They are revealed at the end and add bonus points to your final score.
@@ -31,7 +31,7 @@ export function WarRoomAgendaPickPhase({
         {agendaError && (
           <p className="text-center text-red-500 font-semibold mb-4">{agendaError}</p>
         )}
-        <div className="grid gap-3 sm:grid-cols-2">
+        <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
           {agendas.map((a) => {
             const isSelected = selected.includes(a.agendaId);
             const isDisabled = !isSelected && selected.length >= 2;

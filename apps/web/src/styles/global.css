@@ -51,6 +51,6 @@
   }
 
   .hero-title {
-    @apply m-0 text-[clamp(1.75rem,7vw,3.625rem)] font-black leading-[1.05];
+    @apply m-0 text-3xl font-black leading-tight sm:text-4xl lg:text-5xl;
   }
 }

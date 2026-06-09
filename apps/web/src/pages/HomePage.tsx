@@ -1,6 +1,4 @@
 import { useEffect, useState } from "react";
-import Navbar from "../components/layout/Navbar";
-import { useScrollNavVisible } from "../context/ScrollNavContext";
 import CarouselHome from "../components/home/CarouselHome";
 import MatchesCard from "../components/home/MatchesCard";
 import NewsHome from "../components/home/NewsHome";
@@ -26,7 +24,6 @@ function HomePage() {
 
   const [bestSellers, setBestSellers] = useState<StoreProduct[]>([]);
   const [bestSellersLoading, setBestSellersLoading] = useState(true);
-  const showScrollNav = useScrollNavVisible();
 
   useEffect(() => {
     if (role === "admin") {
@@ -96,15 +93,6 @@ function HomePage() {
     <div className="home-page">
       <header className="home-hero-header">
         <CarouselHome />
-        <div
-          className={`home-hero-navbar${
-            showScrollNav ? " home-hero-navbar--hidden" : ""
-          }`}
-        >
-          <div className="home-container home-container--hero-nav">
-            <Navbar variant="glass" />
-          </div>
-        </div>
       </header>
 
       <main className="home-container">

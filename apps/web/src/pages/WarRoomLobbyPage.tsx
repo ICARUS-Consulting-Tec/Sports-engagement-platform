@@ -65,7 +65,7 @@ function WarRoomLobbyPage() {
           </div>
         </section>
 
-        <section className="grid gap-6 md:grid-cols-2 max-w-2xl mx-auto">
+        <section className="grid gap-6 md:grid-cols-2">
           <div className="rounded-2xl bg-white p-8 shadow flex flex-col gap-4 items-center text-center">
             <h2 className="text-xl font-bold text-[#0B2A55]">
               Create War Room

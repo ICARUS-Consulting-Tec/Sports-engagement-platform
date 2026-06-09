@@ -694,6 +694,9 @@ export default function WarRoomGamePage() {
         match.you.seat,
       )
     : "";
+  const warRoomMainClass =
+    "page-main max-w-full overflow-x-hidden lg:mx-auto lg:max-w-[1400px] lg:px-6 lg:pb-6";
+
   const banner = match && (
     <section
       className={`w-full min-w-0 overflow-hidden rounded-2xl bg-[linear-gradient(90deg,#0B2A55_0%,#1D4E89_50%,#60A5FA_100%)] text-white shadow-[0_10px_24px_rgba(0,0,0,0.12)] sm:rounded-[28px] ${
@@ -837,7 +840,7 @@ export default function WarRoomGamePage() {
   if (phase === "lobby_wait") {
     return (
       <div className="min-h-screen overflow-x-hidden bg-[#F4F5F7]">
-        <main className="page-main max-w-full overflow-x-hidden">
+        <main className={warRoomMainClass}>
           {banner}
           <WarRoomLobbyPhase
             match={match}
@@ -860,7 +863,7 @@ export default function WarRoomGamePage() {
   if (phase === "agenda_pick") {
     return (
       <div className="min-h-screen bg-[#F4F5F7]">
-        <main className="page-main">
+        <main className={warRoomMainClass}>
           {banner}
           <WarRoomAgendaPickPhase
             agendas={agendas}
@@ -879,7 +882,7 @@ export default function WarRoomGamePage() {
   if (phase === "agenda_wait") {
     return (
       <div className="min-h-screen overflow-x-hidden bg-[#F4F5F7]">
-        <main className="page-main max-w-full overflow-x-hidden">
+        <main className={warRoomMainClass}>
           {banner}
           <WarRoomAgendaWaitPhase match={match} />
         </main>
@@ -891,7 +894,7 @@ export default function WarRoomGamePage() {
   if (phase === "ended") {
     return (
       <div className="min-h-screen bg-[#F4F5F7]">
-        <main className="page-main">
+        <main className={warRoomMainClass}>
           {banner}
           {!results ? (
             <div className="rounded-2xl bg-white p-10 shadow text-center">
@@ -914,7 +917,7 @@ export default function WarRoomGamePage() {
 
   return (
     <div className="min-h-screen overflow-x-hidden bg-[#F4F5F7]">
-      <main className="page-main flex min-h-screen flex-col overflow-x-hidden !pb-3">
+      <main className={`${warRoomMainClass} flex min-h-screen flex-col !pb-3`}>
         {banner}
         {statusToast && (
           <p className="mb-2 shrink-0 rounded-xl bg-[#0f3d78] px-4 py-2 text-center text-sm font-bold text-white">

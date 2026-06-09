@@ -22,12 +22,16 @@ import ProductDetailPage from "./pages/ProductDetailPage";
 import AddedToCartToast from "./components/store/AddedToCartToast";
 import FeedbackDrawer from "./components/feedback/FeedbackDrawer";
 import { Auth } from "./context/AuthContext";
-import { AppScrollNavShell } from "./context/ScrollNavContext";
+import {
+  AppScrollNavShell,
+  isMatchRoomRoute,
+} from "./context/ScrollNavContext";
 
 function App() {
   const { session } = Auth();
   const location = useLocation();
   const isAdminRoute = location.pathname.startsWith("/admin");
+  const isMatchRoom = isMatchRoomRoute(location.pathname);
 
   const routes = (
         <Routes>
@@ -174,7 +178,7 @@ function App() {
     <CartProvider>
       <AddedToCartToast />
       {isAdminRoute ? routes : <AppScrollNavShell>{routes}</AppScrollNavShell>}
-      {session && !isAdminRoute ? <FeedbackDrawer /> : null}
+      {session && !isAdminRoute && !isMatchRoom ? <FeedbackDrawer /> : null}
     </CartProvider>
   );
 }

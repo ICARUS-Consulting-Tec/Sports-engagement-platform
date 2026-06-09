@@ -35,9 +35,16 @@ export function ScrollNavProvider({ children, mode }: ScrollNavProviderProps) {
   );
 }
 
+export function isMatchRoomRoute(pathname: string): boolean {
+  return /^\/matches\/[^/]+$/.test(pathname);
+}
+
 export function AppScrollNavShell({ children }: { children: ReactNode }) {
   const location = useLocation();
-  const mode: ScrollNavMode = location.pathname === "/" ? "home" : "default";
 
-  return <ScrollNavProvider mode={mode}>{children}</ScrollNavProvider>;
+  if (isMatchRoomRoute(location.pathname)) {
+    return <>{children}</>;
+  }
+
+  return <ScrollNavProvider mode="default">{children}</ScrollNavProvider>;
 }
