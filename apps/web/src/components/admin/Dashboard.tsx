@@ -18,6 +18,43 @@ import html2canvas from "html2canvas-pro";
 import jsPDF from "jspdf";
 import titanLogo from "../../assets/home/TitanCrewLogo.png";
 
+const REPORT_READY_TIMEOUT_MS = 6000;
+const REPORT_RENDER_SETTLE_MS = 450;
+
+function wait(ms: number) {
+  return new Promise((resolve) => window.setTimeout(resolve, ms));
+}
+
+function waitForNextPaint() {
+  return new Promise<void>((resolve) => {
+    window.requestAnimationFrame(() => {
+      window.requestAnimationFrame(() => resolve());
+    });
+  });
+}
+
+async function waitForReportReady(element: HTMLElement) {
+  if ("fonts" in document) {
+    await document.fonts.ready;
+  }
+
+  const startedAt = Date.now();
+
+  while (Date.now() - startedAt < REPORT_READY_TIMEOUT_MS) {
+    const reportText = element.textContent ?? "";
+    const hasLoadingText = /Cargando|Loading|\.\.\./i.test(reportText);
+
+    if (!hasLoadingText) {
+      break;
+    }
+
+    await wait(150);
+  }
+
+  await waitForNextPaint();
+  await wait(REPORT_RENDER_SETTLE_MS);
+  await waitForNextPaint();
+}
 
 function formatPostDayLabel(value: string | number): string {
   return new Date(value).toLocaleDateString("es", {
@@ -38,107 +75,114 @@ function resolveStatsTrend(
 }
 
 export default function Dashboard() {
-
-  const printRef = React.useRef(null);
+  const printRef = React.useRef<HTMLDivElement | null>(null);
+  const [isGeneratingReport, setIsGeneratingReport] = useState(false);
 
   const handleDownloadPdf = async () => {
-  const element = printRef.current;
+    const element = printRef.current;
 
-  if (!element) {
-    return;
-  }
+    if (!element) {
+      return;
+    }
 
-  const canvas = await html2canvas(element, {
-    scale: 2,
-  });
+    setIsGeneratingReport(true);
 
-  const data = canvas.toDataURL("image/png");
+    try {
+      await waitForReportReady(element);
 
-  const pdf = new jsPDF({
-    orientation: "portrait",
-    unit: "px",
-    format: "a4",
-  });
+      const canvas = await html2canvas(element, {
+        scale: 2,
+      });
 
-  const pageWidth = pdf.internal.pageSize.getWidth();
-  const pageHeight = pdf.internal.pageSize.getHeight();
+      const data = canvas.toDataURL("image/png");
 
-  // =========================
-  // HEADER
-  // =========================
+      const pdf = new jsPDF({
+        orientation: "portrait",
+        unit: "px",
+        format: "a4",
+      });
 
-    // Logo
-    pdf.addImage(
-      titanLogo,
-      "PNG",
-      20, 15, 40, 40
-    );
+      const pageWidth = pdf.internal.pageSize.getWidth();
+      const pageHeight = pdf.internal.pageSize.getHeight();
 
-    // Nombre de la aplicación
-    pdf.setFont("helvetica", "bold");
-    pdf.setFontSize(22);
-    pdf.text("Titan Crew", 70, 32);
+      // =========================
+      // HEADER
+      // =========================
 
-    // Título del reporte
-    pdf.setFont("helvetica", "normal");
-    pdf.setFontSize(14);
-    pdf.text("Administrative Dashboard", 70, 52);
+      // Logo
+      pdf.addImage(
+        titanLogo,
+        "PNG",
+        20, 15, 40, 40
+      );
 
-    // Fecha (esquina superior derecha)
-    pdf.setFontSize(10);
+      // Nombre de la aplicación
+      pdf.setFont("helvetica", "bold");
+      pdf.setFontSize(22);
+      pdf.text("Titan Crew", 70, 32);
 
-    pdf.text(
-      `Generated: ${new Date().toLocaleDateString("en-US", {
-        year: "numeric",
-        month: "long",
-        day: "numeric",
-      })}`,
-      pageWidth - 150,
-      25
-    );
+      // Título del reporte
+      pdf.setFont("helvetica", "normal");
+      pdf.setFontSize(14);
+      pdf.text("Administrative Dashboard", 70, 52);
 
-    // Línea divisoria
-    pdf.line(20, 70, pageWidth - 20, 70);
+      // Fecha (esquina superior derecha)
+      pdf.setFontSize(10);
 
-  // =========================
-  // DASHBOARD IMAGE
-  // =========================
+      pdf.text(
+        `Generated: ${new Date().toLocaleDateString("en-US", {
+          year: "numeric",
+          month: "long",
+          day: "numeric",
+        })}`,
+        pageWidth - 150,
+        25
+      );
 
-  const imgProperties = pdf.getImageProperties(data);
-  
+      // Línea divisoria
+      pdf.line(20, 70, pageWidth - 20, 70);
 
-  const imageWidth = pageWidth - 50;
-  const xPosition = (pageWidth - imageWidth) / 2;
+      // =========================
+      // DASHBOARD IMAGE
+      // =========================
 
-  const imageHeight =
-    (imgProperties.height * imageWidth) /
-    imgProperties.width;
+      const imgProperties = pdf.getImageProperties(data);
 
-  const headerHeight = 95;
+      const imageWidth = pageWidth - 50;
+      const xPosition = (pageWidth - imageWidth) / 2;
 
-  pdf.addImage(
-    data,
-    "PNG",
-    xPosition,
-    headerHeight,
-    imageWidth,
-    imageHeight
-  );
+      const imageHeight =
+        (imgProperties.height * imageWidth) /
+        imgProperties.width;
 
-  // =========================
-  // FOOTER
-  // =========================
+      const headerHeight = 95;
 
-  pdf.setFontSize(9);
+      pdf.addImage(
+        data,
+        "PNG",
+        xPosition,
+        headerHeight,
+        imageWidth,
+        imageHeight
+      );
 
-  pdf.text(
-    "Titan Crew - Administrative Dashboard Report",
-    20,
-    pageHeight - 15
-  );
+      // =========================
+      // FOOTER
+      // =========================
 
-  pdf.save("ADMIN_Report.pdf");
-};
+      pdf.setFontSize(9);
+
+      pdf.text(
+        "Titan Crew - Administrative Dashboard Report",
+        20,
+        pageHeight - 15
+      );
+
+      pdf.save("ADMIN_Report.pdf");
+    } finally {
+      setIsGeneratingReport(false);
+    }
+  };
 
   const [totalMembers, setTotalMembers] = useState<TotalMembersStat | null>(
     null,
@@ -235,10 +279,11 @@ export default function Dashboard() {
         <button
           type="button"
           onClick={handleDownloadPdf}
-          className="flex h-9 w-full shrink-0 cursor-pointer items-center justify-center gap-2 rounded-lg bg-[#4B92DB] px-4 text-sm font-semibold text-white transition-colors hover:bg-[#3A7FC5] sm:w-auto lg:mt-1"
+          disabled={isGeneratingReport}
+          className="mr-10 mt-5 flex h-9 shrink-0 cursor-pointer items-center gap-2 rounded-lg bg-[#4B92DB] px-4 text-sm font-semibold text-white transition-colors hover:bg-[#3A7FC5] disabled:cursor-not-allowed disabled:bg-[#8bb1d7]"
         >
           <Icon icon="mdi:download" className="text-lg" />
-          Download Report
+          {isGeneratingReport ? "Preparing..." : "Download Report"}
         </button>
       </div>
 
